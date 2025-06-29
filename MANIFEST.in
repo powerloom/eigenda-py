@@ -1,0 +1,37 @@
+# Include the README
+include README.md
+include LICENSE
+include CLAUDE.md
+
+# Include the requirements files
+include requirements.txt
+include requirements-dev.txt
+
+# Include the proto files
+recursive-include protos *.proto
+
+# Include type hints
+include src/eigenda/py.typed
+
+# Include examples
+recursive-include examples *.py
+
+# Include tests
+recursive-include tests *.py
+
+# Include docs
+recursive-include docs *.md
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.swp
+global-exclude .DS_Store
+global-exclude __pycache__
+exclude .gitignore
+exclude .env
+exclude .env.*
+exclude Makefile
+
+# Exclude SRS files (too large)
+prune srs-files

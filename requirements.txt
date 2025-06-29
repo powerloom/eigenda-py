@@ -1,0 +1,18 @@
+# Core dependencies
+grpcio>=1.60.0
+grpcio-tools>=1.60.0
+protobuf>=4.25.0
+
+# Ethereum/Web3 dependencies
+web3>=6.0.0
+eth-account>=0.10.0
+eth-utils>=2.0.0
+eth-abi>=4.0.0
+eth-typing>=3.0.0
+
+# Cryptography
+cryptography>=41.0.0
+pycryptodome>=3.19.0  # For Keccak256
+
+# Utilities
+python-dotenv>=1.0.0  # For loading .env files

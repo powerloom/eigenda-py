@@ -1,0 +1,374 @@
+syntax = "proto3";
+package disperser.v2;
+
+import "common/common.proto";
+import "common/v2/common_v2.proto";
+
+option go_package = "github.com/Layr-Labs/eigenda/api/grpc/disperser/v2";
+
+// Disperser defines the public APIs for dispersing blobs.
+service Disperser {
+  // DisperseBlob accepts blob to disperse from clients.
+  // This executes the dispersal asynchronously, i.e. it returns once the request
+  // is accepted. The client could use GetBlobStatus() API to poll the the
+  // processing status of the blob.
+  rpc DisperseBlob(DisperseBlobRequest) returns (DisperseBlobReply) {}
+
+  // GetBlobStatus is meant to be polled for the blob status.
+  rpc GetBlobStatus(BlobStatusRequest) returns (BlobStatusReply) {}
+
+  // GetBlobCommitment is a utility method that calculates commitment for a blob payload.
+  // It is provided to help clients who are trying to construct a DisperseBlobRequest.blob_header
+  // and don't have the ability to calculate the commitment themselves (expensive operation which requires SRS points).
+  //
+  // For an example usage, see how our disperser_client makes a call to this endpoint when it doesn't have a local prover:
+  // https://github.com/Layr-Labs/eigenda/blob/6059c6a068298d11c41e50f5bcd208d0da44906a/api/clients/v2/disperser_client.go#L166
+  rpc GetBlobCommitment(BlobCommitmentRequest) returns (BlobCommitmentReply) {}
+
+  // GetPaymentState is a utility method to get the payment state of a given account, at a given disperser.
+  // EigenDA's payment system for v2 is currently centralized, meaning that each disperser does its own accounting.
+  // As reservation moves to be quorum specific and served by permissionless dispersers, GetPaymentState will soon be deprecated
+  // in replacement of GetPaymentStateForAllQuorums to include more specifications. During the endpoint migration time, the response
+  // uses quorum 0 for the global parameters, and the most retrictive reservation parameters of a user across quorums. For
+  // OnDemand, EigenDA disperser is the only allowed disperser, so it will provide real values tracked for on-demand offchain payment records.
+  // For other dispersers, they will refuse to serve ondemand requests and serve 0 as the on-demand offchain records. A client using
+  // non-EigenDA dispersers should only request with reserved usages.
+  //
+  // A client wanting to disperse a blob would thus need to synchronize its local accounting state with that of the disperser.
+  // That typically only needs to be done once, and the state can be updated locally as the client disperses blobs.
+  // The accounting rules are simple and can be updated locally, but periodic checks with the disperser can't hurt.
+  //
+  // For an example usage, see how our disperser_client makes a call to this endpoint to populate its local accountant struct:
+  // https://github.com/Layr-Labs/eigenda/blob/6059c6a068298d11c41e50f5bcd208d0da44906a/api/clients/v2/disperser_client.go#L298
+  rpc GetPaymentState(GetPaymentStateRequest) returns (GetPaymentStateReply) {}
+
+  // GetPaymentStateForAllQuorums is a utility method to get the payment state of a given account, at a given disperser.
+  // EigenDA's dispersers and validators each does its own accounting for reservation usages, indexed by the account and quorum id.
+  // A client wanting to disperse a blob would thus need to synchronize its local accounting state with the disperser it plans to disperse to.
+  // That typically only needs to be done once, and the state can be updated locally as the client disperses blobs.
+  // The accounting rules are simple and can be updated locally, but periodic checks with the disperser can't hurt.
+  //
+  // For an example usage, see how our disperser_client makes a call to this endpoint to populate its local accountant struct:
+  // https://github.com/Layr-Labs/eigenda/blob/6059c6a068298d11c41e50f5bcd208d0da44906a/api/clients/v2/disperser_client.go#L298
+  rpc GetPaymentStateForAllQuorums(GetPaymentStateForAllQuorumsRequest) returns (GetPaymentStateForAllQuorumsReply) {}
+}
+
+// Requests and Replies
+
+// A request to disperse a blob.
+message DisperseBlobRequest {
+  // The blob to be dispersed.
+  //
+  // The size of this byte array may be any size as long as it does not exceed the maximum length of 16MiB.
+  // While the data being dispersed is only required to be greater than 0 bytes, the blob size charged against the
+  // payment method will be rounded up to the nearest multiple of `minNumSymbols` defined by the payment vault contract
+  // (https://github.com/Layr-Labs/eigenda/blob/1430d56258b4e814b388e497320fd76354bfb478/contracts/src/payments/PaymentVaultStorage.sol#L9).
+  //
+  // Every 32 bytes of data is interpreted as an integer in big endian format where the lower address has more
+  // significant bits. The integer must stay in the valid range to be interpreted as a field element on the bn254 curve.
+  // The valid range is 0 <= x < 21888242871839275222246405745257275088548364400416034343698204186575808495617.
+  // If any one of the 32 bytes elements is outside the range, the whole request is deemed as invalid, and rejected.
+  bytes blob = 1;
+  // The header contains metadata about the blob.
+  //
+  // This header can be thought of as an "eigenDA tx", in that it plays a purpose similar to an eth_tx to disperse a
+  // 4844 blob. Note that a call to DisperseBlob requires the blob and the blobHeader, which is similar to how
+  // dispersing a blob to ethereum requires sending a tx whose data contains the hash of the kzg commit of the blob,
+  // which is dispersed separately.
+  common.v2.BlobHeader blob_header = 2;
+  // signature over keccak hash of the blob_header that can be verified by blob_header.payment_header.account_id
+  bytes signature = 3;
+}
+
+// A reply to a DisperseBlob request.
+message DisperseBlobReply {
+  // The status of the blob associated with the blob key.
+  BlobStatus result = 1;
+  // The unique 32 byte identifier for the blob.
+  //
+  // The blob_key is the keccak hash of the rlp serialization of the BlobHeader, as computed here:
+  // https://github.com/Layr-Labs/eigenda/blob/0f14d1c90b86d29c30ff7e92cbadf2762c47f402/core/v2/serialization.go#L30
+  // The blob_key must thus be unique for every request, even if the same blob is being dispersed.
+  // Meaning the blob_header must be different for each request.
+  //
+  // Note that attempting to disperse a blob with the same blob key as a previously dispersed blob may cause
+  // the disperser to reject the blob (DisperseBlob() RPC will return an error).
+  bytes blob_key = 2;
+}
+
+// BlobStatusRequest is used to query the status of a blob.
+message BlobStatusRequest {
+  // The unique identifier for the blob.
+  bytes blob_key = 1;
+}
+
+// BlobStatusReply is the reply to a BlobStatusRequest.
+message BlobStatusReply {
+  // The status of the blob.
+  BlobStatus status = 1;
+  // The signed batch. Only set if the blob status is GATHERING_SIGNATURES or COMPLETE.
+  // signed_batch and blob_inclusion_info are only set if the blob status is GATHERING_SIGNATURES or COMPLETE.
+  // When blob is in GATHERING_SIGNATURES status, the attestation object in signed_batch contains attestation information
+  // at the point in time. As it gathers more signatures, attestation object will be updated according to the latest attestation status.
+  // The client can use this intermediate attestation to verify a blob if it has gathered enough signatures.
+  // Otherwise, it should should poll the GetBlobStatus API until the desired level of attestation has been gathered or status is COMPLETE.
+  // When blob is in COMPLETE status, the attestation object in signed_batch contains the final attestation information.
+  // If the final attestation does not meet the client's requirement, the client should try a new dispersal.
+  SignedBatch signed_batch = 2;
+  // BlobInclusionInfo is the information needed to verify the inclusion of a blob in a batch.
+  // Only set if the blob status is GATHERING_SIGNATURES or COMPLETE.
+  BlobInclusionInfo blob_inclusion_info = 3;
+}
+
+// The input for a BlobCommitmentRequest().
+// This can be used to construct a BlobHeader.commitment.
+message BlobCommitmentRequest {
+  // The blob data to compute the commitment for.
+  bytes blob = 1;
+}
+
+// The result of a BlobCommitmentRequest().
+message BlobCommitmentReply {
+  // The commitment of the blob.
+  common.BlobCommitment blob_commitment = 1;
+}
+
+// GetPaymentStateRequest contains parameters to query the payment state of an account.
+message GetPaymentStateRequest {
+  // The ID of the account being queried. This account ID is an eth wallet address of the user.
+  string account_id = 1;
+  // Signature over the account ID and timestamp.
+  bytes signature = 2;
+  // Timestamp of the request in nanoseconds since the Unix epoch. If too far out of sync with the server's clock,
+  // request may be rejected.
+  uint64 timestamp = 3;
+}
+
+// GetPaymentStateForAllQuorumsRequest contains parameters to query the payment state of an account.
+message GetPaymentStateForAllQuorumsRequest {
+  // The ID of the account being queried. This account ID is an eth wallet address of the user.
+  string account_id = 1;
+  // Timestamp of the request in nanoseconds since the Unix epoch. If too far out of sync with the server's clock,
+  // request may be rejected.
+  uint64 timestamp = 2;
+  // Signature over the payment account ID and timestamp.
+  bytes signature = 3;
+}
+
+// GetPaymentStateReply contains the payment state of an account.
+message GetPaymentStateReply {
+  // global payment vault parameters
+  PaymentGlobalParams payment_global_params = 1;
+  // off-chain account reservation usage records
+  repeated PeriodRecord period_records = 2;
+  // on-chain account reservation setting
+  Reservation reservation = 3;
+  // off-chain on-demand payment usage
+  bytes cumulative_payment = 4;
+  // on-chain on-demand payment deposited
+  bytes onchain_cumulative_payment = 5;
+}
+
+// GetPaymentStateForAllQuorumsReply contains the payment state of an account. EigenLabs disperser is the only disperser that allows
+// for ondemand usages, and it will provide the latest on-demand offchain record of `cumulative_payment` for the request account.
+// Other dispersers will refuse to serve ondemand requests and serve a dummy value for `cumulative_payment`. A client using
+// non-EigenDA dispersers should disregard the `cumulative_payment` shared by the non EigenLabs dispersers and only request with reservations.
+// A client can always switch to use EigenLabs disperser to request for `cumulative_payment` payment state, and use on-demand dispersals.
+message GetPaymentStateForAllQuorumsReply {
+  // payment vault parameters with per-quorum configurations
+  PaymentVaultParams payment_vault_params = 1;
+  // period_records maps quorum IDs to the off-chain account reservation usage records for the current and next two periods
+  map<uint32, PeriodRecords> period_records = 2;
+  // reservations maps quorum IDs to the on-chain account reservation record
+  map<uint32, QuorumReservation> reservations = 3;
+  // off-chain on-demand payment usage. This field is currently only tracked by EigenLabs disperser because on-demand requests are only
+  // supported by EigenLabs. Future work will support decentralized on-demand dispersals and this field later be tracked and shared by
+  // dispersers unlimited to EigenLabs.
+  bytes cumulative_payment = 4;
+  // on-chain on-demand payment deposited.
+  bytes onchain_cumulative_payment = 5;
+}
+
+// Reservation parameters of an account, used to determine the rate limit for the account.
+message QuorumReservation {
+  // rate limit for the account
+  uint64 symbols_per_second = 1;
+  // start timestamp of the reservation
+  uint32 start_timestamp = 2;
+  // end timestamp of the reservation
+  uint32 end_timestamp = 3;
+}
+
+// Data Types
+
+// BlobStatus represents the status of a blob.
+// The status of a blob is updated as the blob is processed by the disperser.
+// The status of a blob can be queried by the client using the GetBlobStatus API.
+// Intermediate states are states that the blob can be in while being processed, and it can be updated to a different state:
+// - QUEUED
+// - ENCODED
+// - GATHERING_SIGNATURES
+// Terminal states are states that will not be updated to a different state:
+// - UNKNOWN
+// - COMPLETE
+// - FAILED
+enum BlobStatus {
+  // UNKNOWN means that the status of the blob is unknown.
+  // This is a catch all and should not be encountered absent a bug.
+  //
+  // This status is functionally equivalent to FAILED, but is used to indicate that the failure is due to an
+  // unanticipated bug.
+  UNKNOWN = 0;
+
+  // QUEUED means that the blob has been queued by the disperser for processing.
+  // The DisperseBlob API is asynchronous, meaning that after request validation, but before any processing,
+  // the blob is stored in a queue of some sort, and a response immediately returned to the client.
+  QUEUED = 1;
+
+  // ENCODED means that the blob has been Reed-Solomon encoded into chunks and is ready to be dispersed to DA Nodes.
+  ENCODED = 2;
+
+  // GATHERING_SIGNATURES means that the blob chunks are currently actively being transmitted to validators,
+  // and in doing so requesting that the validators sign to acknowledge receipt of the blob.
+  // Requests that timeout or receive errors are resubmitted to DA nodes for some period of time set by the disperser,
+  // after which the BlobStatus becomes COMPLETE.
+  GATHERING_SIGNATURES = 3;
+
+  // COMPLETE means the blob has been dispersed to DA nodes, and the GATHERING_SIGNATURES period of time has completed.
+  // This status does not guarantee any signer percentage, so a client should check that the signature has met
+  // its required threshold, and resubmit a new blob dispersal request if not.
+  COMPLETE = 4;
+
+  // FAILED means that the blob has failed permanently. Note that this is a terminal state, and in order to
+  // retry the blob, the client must submit the blob again (blob key is required to be unique).
+  FAILED = 5;
+}
+
+// SignedBatch is a batch of blobs with a signature.
+message SignedBatch {
+  // header contains metadata about the batch
+  common.v2.BatchHeader header = 1;
+  // attestation on the batch
+  Attestation attestation = 2;
+}
+
+// BlobInclusionInfo is the information needed to verify the inclusion of a blob in a batch.
+message BlobInclusionInfo {
+  common.v2.BlobCertificate blob_certificate = 1;
+  // blob_index is the index of the blob in the batch
+  uint32 blob_index = 2;
+  // inclusion_proof is the inclusion proof of the blob in the batch
+  bytes inclusion_proof = 3;
+}
+
+message Attestation {
+  // Serialized bytes of non signer public keys (G1 points)
+  repeated bytes non_signer_pubkeys = 1;
+  // Serialized bytes of G2 point that represents aggregate public key of all signers
+  bytes apk_g2 = 2;
+  // Serialized bytes of aggregate public keys (G1 points) from all nodes for each quorum
+  // The order of the quorum_apks should match the order of the quorum_numbers
+  repeated bytes quorum_apks = 3;
+  // Serialized bytes of aggregate signature
+  bytes sigma = 4;
+  // Relevant quorum numbers for the attestation
+  repeated uint32 quorum_numbers = 5;
+  // The attestation rate for each quorum. Each quorum's signing percentage is represented by
+  // an 8 bit unsigned integer. The integer is the fraction of the quorum that has signed, with
+  // 100 representing 100% of the quorum signing, and 0 representing 0% of the quorum signing. The first
+  // byte in the byte array corresponds to the first quorum in the quorum_numbers array, the second byte
+  // corresponds to the second quorum, and so on.
+  bytes quorum_signed_percentages = 6;
+}
+
+// Global constant parameters defined by the payment vault.
+// This message type will soon be deprecated in replacement of PaymentVaultParams. During endpoint migration, this will be filled
+// with the parameters on quorum 0, quorum configurations will be the same across quorums for the foreseeable future.
+message PaymentGlobalParams {
+  // Global ratelimit for on-demand dispersals
+  uint64 global_symbols_per_second = 1;
+  // Minimum number of symbols accounted for all dispersals
+  uint64 min_num_symbols = 2;
+  // Price charged per symbol for on-demand dispersals
+  uint64 price_per_symbol = 3;
+  // Reservation window for all reservations
+  uint64 reservation_window = 4;
+  // quorums allowed to make on-demand dispersals
+  repeated uint32 on_demand_quorum_numbers = 5;
+}
+
+// Reservation parameters of an account, used to determine the rate limit for the account.
+// This message type will soon be deprecated. During the migration time, we will maintain the usage by returning the
+// most restrictive reservation parameters across the quroums: symbols_per_second will be the lowest rate of across all quroums
+// with latest start and earliest end timestamp, all the quorum numbers with a reservation, and a dummy quorum_splits which was never used.
+message Reservation {
+  // rate limit for the account
+  uint64 symbols_per_second = 1;
+  // start timestamp of the reservation
+  uint32 start_timestamp = 2;
+  // end timestamp of the reservation
+  uint32 end_timestamp = 3;
+  // quorums allowed to make reserved dispersals
+  repeated uint32 quorum_numbers = 4;
+  // quorum splits describes how the payment is split among the quorums
+  repeated uint32 quorum_splits = 5;
+}
+
+// PeriodRecord is the usage record of an account in a bin. The API should return the active bin
+// record and the subsequent two records that contains potential overflows.
+message PeriodRecord {
+  // Period index of the reservation
+  uint32 index = 1;
+  // symbol usage recorded
+  uint64 usage = 2;
+}
+
+// PaymentQuorumConfig contains the configuration for a quorum's payment configurations
+message PaymentQuorumConfig {
+  // reservation_symbols_per_second is the total symbols per second that can be reserved for this quorum
+  uint64 reservation_symbols_per_second = 1;
+
+  // on_demand_symbols_per_second is the symbols per second allowed for on-demand payments for this quorum
+  uint64 on_demand_symbols_per_second = 2;
+
+  // on_demand_price_per_symbol is the price per symbol for on-demand payments in wei
+  uint64 on_demand_price_per_symbol = 3;
+}
+
+// PaymentQuorumProtocolConfig contains the configuration for a quorum's protocol-level configurations
+message PaymentQuorumProtocolConfig {
+  // min_num_symbols is the minimum number of symbols that must be charged for any request
+  uint64 min_num_symbols = 1;
+
+  // reservation_advance_window is the window in seconds before a reservation starts that it can be activated
+  uint64 reservation_advance_window = 2;
+
+  // reservation_rate_limit_window is the time window in seconds for reservation rate limiting
+  uint64 reservation_rate_limit_window = 3;
+
+  // on_demand_rate_limit_window is the time window in seconds for on-demand rate limiting
+  uint64 on_demand_rate_limit_window = 4;
+
+  // on_demand_enabled indicates whether on-demand payments are enabled for this quorum
+  bool on_demand_enabled = 5;
+}
+
+// PaymentVaultParams contains the global payment configuration parameters from the payment vault
+// This is the new version of
+message PaymentVaultParams {
+  // quorum_payment_configs maps quorum IDs to their payment configurations
+  map<uint32, PaymentQuorumConfig> quorum_payment_configs = 1;
+
+  // quorum_protocol_configs maps quorum IDs to their protocol configurations
+  map<uint32, PaymentQuorumProtocolConfig> quorum_protocol_configs = 2;
+
+  // on_demand_quorum_numbers lists the quorum numbers that support on-demand payments
+  repeated uint32 on_demand_quorum_numbers = 3;
+}
+
+// An array of period records. Typically this is used to include 3 records, from the current period to the next two periods.
+// The next two period records are included because they may include spillage usages from the previous period or the current period.
+// The client should be aware of the spillage so they account for them as they disperse during those periods.
+message PeriodRecords {
+  repeated PeriodRecord records = 1;
+}
