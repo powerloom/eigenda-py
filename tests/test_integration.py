@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from eigenda import DisperserClient, LocalBlobRequestSigner
+from eigenda import MockDisperserClient, LocalBlobRequestSigner
 from eigenda.codec import encode_blob_data
 
 
@@ -18,7 +18,7 @@ class TestIntegration:
         private_key = os.getenv("EIGENDA_PRIVATE_KEY")
         signer = LocalBlobRequestSigner(private_key)
         
-        client = DisperserClient(
+        client = MockDisperserClient(
             hostname="disperser-testnet-holesky.eigenda.xyz",
             port=443,
             use_secure_grpc=True,
@@ -50,7 +50,7 @@ class TestIntegration:
         dummy_key = "0x" + "00" * 32
         signer = LocalBlobRequestSigner(dummy_key)
         
-        with DisperserClient(
+        with MockDisperserClient(
             hostname="example.com",
             port=443,
             use_secure_grpc=True,
