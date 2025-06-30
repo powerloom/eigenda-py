@@ -119,7 +119,7 @@ Key dependencies:
 - `grpcio` and `grpcio-tools` for gRPC
 - `web3` and `eth-account` for Ethereum functionality  
 - `protobuf` for message serialization
-- Python 3.8+ required
+- Python 3.9+ required
 
 ### 9. Environment Setup
 

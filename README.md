@@ -200,7 +200,7 @@ python scripts/fix_grpc_imports.py
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.9+
 - See requirements.txt for full dependencies
 
 ## License
