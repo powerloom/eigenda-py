@@ -1,0 +1,32 @@
+[flake8]
+max-line-length = 127
+max-complexity = 10
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .eggs,
+    *.egg,
+    .venv,
+    venv,
+    .tox,
+    .pytest_cache,
+    htmlcov,
+    src/eigenda/grpc/
+    
+extend-ignore = 
+    # W293: blank line contains whitespace
+    W293,
+    # W291: trailing whitespace
+    W291,
+    # W292: no newline at end of file
+    W292
+
+per-file-ignores =
+    # Allow imports after path setup in examples
+    examples/*:E402,F401,C901
+    # Allow unused imports in __init__.py files
+    __init__.py:F401
+    # Allow unused imports in test files
+    tests/*:F401

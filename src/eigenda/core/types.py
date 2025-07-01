@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
-from eth_typing import HexStr, Address
+from typing import List
+from eth_typing import Address
 import hashlib
 
 # Type aliases
@@ -15,7 +15,7 @@ class BlobStatus(Enum):
     """Status of a dispersed blob."""
     UNKNOWN = 0
     PROCESSING = 1
-    GATHERING_SIGNATURES = 2 
+    GATHERING_SIGNATURES = 2
     COMPLETE = 3
     FAILED = 4
     INSUFFICIENT_SIGNATURES = 5
@@ -24,18 +24,18 @@ class BlobStatus(Enum):
 @dataclass
 class BlobKey:
     """Unique identifier for a blob dispersal."""
-    
+
     _bytes: bytes
-    
+
     def __init__(self, data: bytes):
         if len(data) != 32:
             raise ValueError(f"BlobKey must be 32 bytes, got {len(data)}")
         self._bytes = data
-    
+
     def hex(self) -> str:
         """Return hex representation of the blob key."""
         return self._bytes.hex()
-    
+
     @classmethod
     def from_hex(cls, hex_str: str) -> "BlobKey":
         """Create BlobKey from hex string."""
@@ -43,18 +43,18 @@ class BlobKey:
         if hex_str.startswith(("0x", "0X")):
             hex_str = hex_str[2:]
         return cls(bytes.fromhex(hex_str))
-    
+
     @classmethod
     def from_bytes(cls, data: bytes) -> "BlobKey":
         """Create BlobKey from bytes."""
         return cls(data)
-    
+
     def __bytes__(self) -> bytes:
         return self._bytes
-    
+
     def __repr__(self) -> str:
         return f"BlobKey({self.hex()})"
-    
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, BlobKey):
             return False
@@ -68,7 +68,7 @@ class G1Commitment:
     y: bytes
 
 
-@dataclass 
+@dataclass
 class G2Commitment:
     """G2 point commitment."""
     x_a0: bytes
@@ -96,16 +96,16 @@ class PaymentMetadata:
 @dataclass
 class BlobHeader:
     """Metadata header for a blob."""
-    
+
     blob_version: BlobVersion
     blob_commitments: BlobCommitments
     quorum_numbers: List[QuorumID]
     payment_metadata: PaymentMetadata
-    
+
     def blob_key(self) -> BlobKey:
         """
         Calculate the BlobKey for this header.
-        
+
         The blob key is computed as the Keccak256 hash of the serialized header
         where the payment metadata has been replaced with its hash.
         """
@@ -120,7 +120,7 @@ class BlobHeader:
         )
         hash_value = hashlib.sha3_256(data).digest()
         return BlobKey(hash_value)
-    
+
     def _serialize_commitments(self) -> bytes:
         """Serialize blob commitments."""
         # Simplified serialization - actual implementation needs to match Go client
@@ -137,7 +137,7 @@ class BlobHeader:
             self.blob_commitments.length_proof.y_a1 +
             self.blob_commitments.length.to_bytes(4, 'big')
         )
-    
+
     def _hash_payment_metadata(self) -> bytes:
         """Hash the payment metadata."""
         # Simplified hashing - actual implementation needs to match Go client

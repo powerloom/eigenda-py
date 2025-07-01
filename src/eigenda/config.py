@@ -29,7 +29,7 @@ NETWORK_CONFIGS = {
         min_num_symbols=4096
     ),
     "sepolia": NetworkConfig(
-        disperser_host="disperser-testnet-sepolia.eigenda.xyz", 
+        disperser_host="disperser-testnet-sepolia.eigenda.xyz",
         disperser_port=443,
         explorer_base_url="https://blobs-v2-testnet-sepolia.eigenda.xyz/blobs",
         network_name="Sepolia Testnet",
@@ -52,13 +52,13 @@ NETWORK_CONFIGS = {
 def get_network_config() -> NetworkConfig:
     """
     Get network configuration from environment or defaults.
-    
+
     Checks EIGENDA_DISPERSER_HOST to determine the network.
     Falls back to Holesky testnet if not specified.
     """
     disperser_host_env = os.environ.get("EIGENDA_DISPERSER_HOST", "")
     disperser_host = disperser_host_env.lower()
-    
+
     # Determine network from disperser host
     if "sepolia" in disperser_host:
         base_config = NETWORK_CONFIGS["sepolia"]
@@ -69,7 +69,7 @@ def get_network_config() -> NetworkConfig:
     else:
         # Default to Holesky if not recognized
         base_config = NETWORK_CONFIGS["holesky"]
-    
+
     # Create a new config with overrides
     config = NetworkConfig(
         disperser_host=os.environ.get("EIGENDA_DISPERSER_HOST", base_config.disperser_host),
@@ -80,7 +80,7 @@ def get_network_config() -> NetworkConfig:
         price_per_symbol=base_config.price_per_symbol,
         min_num_symbols=base_config.min_num_symbols
     )
-    
+
     return config
 
 

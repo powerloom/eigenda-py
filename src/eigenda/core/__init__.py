@@ -11,7 +11,7 @@ from eigenda.core.types import (
 
 __all__ = [
     "BlobKey",
-    "BlobStatus", 
+    "BlobStatus",
     "BlobVersion",
     "BlobHeader",
     "QuorumID",

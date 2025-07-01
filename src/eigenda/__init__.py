@@ -14,22 +14,22 @@ __all__ = [
     # Version
     "__version__",
     "__version_info__",
-    
+
     # Clients
     "MockDisperserClient",  # Mock client for testing
     "DisperserClientV2",    # Basic v2 client
-    "DisperserClientV2Full", # Full client with payment support
+    "DisperserClientV2Full",  # Full client with payment support
     "BlobRetriever",
-    
+
     # Authentication
     "LocalBlobRequestSigner",
-    
+
     # Types
     "BlobKey",
-    "BlobStatus", 
+    "BlobStatus",
     "BlobVersion",
     "PaymentConfig",
-    
+
     # Utilities
     "encode_blob_data",
     "decode_blob_data",
