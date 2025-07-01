@@ -306,10 +306,13 @@ python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespa
 ```
 
 **Linting achievements:**
-- Fixed 118 total linting issues
+- Fixed 120 total linting issues (including 2 complexity warnings)
 - 0 remaining errors or warnings
 - Configured with `.flake8` for consistent style
 - CI/CD integration ensures ongoing compliance
+- Refactored complex functions for better maintainability:
+  - `check_payment_vault.py`: Reduced complexity from 11 to ~5
+  - `full_example.py`: Reduced complexity from 15 to ~5
 
 ### Regenerating gRPC Code
 

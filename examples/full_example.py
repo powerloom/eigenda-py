@@ -19,6 +19,102 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
+def setup_signer():
+    """Set up the signer with private key from environment."""
+    private_key = os.getenv("EIGENDA_PRIVATE_KEY")
+    if not private_key:
+        print("Error: EIGENDA_PRIVATE_KEY environment variable not set")
+        print("Please set your Ethereum private key in .env file or environment")
+        sys.exit(1)
+
+    try:
+        signer = LocalBlobRequestSigner(private_key)
+        return signer
+    except Exception as e:
+        print(f"Failed to create signer: {e}")
+        sys.exit(1)
+
+
+def disperse_blob(disperser, original_data):
+    """Disperse a blob to EigenDA."""
+    raw_data = original_data.encode('utf-8')
+    encoded_data = encode_blob_data(raw_data)
+
+    print(f"Original data: {original_data}")
+    print(f"Raw size: {len(raw_data)} bytes")
+    print(f"Encoded size: {len(encoded_data)} bytes")
+
+    print("\nDispersing blob...")
+    status, blob_key = disperser.disperse_blob(
+        data=encoded_data,
+        blob_version=0,
+        quorum_ids=[0, 1]
+    )
+
+    print("\n✅ Blob dispersed successfully!")
+    print(f"Status: {status.name}")
+    print(f"Blob Key: {blob_key.hex()}")
+    print(f"Explorer: {get_explorer_url(blob_key.hex())}")
+
+    return status, blob_key
+
+
+def wait_for_finalization(disperser, blob_key, max_attempts=30):
+    """Wait for blob to be finalized on the network."""
+    print("\nWaiting for blob to be finalized...")
+    attempt = 0
+
+    while attempt < max_attempts:
+        time.sleep(2)
+        current_status = disperser.get_blob_status(blob_key)
+        print(f"  Status: {current_status.name}")
+
+        if current_status.name in ["COMPLETE", "GATHERING_SIGNATURES"]:
+            print("\n✅ Blob is ready for retrieval!")
+            return True
+        elif current_status.name == "FAILED":
+            print("\n❌ Blob dispersal failed!")
+            return False
+
+        attempt += 1
+
+    print("\n⚠️  Timeout waiting for blob finalization")
+    print("The blob may still be processing. You can check status later.")
+    return False
+
+
+def retrieve_blob(retriever, blob_key, original_data):
+    """Attempt to retrieve a blob from EigenDA."""
+    print(f"\nAttempting to retrieve blob: {blob_key.hex()}")
+
+    # Get blob info first
+    try:
+        blob_size, encoding_version = retriever.get_blob_info(blob_key)
+        print(f"Blob size: {blob_size} bytes")
+        print(f"Encoding version: {encoding_version}")
+    except Exception as e:
+        print(f"Could not get blob info: {e}")
+
+    # Retrieve the blob
+    retrieved_data = retriever.retrieve_blob(blob_key)
+    print("\n✅ Blob retrieved successfully!")
+    print(f"Retrieved size: {len(retrieved_data)} bytes")
+
+    # Decode the data
+    decoded_data = decode_blob_data(retrieved_data)
+    retrieved_text = decoded_data.decode('utf-8')
+
+    print(f"\nDecoded data: {retrieved_text}")
+
+    # Verify it matches
+    if retrieved_text == original_data:
+        print("\n✅ Data integrity verified - retrieved data matches original!")
+    else:
+        print("\n❌ Data mismatch - retrieved data differs from original!")
+
+    return retrieved_text
+
+
 def main():
     """Run a complete dispersal and retrieval example."""
     print("=== EigenDA V2 Complete Example ===\n")
@@ -29,21 +125,10 @@ def main():
     # Get network configuration
     network_config = get_network_config()
 
-    # Get private key from environment
-    private_key = os.getenv("EIGENDA_PRIVATE_KEY")
-    if not private_key:
-        print("Error: EIGENDA_PRIVATE_KEY environment variable not set")
-        print("Please set your Ethereum private key in .env file or environment")
-        sys.exit(1)
-
     # Create signer
-    try:
-        signer = LocalBlobRequestSigner(private_key)
-        print(f"Initialized signer with account: {signer.get_account_id()}")
-        print(f"Network: {network_config.network_name}")
-    except Exception as e:
-        print(f"Failed to create signer: {e}")
-        sys.exit(1)
+    signer = setup_signer()
+    print(f"Initialized signer with account: {signer.get_account_id()}")
+    print(f"Network: {network_config.network_name}")
 
     # Step 1: Disperse a blob
     print("\n=== Step 1: Dispersing Blob ===")
@@ -61,50 +146,14 @@ def main():
             f"Hello from Python EigenDA client! "
             f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
         )
-        raw_data = original_data.encode('utf-8')
-
-        # Encode the data
-        encoded_data = encode_blob_data(raw_data)
-
-        print(f"Original data: {original_data}")
-        print(f"Raw size: {len(raw_data)} bytes")
-        print(f"Encoded size: {len(encoded_data)} bytes")
 
         # Disperse the blob
-        print("\nDispersing blob...")
-        status, blob_key = disperser.disperse_blob(
-            data=encoded_data,
-            blob_version=0,
-            quorum_ids=[0, 1]
-        )
+        status, blob_key = disperse_blob(disperser, original_data)
 
-        print("\n✅ Blob dispersed successfully!")
-        print(f"Status: {status.name}")
-        print(f"Blob Key: {blob_key.hex()}")
-        print(f"Explorer: {get_explorer_url(blob_key.hex())}")
-
-        # Wait for blob to be finalized
-        print("\nWaiting for blob to be finalized...")
-        max_attempts = 30
-        attempt = 0
-
-        while attempt < max_attempts:
-            time.sleep(2)
-            current_status = disperser.get_blob_status(blob_key)
-            print(f"  Status: {current_status.name}")
-
-            if current_status.name in ["COMPLETE", "GATHERING_SIGNATURES"]:
-                print("\n✅ Blob is ready for retrieval!")
-                break
-            elif current_status.name == "FAILED":
-                print("\n❌ Blob dispersal failed!")
-                sys.exit(1)
-
-            attempt += 1
-
-        if attempt >= max_attempts:
-            print("\n⚠️  Timeout waiting for blob finalization")
-            print("The blob may still be processing. You can check status later.")
+        # Wait for finalization
+        finalized = wait_for_finalization(disperser, blob_key)
+        if not finalized and status.name == "FAILED":
+            sys.exit(1)
 
     except Exception as e:
         print(f"\n❌ Dispersal error: {e}")
@@ -130,33 +179,7 @@ def main():
     )
 
     try:
-        print(f"\nAttempting to retrieve blob: {blob_key.hex()}")
-
-        # Get blob info first
-        try:
-            blob_size, encoding_version = retriever.get_blob_info(blob_key)
-            print(f"Blob size: {blob_size} bytes")
-            print(f"Encoding version: {encoding_version}")
-        except Exception as e:
-            print(f"Could not get blob info: {e}")
-
-        # Retrieve the blob
-        retrieved_data = retriever.retrieve_blob(blob_key)
-        print("\n✅ Blob retrieved successfully!")
-        print(f"Retrieved size: {len(retrieved_data)} bytes")
-
-        # Decode the data
-        decoded_data = decode_blob_data(retrieved_data)
-        retrieved_text = decoded_data.decode('utf-8')
-
-        print(f"\nDecoded data: {retrieved_text}")
-
-        # Verify it matches
-        if retrieved_text == original_data:
-            print("\n✅ Data integrity verified - retrieved data matches original!")
-        else:
-            print("\n❌ Data mismatch - retrieved data differs from original!")
-
+        retrieve_blob(retriever, blob_key, original_data)
     except Exception as e:
         print(f"\n⚠️  Retrieval error (this is expected if retriever is not available): {e}")
         print("\nNote: Blob retrieval typically requires:")

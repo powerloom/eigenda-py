@@ -342,6 +342,9 @@ Key discoveries made during development:
   - **2 indentation issues** (E129) - fixed visual indentation
   - **1 bare except** (E722) - changed to `except Exception`
   - **1 syntax error** (E999) - fixed invalid hex escape sequence
+  - **2 complexity warnings** (C901) - refactored complex functions:
+    - `check_payment_vault.py`: Reduced complexity from 11 to ~5 by extracting helper functions
+    - `full_example.py`: Reduced complexity from 15 to ~5 by modularizing the workflow
 - Tools and configuration:
   - Created custom linting fix script: `fix_linting.py`
   - Configured flake8 with `.flake8` configuration file
