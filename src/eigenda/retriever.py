@@ -1,10 +1,9 @@
 """Blob retrieval functionality for EigenDA."""
 
 import grpc
-from typing import Optional, Tuple
+from typing import Optional, Any
 from dataclasses import dataclass
 
-from eigenda.core.types import BlobKey
 from eigenda.auth.signer import LocalBlobRequestSigner
 
 # Import generated gRPC code
@@ -77,12 +76,14 @@ class BlobRetriever:
         self._stub = retriever_v2_pb2_grpc.RetrieverStub(self._channel)
         self._connected = True
     
-    def retrieve_blob(self, blob_key: BlobKey) -> bytes:
+    def retrieve_blob(self, blob_header: Any, reference_block_number: int, quorum_id: int) -> bytes:
         """
-        Retrieve a blob from EigenDA.
+        Retrieve a blob from EigenDA nodes.
         
         Args:
-            blob_key: The unique identifier of the blob
+            blob_header: The blob header from dispersal
+            reference_block_number: The Ethereum block number when blob was dispersed
+            quorum_id: Which quorum to retrieve from
             
         Returns:
             The encoded blob data
@@ -90,49 +91,24 @@ class BlobRetriever:
         self._connect()
         
         request = retriever_v2_pb2.BlobRequest(
-            blob_key=bytes(blob_key)
+            blob_header=blob_header,
+            reference_block_number=reference_block_number,
+            quorum_id=quorum_id
         )
         
         try:
-            response = self._stub.GetBlob(
+            response = self._stub.RetrieveBlob(
                 request,
                 timeout=self.config.timeout,
                 metadata=self._get_metadata()
             )
             
             # The response contains the encoded blob data
-            return response.blob
+            return response.data
             
         except grpc.RpcError as e:
             raise Exception(f"gRPC error retrieving blob: {e.code()} - {e.details()}")
     
-    def get_blob_info(self, blob_key: BlobKey) -> Tuple[int, int]:
-        """
-        Get metadata about a blob without retrieving its data.
-        
-        Args:
-            blob_key: The unique identifier of the blob
-            
-        Returns:
-            Tuple of (blob_size, encoding_version)
-        """
-        self._connect()
-        
-        request = retriever_v2_pb2.BlobInfoRequest(
-            blob_key=bytes(blob_key)
-        )
-        
-        try:
-            response = self._stub.GetBlobInfo(
-                request,
-                timeout=self.config.timeout,
-                metadata=self._get_metadata()
-            )
-            
-            return (response.blob_size, response.encoding_version)
-            
-        except grpc.RpcError as e:
-            raise Exception(f"gRPC error getting blob info: {e.code()} - {e.details()}")
     
     def close(self):
         """Close the gRPC connection."""

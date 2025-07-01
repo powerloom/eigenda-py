@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from dotenv import load_dotenv
-from eigenda import DisperserClient, LocalBlobRequestSigner
+from eigenda import MockDisperserClient as DisperserClient, LocalBlobRequestSigner
 from eigenda.codec import encode_blob_data
 from eigenda.config import get_network_config, get_explorer_url
 

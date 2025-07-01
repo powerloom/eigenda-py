@@ -1,6 +1,7 @@
 """EigenDA v2 Disperser Client with full payment support (reservation and on-demand)."""
 
 import time
+import grpc
 from typing import List, Tuple, Optional, Any
 from enum import Enum
 
@@ -11,6 +12,7 @@ from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2 import DisperserClientV2, DisperserClientConfig
 from eigenda.payment import SimpleAccountant, PaymentConfig
 from eigenda.grpc.common.v2 import common_v2_pb2
+from eigenda.grpc.disperser.v2 import disperser_v2_pb2
 
 
 class PaymentType(Enum):
@@ -188,7 +190,8 @@ class DisperserClientV2Full(DisperserClientV2):
         
         # First attempt
         try:
-            return super().disperse_blob(data, blob_version, quorum_ids, timeout)
+            status, blob_key = super().disperse_blob(data, blob_version, quorum_ids, timeout)
+            return (status, blob_key)  # Return tuple as expected
         except Exception as e:
             error_msg = str(e)
             
@@ -207,10 +210,44 @@ class DisperserClientV2Full(DisperserClientV2):
                 self._check_payment_state()
                 
                 # Retry
-                return super().disperse_blob(data, blob_version, quorum_ids, timeout)
+                status, blob_key = super().disperse_blob(data, blob_version, quorum_ids, timeout)
+                return (status, blob_key)  # Return tuple as expected
             else:
                 # Re-raise other errors
                 raise
+    
+    def get_blob_status(self, blob_key: str) -> Any:
+        """
+        Get the status of a dispersed blob.
+        
+        Args:
+            blob_key: The blob key as a hex string
+            
+        Returns:
+            The full blob status response (not just the status enum)
+        """
+        self._connect()
+        
+        # Convert hex string to bytes
+        blob_key_bytes = bytes.fromhex(blob_key)
+        
+        request = disperser_v2_pb2.BlobStatusRequest(
+            blob_key=blob_key_bytes
+        )
+        
+        try:
+            response = self._stub.GetBlobStatus(
+                request,
+                timeout=self.config.timeout,
+                metadata=self._get_metadata()
+            )
+            
+            # Return the full response, not just the parsed status
+            return response
+            
+        except grpc.RpcError as e:
+            raise Exception(f"gRPC error: {e.code()} - {e.details()}")
+    
                 
     def get_payment_info(self) -> dict:
         """Get information about current payment configuration."""

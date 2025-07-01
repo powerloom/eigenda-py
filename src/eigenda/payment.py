@@ -10,6 +10,13 @@ class PaymentConfig:
     price_per_symbol: int = 447000000  # wei per symbol
     min_num_symbols: int = 4096
     
+    def __post_init__(self):
+        """Validate configuration."""
+        if self.price_per_symbol < 0:
+            raise ValueError("price_per_symbol cannot be negative")
+        if self.min_num_symbols <= 0:
+            raise ValueError("min_num_symbols must be positive")
+    
 
 def get_blob_length_power_of_2(data_len: int) -> int:
     """

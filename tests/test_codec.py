@@ -46,17 +46,18 @@ class TestBlobCodec:
         # won't roundtrip perfectly. This is a known limitation.
         # In practice, the blob length is tracked separately in the protocol.
         test_cases = [
-            (b'', b''),  # Empty data
-            (b'A' * 31, b'A' * 31),  # Exactly one chunk
-            (b'A' * 62, b'A' * 62),  # Exactly two chunks  
-            (b'Hello', b'Hello'),  # Small data - trailing nulls stripped
-            (b'Test\x00\x00', b'Test'),  # Data with trailing nulls - will be stripped
+            b'',  # Empty data
+            b'A' * 31,  # Exactly one chunk
+            b'A' * 62,  # Exactly two chunks  
+            b'Hello',  # Small data
+            b'Test\x00\x00',  # Data with trailing nulls
         ]
         
-        for original, expected in test_cases:
+        for original in test_cases:
             encoded = encode_blob_data(original)
-            decoded = decode_blob_data(encoded)
-            assert decoded == expected, f"Roundtrip failed for data of length {len(original)}"
+            # Use original_length parameter to get exact roundtrip
+            decoded = decode_blob_data(encoded, len(original))
+            assert decoded == original, f"Roundtrip failed for data of length {len(original)}"
     
     def test_decode_empty_data(self):
         """Test decoding empty data."""
@@ -65,10 +66,10 @@ class TestBlobCodec:
     
     def test_decode_with_padding(self):
         """Test decoding data that includes padding."""
-        # Test that decoder strips trailing null bytes from padding
+        # Test that decoder correctly handles padding
         encoded = b'\x00Hello' + b'\x00' * 26  # 32 byte chunk with padding
-        decoded = decode_blob_data(encoded)
-        assert decoded == b'Hello'  # Trailing nulls are stripped
+        decoded = decode_blob_data(encoded, 5)  # Specify original length
+        assert decoded == b'Hello'  # Correct length preserved
         
     def test_decode_strips_leading_byte(self):
         """Test that decode strips the leading padding byte from each chunk."""

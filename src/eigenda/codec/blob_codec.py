@@ -51,7 +51,7 @@ def encode_blob_data(data: bytes) -> bytes:
     return bytes(encoded)
 
 
-def decode_blob_data(encoded_data: bytes) -> bytes:
+def decode_blob_data(encoded_data: bytes, original_length: int = None) -> bytes:
     """
     Decode blob data by removing padding bytes.
     
@@ -60,6 +60,7 @@ def decode_blob_data(encoded_data: bytes) -> bytes:
     
     Args:
         encoded_data: Encoded blob data
+        original_length: Optional original data length (if known)
         
     Returns:
         Original raw data
@@ -76,8 +77,14 @@ def decode_blob_data(encoded_data: bytes) -> bytes:
             # Skip first byte (padding) and take up to 31 bytes
             decoded.extend(chunk[1:32])
     
-    # Remove trailing null bytes that were added as padding
-    return bytes(decoded).rstrip(b'\x00')
+    # If original length is provided, truncate to that length
+    if original_length is not None:
+        return bytes(decoded[:original_length])
+    
+    # Otherwise, try to detect the actual data length
+    # This is a heuristic: we can't distinguish between trailing zeros that are
+    # part of the data vs padding. For now, we'll not strip any bytes.
+    return bytes(decoded)
 
 
 def validate_field_element(data: bytes) -> bool:
