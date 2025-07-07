@@ -101,6 +101,15 @@ def main():
         # Get payment state
         print("Getting payment state...")
         payment_state = client.get_payment_state()
+
+        # Check for on-demand payment existence
+        if not hasattr(payment_state, 'onchain_cumulative_payment') or not payment_state.onchain_cumulative_payment:
+            print("\n❌ Error: No on-demand payment deposit found for this account.")
+            print("Please deposit funds into the PaymentVault contract for on-demand payments.")
+            print(f"  - Network: {network_config.network_name}")
+            print(f"  - PaymentVault: {network_config.payment_vault_address}")
+            return
+        
         print("✅ Payment state retrieved")
 
         # Get current cumulative payment
