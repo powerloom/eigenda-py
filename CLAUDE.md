@@ -357,6 +357,18 @@ Key discoveries made during development:
   - Added coverage artifact uploads
   - Integrated linting checks in CI pipeline
 
+### Example Files Import Fix (Latest)
+- Fixed import order issues in all 6 example files that were importing from `eigenda` before setting up `sys.path`
+- Files fixed:
+  - `blob_retrieval_example.py`
+  - `dispersal_with_retrieval_support.py`
+  - `full_example.py`
+  - `minimal_client.py`
+  - `test_both_payments.py`
+  - `test_with_proper_payment.py`
+- All examples can now be run directly with `python examples/<filename>.py` without needing PYTHONPATH
+- Proper pattern: Set `sys.path` BEFORE any `eigenda` imports
+
 ### CI/CD Pipeline
 The project uses GitHub Actions for continuous integration:
 - Runs tests on Python 3.9, 3.10, 3.11, and 3.12

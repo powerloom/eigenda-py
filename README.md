@@ -28,6 +28,27 @@ This client provides a Python interface to EigenDA, a decentralized data availab
 pip install -r requirements.txt
 ```
 
+## Quick Start
+
+1. **Set Environment Variables**
+```bash
+# Create .env file
+cp .env.example .env
+
+# Add your private key
+echo "EIGENDA_PRIVATE_KEY=your_private_key_here" >> .env
+```
+
+2. **Run Examples**
+```bash
+# Examples can now be run directly without setting PYTHONPATH
+python examples/minimal_client.py
+
+# Or run other examples
+python examples/full_example.py
+python examples/check_payment_vault.py
+```
+
 ## Configuration
 
 ### Network Selection
@@ -313,6 +334,11 @@ python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespa
 - Refactored complex functions for better maintainability:
   - `check_payment_vault.py`: Reduced complexity from 11 to ~5
   - `full_example.py`: Reduced complexity from 15 to ~5
+
+**Example files improvements:**
+- Fixed import order in all example files
+- Examples can now be run directly without PYTHONPATH configuration
+- Proper `sys.path` setup before `eigenda` imports
 
 ### Regenerating gRPC Code
 

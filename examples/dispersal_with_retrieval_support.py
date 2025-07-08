@@ -5,17 +5,18 @@ The key insight is that we need to save the blob header from dispersal
 to be able to retrieve the blob later.
 """
 
+import time
+import json
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
 from eigenda.core.types import BlobStatus, BlobKey
 from eigenda.config import get_network_config
 from eigenda.payment import PaymentConfig
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
 from typing import Tuple, Any
-import time
-import json
-import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 
 class DisperserWithRetrieval(DisperserClientV2Full):
