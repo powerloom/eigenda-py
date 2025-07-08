@@ -1,26 +1,19 @@
-[build-system]
-requires = ["setuptools>=68.0", "wheel", "setuptools-scm>=8"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "eigenda-py"
-dynamic = ["version"]
+version = "0.1.0"
 description = "Python client for EigenDA v2 - decentralized data availability service"
-readme = "README.md"
-requires-python = ">=3.9"
+authors = ["Swaroop Hegde <email@swaroophegde.com>"]
+maintainers = ["Powerloom Team <hello@powerloom.io>"]
 license = "MIT"
-authors = [
-    {name = "Swaroop Hegde", email = "email@swaroophegde.com"},
-]
-maintainers = [
-    {name = "Powerloom Team", email = "hello@powerloom.io"},
-]
+readme = "README.md"
+homepage = "https://powerloom.io/"
+repository = "https://github.com/powerloom/eigenda-py"
+documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 keywords = ["eigenda", "ethereum", "data-availability", "blockchain", "web3", "powerloom"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -29,57 +22,50 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: System :: Distributed Computing",
 ]
-dependencies = [
-    "grpcio>=1.60.0",
-    "grpcio-tools>=1.60.0",
-    "protobuf>=4.25.0",
-    "web3>=6.0.0",
-    "eth-account>=0.10.0",
-    "eth-utils>=2.0.0",
-    "eth-abi>=4.0.0",
-    "eth-typing>=3.0.0",
-    "cryptography>=41.0.0",
-    "pycryptodome>=3.19.0",
-    "python-dotenv>=1.0.0",
-]
+packages = [{include = "eigenda", from = "src"}]
+include = ["src/eigenda/py.typed"]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.10.0",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "mypy>=1.5.0",
-    "types-protobuf>=4.24.0",
-    "types-requests>=2.31.0",
-    "flake8>=6.0.0",
-    "pylint>=3.0.0",
-    "pre-commit>=3.0.0",
-]
-docs = [
-    "sphinx>=7.0.0",
-    "sphinx-rtd-theme>=2.0.0",
-    "autodoc-pydantic>=2.0.0",
-]
-notebook = [
-    "jupyter>=1.0.0",
-    "ipython>=8.0.0",
-]
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+grpcio = ">=1.60.0"
+grpcio-tools = ">=1.60.0"
+protobuf = ">=4.25.0"
+web3 = ">=6.0.0"
+eth-account = ">=0.10.0"
+eth-utils = ">=2.0.0"
+eth-abi = {version = ">=4.0.0", python = ">=3.9,<4"}
+eth-typing = ">=3.0.0"
+cryptography = ">=41.0.0"
+pycryptodome = ">=3.19.0"
+python-dotenv = ">=1.0.0"
 
-[project.urls]
-"Homepage" = "https://powerloom.io/"
-"Documentation" = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
-"Source Code" = "https://github.com/powerloom/eigenda-py"
-"Bug Tracker" = "https://github.com/powerloom/eigenda-py/issues"
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+pytest-asyncio = ">=0.21.0"
+pytest-cov = ">=4.0.0"
+pytest-mock = ">=3.10.0"
+black = ">=23.0.0"
+isort = ">=5.12.0"
+mypy = ">=1.5.0"
+types-protobuf = ">=4.24.0"
+types-requests = ">=2.31.0"
+flake8 = ">=6.0.0"
+pylint = ">=3.0.0"
+pre-commit = ">=3.0.0"
+sphinx = ">=7.0.0"
+sphinx-rtd-theme = ">=2.0.0"
+autodoc-pydantic = {version = ">=2.0.0", python = ">=3.9,<4.0.0"}
+jupyter = ">=1.0.0"
+ipython = ">=8.0.0"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["eigenda*"]
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=0.17"]
+build-backend = "poetry.core.masonry.api"
 
-[tool.setuptools.package-data]
-eigenda = ["py.typed"]
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
 
 [tool.black]
 line-length = 100
@@ -97,7 +83,7 @@ warn_unused_configs = true
 no_implicit_reexport = true
 ignore_missing_imports = true
 exclude = [
-    "src/eigenda/grpc/.*_pb2.*\\.py$",
+    'src/eigenda/grpc/.*_pb2.*\\.py$',
 ]
 
 [[tool.mypy.overrides]]
@@ -134,13 +120,13 @@ exclude_lines = [
 
 [tool.pylint.messages_control]
 disable = [
-    "C0103",  # Invalid name
-    "C0114",  # Missing module docstring
-    "C0115",  # Missing class docstring
-    "C0116",  # Missing function docstring
-    "R0903",  # Too few public methods
-    "R0913",  # Too many arguments
-    "W0212",  # Protected access
+    "C0103",
+    "C0114",
+    "C0115",
+    "C0116",
+    "R0903",
+    "R0913",
+    "W0212",
 ]
 
 [tool.pylint.format]
@@ -157,7 +143,3 @@ exclude = [
     "*.egg-info",
     "src/eigenda/grpc/*_pb2*.py",
 ]
-
-[tool.setuptools-scm]
-version_scheme = "python-simplified-semver"
-local_scheme = "node-and-timestamp"

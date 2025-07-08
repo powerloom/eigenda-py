@@ -47,7 +47,7 @@ class TestIntegration:
     def test_client_context_manager(self):
         """Test using client as context manager."""
         # Use a dummy signer for this test
-        dummy_key = "0x" + "00" * 32
+        dummy_key = "0x" + "01" * 32
         signer = LocalBlobRequestSigner(dummy_key)
 
         with MockDisperserClient(
