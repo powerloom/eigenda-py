@@ -13,6 +13,7 @@ exclude =
     .tox,
     .pytest_cache,
     htmlcov,
+    demo.py,
     src/eigenda/grpc/
     
 extend-ignore = 

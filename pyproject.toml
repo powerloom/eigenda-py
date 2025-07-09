@@ -147,17 +147,6 @@ disable = [
 [tool.pylint.format]
 max-line-length = 100
 
-[tool.flake8]
-max-line-length = 100
-extend-ignore = ["E203", "W503"]
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    "*.egg-info",
-    "src/eigenda/grpc/*_pb2*.py",
-]
 
 [tool.setuptools-scm]
 version_scheme = "python-simplified-semver"
