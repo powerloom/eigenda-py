@@ -358,9 +358,10 @@ Key discoveries made during development:
   - Integrated linting checks in CI pipeline
 
 ### Example Files Import Fix (Latest)
-- Fixed import order issues in all 6 example files that were importing from `eigenda` before setting up `sys.path`
+- Fixed import order issues in all 7 example files that were importing from `eigenda` before setting up `sys.path`
 - Files fixed:
   - `blob_retrieval_example.py`
+  - `check_payment_vault.py` 
   - `dispersal_with_retrieval_support.py`
   - `full_example.py`
   - `minimal_client.py`
@@ -368,6 +369,14 @@ Key discoveries made during development:
   - `test_with_proper_payment.py`
 - All examples can now be run directly with `python examples/<filename>.py` without needing PYTHONPATH
 - Proper pattern: Set `sys.path` BEFORE any `eigenda` imports
+
+### Critical Bug Fix - On-Demand Payment State Refresh (Latest)
+- **Fixed bug in DisperserClientV2Full**: Client now refreshes payment state before each blob when using on-demand payments
+- **Issue**: Client was caching cumulative payment and not syncing with server between blobs
+- **Symptom**: "insufficient cumulative payment increment" errors when sending multiple blobs
+- **Root cause**: `_check_payment_state()` was only called once, not refreshing for subsequent blobs
+- **Fix**: Modified `_create_blob_header()` to always refresh state for on-demand payments
+- **Result**: Multiple blobs can now be sent successfully without payment errors
 
 ### CI/CD Pipeline
 The project uses GitHub Actions for continuous integration:

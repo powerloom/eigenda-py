@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Check PaymentVault contract state for the account."""
 
-from eigenda.config import get_network_config
-from dotenv import load_dotenv
-from eth_account import Account
-from web3 import Web3
 import os
 import sys
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+from eigenda.config import get_network_config
+from dotenv import load_dotenv
+from eth_account import Account
+from web3 import Web3
 
 
 # Minimal ABI for the functions we need

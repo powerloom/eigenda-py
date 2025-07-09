@@ -102,7 +102,8 @@ class DisperserClientV2Full(DisperserClientV2):
                     if hasattr(self._payment_state, 'cumulative_payment'):
                         current = int.from_bytes(self._payment_state.cumulative_payment, 'big')
                         self.accountant.set_cumulative_payment(current)
-                        print(f"  ✓ On-demand payment available (current: {current} wei)")
+                        print(f"  ✓ On-demand payment available "
+                              f"(server cumulative: {current} wei / {current/1e9:.3f} gwei)")
                     return
 
             # No payment method available
@@ -124,8 +125,9 @@ class DisperserClientV2Full(DisperserClientV2):
 
         This intelligently chooses between reservation and on-demand payment.
         """
-        # Check payment state if not already done
-        if self._payment_type is None:
+        # Check payment state if not already done or if using on-demand
+        # For on-demand, we need to refresh state to get latest cumulative payment
+        if self._payment_type is None or self._payment_type == PaymentType.ON_DEMAND:
             self._check_payment_state()
 
         # Get account ID and timestamp
