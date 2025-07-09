@@ -28,6 +28,27 @@ This client provides a Python interface to EigenDA, a decentralized data availab
 pip install -r requirements.txt
 ```
 
+## Quick Start
+
+1. **Set Environment Variables**
+```bash
+# Create .env file
+cp .env.example .env
+
+# Add your private key
+echo "EIGENDA_PRIVATE_KEY=your_private_key_here" >> .env
+```
+
+2. **Run Examples**
+```bash
+# Examples can now be run directly without setting PYTHONPATH
+python examples/minimal_client.py
+
+# Or run other examples
+python examples/full_example.py
+python examples/check_payment_vault.py
+```
+
 ## Configuration
 
 ### Network Selection
@@ -59,23 +80,6 @@ All networks currently have the same pricing structure.
 
 ## Usage
 
-### Basic Example (Mock Client)
-
-```python
-from eigenda import MockDisperserClient
-from eigenda.core.types import BlobStatus
-
-# Initialize client
-client = MockDisperserClient()
-
-# Disperse data
-data = b"Hello, EigenDA!"
-status, blob_key = client.disperse_blob(data)
-
-if status == BlobStatus.CONFIRMED:
-    print(f"Blob dispersed successfully! Key: {blob_key.hex()}")
-```
-
 ### Production Client (V2) - With On-Demand Payments
 
 For production use with on-demand payments (when you have ETH deposited in PaymentVault):
@@ -104,18 +108,26 @@ python examples/test_with_proper_payment.py
 
 ### Full Client with Both Payment Methods
 
-The client automatically detects and uses the appropriate payment method:
+The client automatically detects and uses the appropriate payment method. **Note**: The client now properly syncs payment state between blobs to handle concurrent usage:
 
 ```python
 from eigenda.client_v2_full import DisperserClientV2Full
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.payment import PaymentConfig
 from eigenda.config import get_network_config
+from eigenda.codec.blob_codec import encode_blob_data
+import os
+from dotenv import load_dotenv
 
-# Get network configuration
+# Load environment
+load_dotenv()
+
+# Get network config and create signer
 network_config = get_network_config()
+private_key = os.getenv("EIGENDA_PRIVATE_KEY")
+signer = LocalBlobRequestSigner(private_key)
 
-# Initialize client
+# Initialize client with automatic payment handling
 client = DisperserClientV2Full(
     hostname=network_config.disperser_host,
     port=network_config.disperser_port,
@@ -127,11 +139,35 @@ client = DisperserClientV2Full(
     )
 )
 
-# The client will automatically:
-# 1. Check if you have an active reservation
-# 2. Use reservation if available (cumulative_payment = empty)
-# 3. Fall back to on-demand if no reservation (cumulative_payment = calculated)
+# Disperse a blob - payment method is handled automatically
+test_data = b"Hello EigenDA!"
+encoded_data = encode_blob_data(test_data)
+status, blob_key = client.disperse_blob(
+    data=encoded_data,
+    blob_version=0,
+    quorum_ids=[0, 1]
+)
+
+print(f"Status: {status}")
+print(f"Blob key: {blob_key.hex()}")
+print(f"Explorer: https://blobs-v2-testnet-holesky.eigenda.xyz/blobs/{blob_key.hex()}")
+
+# Check which payment method was used
+payment_state = client.get_payment_state()
+if payment_state.cumulative_payment == b'':
+    print("Using reservation-based payment")
+else:
+    cumulative = int.from_bytes(payment_state.cumulative_payment, 'big')
+    print(f"Using on-demand payment, total spent: {cumulative} wei")
+
+client.close()
 ```
+
+The client automatically:
+1. Checks if you have an active reservation
+2. Uses reservation if available (cumulative_payment = empty)
+3. Falls back to on-demand if no reservation (cumulative_payment = calculated)
+4. **Refreshes payment state before each blob** to sync with server (bug fix)
 
 See `examples/test_both_payments.py` for a complete example.
 
@@ -210,6 +246,28 @@ See `examples/blob_retrieval_example.py` and `examples/dispersal_with_retrieval_
 
 ## Development
 
+### Running from Repository
+
+If you're running code directly from the repository without installing the package, you'll need to add the src directory to your Python path:
+
+```python
+# Add this at the top of your script
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+# Then import eigenda modules
+from eigenda.client_v2_full import DisperserClientV2Full
+# ... other imports
+```
+
+Alternatively, run your script with:
+```bash
+PYTHONPATH=src python your_script.py
+```
+
+Note: The example files in the `examples/` directory already include this setup.
+
 ### Project Milestones
 
 The EigenDA Python client has achieved several significant milestones:
@@ -280,11 +338,14 @@ The unreachable line in `payment.py` is due to mathematical constraints: `(data_
 ### Running Examples
 
 ```bash
-# Mock client example
-python examples/minimal_client.py
+# Test blob dispersal with automatic payment handling
+python examples/test_both_payments.py
 
-# Real disperser test
-python examples/test_v2_client.py
+# Full example with dispersal and retrieval
+python examples/full_example.py
+
+# Check your PaymentVault balance and pricing
+python examples/check_payment_vault.py
 ```
 
 ### Code Quality
@@ -313,6 +374,16 @@ python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespa
 - Refactored complex functions for better maintainability:
   - `check_payment_vault.py`: Reduced complexity from 11 to ~5
   - `full_example.py`: Reduced complexity from 15 to ~5
+
+**Example files improvements:**
+- Fixed import order in all example files
+- Examples can now be run directly without PYTHONPATH configuration
+- Proper `sys.path` setup before `eigenda` imports
+
+**Critical bug fixes:**
+- Fixed on-demand payment state synchronization issue
+- Client now refreshes cumulative payment from server before each blob
+- Resolves "insufficient cumulative payment increment" errors when sending multiple blobs
 
 ### Regenerating gRPC Code
 

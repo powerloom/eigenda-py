@@ -41,25 +41,27 @@ class TestDisperserClientV2FullSimple:
         if hasattr(client, '_last_blob_size'):
             delattr(client, '_last_blob_size')
 
-        # Mock the protobuf classes
-        with patch('eigenda.client_v2_full.common_v2_pb2') as mock_pb2:
-            mock_blob_commitment = Mock()
-            mock_payment_header = Mock()
-            mock_blob_header = Mock()
+        # Mock _check_payment_state to prevent it from running
+        with patch.object(client, '_check_payment_state'):
+            # Mock the protobuf classes
+            with patch('eigenda.client_v2_full.common_v2_pb2') as mock_pb2:
+                mock_blob_commitment = Mock()
+                mock_payment_header = Mock()
+                mock_blob_header = Mock()
 
-            mock_pb2.PaymentHeader.return_value = mock_payment_header
-            mock_pb2.BlobHeader.return_value = mock_blob_header
+                mock_pb2.PaymentHeader.return_value = mock_payment_header
+                mock_pb2.BlobHeader.return_value = mock_blob_header
 
-            # Call the method
-            client._create_blob_header(
-                blob_version=0,
-                blob_commitment=mock_blob_commitment,
-                quorum_numbers=[0, 1]
-            )
+                # Call the method
+                client._create_blob_header(
+                    blob_version=0,
+                    blob_commitment=mock_blob_commitment,
+                    quorum_numbers=[0, 1]
+                )
 
-            # Verify payment_bytes was calculated from cumulative_payment (line 148-150)
-            call_args = mock_pb2.PaymentHeader.call_args
-            assert call_args[1]['cumulative_payment'] == (123456789).to_bytes(4, 'big')
+                # Verify payment_bytes was calculated from cumulative_payment (line 148-150)
+                call_args = mock_pb2.PaymentHeader.call_args
+                assert call_args[1]['cumulative_payment'] == (123456789).to_bytes(4, 'big')
 
     def test_get_blob_status_full_implementation(self, client):
         """Test get_blob_status that takes hex string (lines 228-248)."""

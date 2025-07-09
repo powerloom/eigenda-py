@@ -143,3 +143,7 @@ exclude = [
     "*.egg-info",
     "src/eigenda/grpc/*_pb2*.py",
 ]
+
+[tool.setuptools-scm]
+version_scheme = "python-simplified-semver"
+local_scheme = "node-and-timestamp"

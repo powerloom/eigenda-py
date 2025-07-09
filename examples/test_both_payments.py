@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """Test both reservation-based and on-demand payment methods."""
 
-from dotenv import load_dotenv
-from eigenda.config import get_network_config, get_explorer_url
-from eigenda.payment import PaymentConfig
-from eigenda.codec.blob_codec import encode_blob_data
-from eigenda.auth.signer import LocalBlobRequestSigner
-from eigenda.client_v2_full import DisperserClientV2Full
 import os
 import sys
 from datetime import datetime
@@ -14,6 +8,13 @@ from datetime import datetime
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+from dotenv import load_dotenv
+from eigenda.config import get_network_config, get_explorer_url
+from eigenda.payment import PaymentConfig
+from eigenda.codec.blob_codec import encode_blob_data
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2_full import DisperserClientV2Full
 
 
 def test_account(private_key: str, description: str):

@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """Test with properly calculated on-demand payment."""
 
-from dotenv import load_dotenv
-from eigenda.config import get_network_config, get_explorer_url
-from eigenda.grpc.common.v2 import common_v2_pb2
-from eigenda.codec.blob_codec import encode_blob_data
-from eigenda.auth.signer import LocalBlobRequestSigner
-from eigenda.client_v2 import DisperserClientV2
 import os
 import sys
 import time
@@ -15,6 +9,13 @@ from datetime import datetime
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
+from dotenv import load_dotenv
+from eigenda.config import get_network_config, get_explorer_url
+from eigenda.grpc.common.v2 import common_v2_pb2
+from eigenda.codec.blob_codec import encode_blob_data
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2 import DisperserClientV2
 
 
 # Constants from the PaymentVault contract (will be set in main)
