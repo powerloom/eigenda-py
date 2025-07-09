@@ -2,12 +2,7 @@
 """Test both reservation-based and on-demand payment methods."""
 
 import os
-import sys
 from datetime import datetime
-
-# Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 from dotenv import load_dotenv
 from eigenda.config import get_network_config, get_explorer_url

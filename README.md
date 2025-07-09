@@ -24,7 +24,35 @@ This client provides a Python interface to EigenDA, a decentralized data availab
 
 ## Installation
 
+### Using Poetry (Recommended)
+
+The project uses Poetry for dependency management, which provides better dependency resolution and reproducible builds.
+
 ```bash
+# Install Poetry if you haven't already
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install project dependencies
+poetry install
+
+# Or install without development dependencies
+poetry install --without dev
+
+# Install with optional groups (docs, notebook)
+poetry install --with docs,notebook
+```
+
+For detailed Poetry usage instructions, see our [Poetry Guide](docs/POETRY_GUIDE.md).
+
+### Using pip
+
+If you prefer to use pip directly:
+
+```bash
+# Export requirements from Poetry (if requirements.txt doesn't exist)
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+# Install with pip
 pip install -r requirements.txt
 ```
 
@@ -41,12 +69,16 @@ echo "EIGENDA_PRIVATE_KEY=your_private_key_here" >> .env
 
 2. **Run Examples**
 ```bash
-# Examples can now be run directly without setting PYTHONPATH
-python examples/minimal_client.py
+# Using Poetry (recommended) - no PYTHONPATH setup needed!
+poetry run python examples/minimal_client.py
 
 # Or run other examples
-python examples/full_example.py
-python examples/check_payment_vault.py
+poetry run python examples/full_example.py
+poetry run python examples/check_payment_vault.py
+
+# Or activate the Poetry shell first
+poetry shell
+python examples/minimal_client.py
 ```
 
 ## Configuration
@@ -246,27 +278,23 @@ See `examples/blob_retrieval_example.py` and `examples/dispersal_with_retrieval_
 
 ## Development
 
-### Running from Repository
+### Development Setup
 
-If you're running code directly from the repository without installing the package, you'll need to add the src directory to your Python path:
+When developing or running code directly from the repository, Poetry handles the Python path automatically:
 
-```python
-# Add this at the top of your script
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
-# Then import eigenda modules
-from eigenda.client_v2_full import DisperserClientV2Full
-# ... other imports
-```
-
-Alternatively, run your script with:
 ```bash
-PYTHONPATH=src python your_script.py
+# Install the project in development mode
+poetry install
+
+# Run scripts with Poetry
+poetry run python your_script.py
+
+# Or activate the virtual environment
+poetry shell
+python your_script.py
 ```
 
-Note: The example files in the `examples/` directory already include this setup.
+The project is configured to use the `src/` layout, and Poetry automatically handles the import paths when you install the project.
 
 ### Project Milestones
 
@@ -276,19 +304,25 @@ The EigenDA Python client has achieved several significant milestones:
 2. **✅ 95% Test Coverage** - Comprehensive test suite with 332 tests
 3. **✅ 100% Linting Compliance** - 0 errors, fully PEP8 compliant
 4. **✅ Production Ready** - Successfully dispersing blobs on mainnet and testnets
+5. **✅ Modern Python Packaging** - Full Poetry support with organized dependency groups
+6. **✅ Python 3.13 Support** - Compatible with Python 3.9 through 3.13
 
 ### Running Tests
 
 ```bash
-# Run all tests
-pytest tests/
+# Using Poetry (recommended)
+poetry run pytest tests/
 
 # Run with coverage report
-pytest --cov=src --cov-report=term-missing
+poetry run pytest --cov=src --cov-report=term-missing
 
 # Run specific test categories
-pytest tests/test_client_v2_full.py  # Client tests
-pytest tests/test_integration_*.py   # Integration tests
+poetry run pytest tests/test_client_v2_full.py  # Client tests
+poetry run pytest tests/test_integration_*.py   # Integration tests
+
+# Or activate the virtual environment first
+poetry shell
+pytest tests/
 
 # Test Statistics:
 # - Total: 332 tests (330 passing, 2 skipped)
@@ -338,14 +372,18 @@ The unreachable line in `payment.py` is due to mathematical constraints: `(data_
 ### Running Examples
 
 ```bash
-# Test blob dispersal with automatic payment handling
-python examples/test_both_payments.py
+# Using Poetry (recommended)
+poetry run python examples/test_both_payments.py
 
 # Full example with dispersal and retrieval
-python examples/full_example.py
+poetry run python examples/full_example.py
 
 # Check your PaymentVault balance and pricing
-python examples/check_payment_vault.py
+poetry run python examples/check_payment_vault.py
+
+# Or activate the virtual environment first
+poetry shell
+python examples/test_both_payments.py
 ```
 
 ### Code Quality
@@ -355,15 +393,18 @@ python examples/check_payment_vault.py
 The project maintains high code quality standards with automated tooling:
 
 ```bash
-# Check code quality (0 errors!)
-flake8 . --exclude="*/grpc/*" --max-line-length=127
+# Check code quality using Poetry (0 errors!)
+poetry run flake8 . --exclude="*/grpc/*" --max-line-length=127
 
-# Tools used for automatic fixes:
-autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive . --exclude "*/grpc/*"
-autopep8 --in-place --max-line-length=127 --recursive . --exclude="*/grpc/*"
+# Run linting tools for automatic fixes:
+poetry run autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive . --exclude "*/grpc/*"
+poetry run autopep8 --in-place --max-line-length=127 --recursive . --exclude="*/grpc/*"
 
 # Custom fixes for specific issues
-python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespace
+poetry run python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespace
+
+# Or use pre-commit hooks (if configured)
+poetry run pre-commit run --all-files
 ```
 
 **Linting achievements:**
@@ -377,8 +418,8 @@ python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespa
 
 **Example files improvements:**
 - Fixed import order in all example files
-- Examples can now be run directly without PYTHONPATH configuration
-- Proper `sys.path` setup before `eigenda` imports
+- Examples work seamlessly with Poetry - no PYTHONPATH configuration needed
+- Removed sys.path hacks as Poetry handles imports automatically
 
 **Critical bug fixes:**
 - Fixed on-demand payment state synchronization issue
@@ -388,14 +429,15 @@ python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespa
 ### Regenerating gRPC Code
 
 ```bash
-python scripts/generate_grpc.py
-python scripts/fix_grpc_imports.py
+poetry run python scripts/generate_grpc.py
+poetry run python scripts/fix_grpc_imports.py
 ```
 
 ## Requirements
 
 - Python 3.9+
-- See requirements.txt for full dependencies
+- Poetry (for dependency management)
+- See `pyproject.toml` for full dependencies
 
 ## License
 

@@ -11,12 +11,8 @@ these values when you disperse a blob if you want to retrieve it later.
 """
 
 import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.retriever import BlobRetriever
-
 
 # For demonstration purposes, we'll show the structure needed
 # In practice, you would get these from a previous dispersal

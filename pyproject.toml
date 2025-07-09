@@ -2,22 +2,27 @@
 name = "eigenda-py"
 version = "0.1.0"
 description = "Python client for EigenDA v2 - decentralized data availability service"
-authors = ["Swaroop Hegde <email@swaroophegde.com>"]
-maintainers = ["Powerloom Team <hello@powerloom.io>"]
+authors = [{name = "Swaroop Hegde", email = "email@swaroophegde.com"}]
+maintainers = [{name = "Powerloom Team", email = "hello@powerloom.io"}]
 license = "MIT"
 readme = "README.md"
 homepage = "https://powerloom.io/"
 repository = "https://github.com/powerloom/eigenda-py"
 documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 keywords = ["eigenda", "ethereum", "data-availability", "blockchain", "web3", "powerloom"]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/powerloom/eigenda-py/issues"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: System :: Distributed Computing",
@@ -52,9 +57,19 @@ types-requests = ">=2.31.0"
 flake8 = ">=6.0.0"
 pylint = ">=3.0.0"
 pre-commit = ">=3.0.0"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
 sphinx = ">=7.0.0"
 sphinx-rtd-theme = ">=2.0.0"
 autodoc-pydantic = {version = ">=2.0.0", python = ">=3.9,<4.0.0"}
+
+[tool.poetry.group.notebook]
+optional = true
+
+[tool.poetry.group.notebook.dependencies]
 jupyter = ">=1.0.0"
 ipython = ">=8.0.0"
 
@@ -120,29 +135,17 @@ exclude_lines = [
 
 [tool.pylint.messages_control]
 disable = [
-    "C0103",
-    "C0114",
-    "C0115",
-    "C0116",
-    "R0903",
-    "R0913",
-    "W0212",
+    "C0103",  # Invalid name
+    "C0114",  # Missing module docstring
+    "C0115",  # Missing class docstring
+    "C0116",  # Missing function docstring
+    "R0903",  # Too few public methods
+    "R0913",  # Too many arguments
+    "W0212",  # Protected access
 ]
 
 [tool.pylint.format]
 max-line-length = 100
-
-[tool.flake8]
-max-line-length = 100
-extend-ignore = ["E203", "W503"]
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    "*.egg-info",
-    "src/eigenda/grpc/*_pb2*.py",
-]
 
 [tool.setuptools-scm]
 version_scheme = "python-simplified-semver"
