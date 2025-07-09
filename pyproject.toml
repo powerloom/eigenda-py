@@ -10,9 +10,6 @@ homepage = "https://powerloom.io/"
 repository = "https://github.com/powerloom/eigenda-py"
 documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 keywords = ["eigenda", "ethereum", "data-availability", "blockchain", "web3", "powerloom"]
-
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/powerloom/eigenda-py/issues"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -29,6 +26,9 @@ classifiers = [
 ]
 packages = [{include = "eigenda", from = "src"}]
 include = ["src/eigenda/py.typed"]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/powerloom/eigenda-py/issues"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
