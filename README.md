@@ -136,7 +136,7 @@ python examples/test_with_proper_payment.py
 
 # Output:
 # ✅ Success!
-# Status: BlobStatus.PROCESSING
+# Status: BlobStatus.QUEUED
 # Blob Key: 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109
 # Explorer: https://blobs-v2-testnet-holesky.eigenda.xyz/blobs/...
 ```
