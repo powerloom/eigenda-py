@@ -4,11 +4,6 @@
 import os
 import sys
 import time
-from pathlib import Path
-
-# Add the src directory to the path for development
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from eigenda.config import get_network_config, get_explorer_url
 from eigenda.codec import encode_blob_data
 from eigenda import MockDisperserClient as DisperserClient, LocalBlobRequestSigner

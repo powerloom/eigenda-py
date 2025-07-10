@@ -8,7 +8,7 @@ The Python client is being developed to provide Python support for EigenDA v2, w
 
 ## Project Structure
 
-The Python client is located at `/python-client/` within the eigenda-py repository and includes:
+The project now uses Poetry and follows a standard Python package structure with `src/` layout:
 
 - `src/eigenda/` - Main package with client implementation
   - `client.py` - Mock client for basic testing (working)
@@ -176,18 +176,72 @@ To test the client:
 
 ### 9. Dependencies
 
-Key dependencies:
+The project uses Poetry for dependency management with the following structure:
+
+**Core Dependencies:**
 - `grpcio` and `grpcio-tools` for gRPC
 - `web3` and `eth-account` for Ethereum functionality  
 - `protobuf` for message serialization
+- `cryptography` and `pycryptodome` for cryptographic operations
+- `python-dotenv` for environment variable management
 - Python 3.9+ required
+
+**Development Dependencies** (in separate groups):
+- `dev` group: Testing (pytest), linting (flake8, pylint), formatting (black, isort), type checking (mypy)
+- `docs` group (optional): Sphinx documentation tools
+- `notebook` group (optional): Jupyter and IPython for interactive development
 
 ### 10. Environment Setup
 
-Using pyenv:
+#### Using Poetry (Recommended)
+
+The project now uses Poetry for dependency management. Poetry provides better dependency resolution, lock files for reproducible builds, and easier package management.
+
 ```bash
-cd /Users/swaroop/code/eigenda-py/python-client
-pyenv local 3.12.10
+# Install Poetry if you haven't already
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Navigate to the project directory
+cd eigenda-py
+
+# Install dependencies using Poetry
+poetry install
+
+# Install with development dependencies only
+poetry install --only dev
+
+# Install without development dependencies
+poetry install --without dev
+
+# Activate the virtual environment
+poetry shell
+
+# Or run commands directly
+poetry run python examples/minimal_client.py
+```
+
+#### Using a specific Python version with Poetry
+
+If you need to use a specific Python version, you can use your preferred Python version manager (pyenv, conda, etc.) and then tell Poetry to use it:
+```bash
+cd eigenda-py
+
+# Use your preferred method to set Python version (e.g., pyenv, conda, etc.)
+# Then tell Poetry to use the active Python
+poetry env use python
+
+# Install dependencies
+poetry install
+```
+
+#### Legacy pip setup (not recommended)
+
+If you need to use pip directly:
+```bash
+# Export requirements from Poetry
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+# Install with pip
 pip install -r requirements.txt
 ```
 
@@ -296,6 +350,14 @@ Key discoveries made during development:
 - G2 points use quadratic extension field Fp2 for decompression
 
 ## Recent Updates
+
+### Poetry Configuration Enhanced (Latest)
+- **Migrated to Poetry**: Project now uses Poetry for modern dependency management
+- **Organized dependencies**: Split into separate groups (dev, docs, notebook) for better control
+- **Updated metadata**: Added missing License classifier and Bug Tracker URL
+- **Python 3.13 support**: Added support for latest Python version
+- **Removed sys.path hacks**: All example files now work cleanly with Poetry's import handling
+- **Enhanced documentation**: Added comprehensive Poetry guide at `docs/POETRY_GUIDE.md`
 
 ### Integration Tests Added (Latest)
 - Added 33 comprehensive integration tests with mock gRPC servers

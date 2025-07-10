@@ -8,9 +8,6 @@ to be able to retrieve the blob later.
 import time
 import json
 import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 from eigenda.core.types import BlobStatus, BlobKey
 from eigenda.config import get_network_config
 from eigenda.payment import PaymentConfig

@@ -6,14 +6,8 @@ Since we don't have an account with an active reservation,
 this shows the expected behavior and payment structure.
 """
 
-import os
-import sys
 import time
 from datetime import datetime
-
-# Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 
 def demonstrate_reservation_payment():

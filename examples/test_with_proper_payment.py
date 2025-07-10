@@ -2,13 +2,8 @@
 """Test with properly calculated on-demand payment."""
 
 import os
-import sys
 import time
 from datetime import datetime
-
-# Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 from dotenv import load_dotenv
 from eigenda.config import get_network_config, get_explorer_url
@@ -16,7 +11,6 @@ from eigenda.grpc.common.v2 import common_v2_pb2
 from eigenda.codec.blob_codec import encode_blob_data
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2 import DisperserClientV2
-
 
 # Constants from the PaymentVault contract (will be set in main)
 PRICE_PER_SYMBOL = None
@@ -102,6 +96,15 @@ def main():
         # Get payment state
         print("Getting payment state...")
         payment_state = client.get_payment_state()
+
+        # Check for on-demand payment existence
+        if not hasattr(payment_state, 'onchain_cumulative_payment') or not payment_state.onchain_cumulative_payment:
+            print("\n❌ Error: No on-demand payment deposit found for this account.")
+            print("Please deposit funds into the PaymentVault contract for on-demand payments.")
+            print(f"  - Network: {network_config.network_name}")
+            print(f"  - PaymentVault: {network_config.payment_vault_address}")
+            return
+        
         print("✅ Payment state retrieved")
 
         # Get current cumulative payment
