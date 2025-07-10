@@ -86,7 +86,7 @@ class TestDisperserClientV2Final:
         mock_stub.DisperseBlob.assert_called_once()
 
         # Verify result
-        assert status == BlobStatus.PROCESSING  # QUEUED maps to PROCESSING
+        assert status == BlobStatus.QUEUED
         assert isinstance(blob_key, BlobKey)
         assert bytes(blob_key) == b'x' * 32
 

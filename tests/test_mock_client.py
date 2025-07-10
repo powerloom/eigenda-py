@@ -59,7 +59,7 @@ class TestMockDisperserClient:
         )
 
         # Verify results
-        assert status == BlobStatus.PROCESSING
+        assert status == BlobStatus.QUEUED
         assert isinstance(blob_key, BlobKey)
         assert len(bytes(blob_key)) == 32
 
@@ -108,7 +108,7 @@ class TestMockDisperserClient:
         )
 
         # All should be successful
-        assert all(s == BlobStatus.PROCESSING for s in [status1, status2, status3, status4])
+        assert all(s == BlobStatus.QUEUED for s in [status1, status2, status3, status4])
 
         # All keys should be different
         keys = [key1, key2, key3, key4]
@@ -164,7 +164,7 @@ class TestMockDisperserClient:
                 blob_version=0,
                 quorum_ids=[0]
             )
-            assert status == BlobStatus.PROCESSING
+            assert status == BlobStatus.QUEUED
             assert isinstance(blob_key, BlobKey)
 
         # Client should be closed after context
@@ -182,7 +182,7 @@ class TestMockDisperserClient:
             ) as client:
                 # Do something
                 status, _ = client.disperse_blob(b'test', 0, [0])
-                assert status == BlobStatus.PROCESSING
+                assert status == BlobStatus.QUEUED
 
                 # Raise exception
                 raise ValueError("Test exception")
@@ -216,7 +216,7 @@ class TestMockDisperserClient:
         # Test max size (16 MiB)
         max_data = b'x' * (16 * 1024 * 1024)
         status, blob_key = client.disperse_blob(max_data, 0, [0])
-        assert status == BlobStatus.PROCESSING
+        assert status == BlobStatus.QUEUED
 
         # Test exceeding max size
         too_large_data = b'x' * (16 * 1024 * 1024 + 1)
@@ -235,7 +235,7 @@ class TestMockDisperserClient:
             timeout=60
         )
 
-        assert status == BlobStatus.PROCESSING
+        assert status == BlobStatus.QUEUED
         assert isinstance(blob_key, BlobKey)
 
     def test_timeout_parameter(self, client):
@@ -248,7 +248,7 @@ class TestMockDisperserClient:
                 quorum_ids=[0],
                 timeout=timeout
             )
-            assert status == BlobStatus.PROCESSING
+            assert status == BlobStatus.QUEUED
 
     def test_client_with_config(self, mock_signer):
         """Test client creation with explicit config."""

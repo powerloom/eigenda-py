@@ -110,7 +110,7 @@ class DisperserClient:
         # 4. Parse the response
 
         # For now, return mock values
-        return (BlobStatus.PROCESSING, blob_key)
+        return (BlobStatus.QUEUED, blob_key)
 
     def get_blob_status(self, blob_key: BlobKey) -> BlobStatus:
         """

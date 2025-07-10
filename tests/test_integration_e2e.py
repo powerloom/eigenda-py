@@ -149,7 +149,7 @@ class TestEndToEndFlow:
                 # Step 2: Disperse blob
                 from eigenda.core.types import BlobStatus
                 status, blob_key = client.disperse_blob(original_data)
-                assert status == BlobStatus.PROCESSING  # QUEUED maps to PROCESSING
+                assert status == BlobStatus.QUEUED
                 expected_key = b'e2e_test_blob_key_12345' + b'\x00' * 9
                 assert bytes(blob_key) == expected_key
 

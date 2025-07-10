@@ -175,7 +175,7 @@ class TestDisperserClientV2FullSimple:
         error = Exception("reservation is not a valid active reservation")
 
         # Second call succeeds
-        expected_status = BlobStatus.PROCESSING
+        expected_status = BlobStatus.QUEUED
         expected_key = BlobKey(b'y' * 32)
 
         # Create a counter to track calls

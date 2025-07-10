@@ -14,11 +14,11 @@ QuorumID = int
 class BlobStatus(Enum):
     """Status of a dispersed blob."""
     UNKNOWN = 0
-    PROCESSING = 1
-    GATHERING_SIGNATURES = 2
-    COMPLETE = 3
-    FAILED = 4
-    INSUFFICIENT_SIGNATURES = 5
+    QUEUED = 1
+    ENCODED = 2
+    GATHERING_SIGNATURES = 3
+    COMPLETE = 4
+    FAILED = 5
 
 
 @dataclass

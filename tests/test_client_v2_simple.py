@@ -33,20 +33,15 @@ class TestDisperserClientV2Simple:
     def test_parse_blob_status_all_cases(self, client):
         """Test _parse_blob_status for all enum values."""
         # Test the actual mapping that's implemented in the code
-        # The mapping doesn't match the protobuf names exactly, but we test what's there
+        # The mapping now matches the protobuf v2 enum values
 
         # Test all status mappings as implemented
         assert client._parse_blob_status(0) == BlobStatus.UNKNOWN
-        # QUEUED -> PROCESSING
-        assert client._parse_blob_status(1) == BlobStatus.PROCESSING
-        # ENCODED -> GATHERING_SIGNATURES
-        assert client._parse_blob_status(2) == BlobStatus.GATHERING_SIGNATURES
-        # GATHERING_SIGNATURES -> COMPLETE
-        assert client._parse_blob_status(3) == BlobStatus.COMPLETE
-        # COMPLETE -> FAILED
-        assert client._parse_blob_status(4) == BlobStatus.FAILED
-        # FAILED -> INSUFFICIENT_SIGNATURES
-        assert client._parse_blob_status(5) == BlobStatus.INSUFFICIENT_SIGNATURES
+        assert client._parse_blob_status(1) == BlobStatus.QUEUED
+        assert client._parse_blob_status(2) == BlobStatus.ENCODED
+        assert client._parse_blob_status(3) == BlobStatus.GATHERING_SIGNATURES
+        assert client._parse_blob_status(4) == BlobStatus.COMPLETE
+        assert client._parse_blob_status(5) == BlobStatus.FAILED
 
         # Test unknown status
         assert client._parse_blob_status(999) == BlobStatus.UNKNOWN
@@ -60,7 +55,7 @@ class TestDisperserClientV2Simple:
 
         # Create a proper mock response
         mock_response = Mock()
-        mock_response.status = 3  # CERTIFIED
+        mock_response.status = 4  # COMPLETE (was 3 in old mapping)
         mock_response.info = Mock()
         mock_response.info.blob_header = Mock()
         mock_response.info.blob_header.commitment = Mock()
