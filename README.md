@@ -475,6 +475,9 @@ poetry run python scripts/fix_grpc_imports.py
 - **Updated all examples**: Fixed status checking, DisperserClientV2Full initialization, and API usage
 - **Added status monitoring examples**: New examples for checking blob status during and after dispersal
 - **Improved error handling**: Better error messages and recovery in examples
+- **Code quality improvements**: 
+  - Removed all `sys.path` hacks from examples (Poetry handles imports properly)
+  - Moved all inline imports to top of files following Python best practices
 
 ## Requirements
 

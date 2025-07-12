@@ -470,6 +470,17 @@ Key discoveries made during development:
   - Real dispersal examples handle payment correctly
   - Status checking examples properly monitor blob progress
 
+### Example Files Code Quality Improvements (Latest)
+- **Removed all sys.path hacks**: Since we're using Poetry, the `sys.path.insert()` hacks are no longer needed
+  - Cleaned `check_blob_status.py` and `check_existing_blob_status.py`
+  - All examples now import cleanly without path manipulation
+- **Moved all inline imports to top of files**:
+  - `full_example.py`: Moved `PaymentConfig` and `traceback` imports to top
+  - `check_payment_vault.py`: Moved `traceback` import to top
+  - `test_both_payments.py`: Moved `Account` import to top
+  - `test_with_proper_payment.py`: Moved `traceback` import to top
+- **Result**: All example files now follow Python best practices with imports at the top
+
 ### CI/CD Pipeline
 The project uses GitHub Actions for continuous integration:
 - Runs tests on Python 3.9, 3.10, 3.11, and 3.12
