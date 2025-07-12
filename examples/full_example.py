@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import traceback
 from eigenda.config import get_network_config, get_explorer_url
 from eigenda import (
     DisperserClientV2Full,
@@ -13,6 +14,7 @@ from eigenda import (
     decode_blob_data,
     BlobStatus
 )
+from eigenda.payment import PaymentConfig
 from dotenv import load_dotenv
 
 
@@ -103,7 +105,6 @@ def main():
     print("\n=== Step 1: Dispersing Blob ===")
 
     # Create payment config from network config
-    from eigenda.payment import PaymentConfig
     payment_config = PaymentConfig(
         price_per_symbol=network_config.price_per_symbol,
         min_num_symbols=network_config.min_num_symbols
@@ -134,7 +135,6 @@ def main():
 
     except Exception as e:
         print(f"\n❌ Dispersal error: {e}")
-        import traceback
         traceback.print_exc()
         sys.exit(1)
     finally:

@@ -9,12 +9,7 @@ This example shows how to:
 """
 
 import os
-import sys
 import time
-from pathlib import Path
-
-# Add the parent directory to the path so we can import eigenda
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from eigenda.client_v2_full import DisperserClientV2Full
 from eigenda.core.types import BlobStatus

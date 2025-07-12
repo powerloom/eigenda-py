@@ -8,10 +8,6 @@ which you might have from a previous dispersal.
 
 import os
 import sys
-from pathlib import Path
-
-# Add the parent directory to the path so we can import eigenda
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from eigenda.client_v2 import DisperserClientV2
 from eigenda.core.types import BlobStatus, BlobKey

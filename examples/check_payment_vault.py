@@ -2,6 +2,7 @@
 """Check PaymentVault contract state for the account."""
 
 import os
+import traceback
 from eigenda.config import get_network_config
 from dotenv import load_dotenv
 from eth_account import Account
@@ -168,7 +169,6 @@ def main():
 
     except Exception as e:
         print(f"Error querying contract: {e}")
-        import traceback
         traceback.print_exc()
 
 
