@@ -296,11 +296,11 @@ class DisperserClientV2:
         # Map from protobuf status to our enum
         status_map = {
             0: BlobStatus.UNKNOWN,
-            1: BlobStatus.PROCESSING,
-            2: BlobStatus.GATHERING_SIGNATURES,
-            3: BlobStatus.COMPLETE,
-            4: BlobStatus.FAILED,
-            5: BlobStatus.INSUFFICIENT_SIGNATURES,
+            1: BlobStatus.QUEUED,
+            2: BlobStatus.ENCODED,
+            3: BlobStatus.GATHERING_SIGNATURES,
+            4: BlobStatus.COMPLETE,
+            5: BlobStatus.FAILED,
         }
 
         return status_map.get(proto_status, BlobStatus.UNKNOWN)

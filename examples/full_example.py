@@ -4,14 +4,17 @@
 import os
 import sys
 import time
+import traceback
 from eigenda.config import get_network_config, get_explorer_url
 from eigenda import (
-    DisperserClientV2,
+    DisperserClientV2Full,
     BlobRetriever,
     LocalBlobRequestSigner,
     encode_blob_data,
-    decode_blob_data
+    decode_blob_data,
+    BlobStatus
 )
+from eigenda.payment import PaymentConfig
 from dotenv import load_dotenv
 
 
@@ -62,7 +65,10 @@ def wait_for_finalization(disperser, blob_key, max_attempts=30):
 
     while attempt < max_attempts:
         time.sleep(2)
-        current_status = disperser.get_blob_status(blob_key)
+        # get_blob_status expects hex string, not BlobKey object
+        response = disperser.get_blob_status(blob_key.hex())
+        # Parse the status from response
+        current_status = BlobStatus(response.status)
         print(f"  Status: {current_status.name}")
 
         if current_status.name in ["COMPLETE", "GATHERING_SIGNATURES"]:
@@ -78,37 +84,6 @@ def wait_for_finalization(disperser, blob_key, max_attempts=30):
     print("The blob may still be processing. You can check status later.")
     return False
 
-
-def retrieve_blob(retriever, blob_key, original_data):
-    """Attempt to retrieve a blob from EigenDA."""
-    print(f"\nAttempting to retrieve blob: {blob_key.hex()}")
-
-    # Get blob info first
-    try:
-        blob_size, encoding_version = retriever.get_blob_info(blob_key)
-        print(f"Blob size: {blob_size} bytes")
-        print(f"Encoding version: {encoding_version}")
-    except Exception as e:
-        print(f"Could not get blob info: {e}")
-
-    # Retrieve the blob
-    retrieved_data = retriever.retrieve_blob(blob_key)
-    print("\n✅ Blob retrieved successfully!")
-    print(f"Retrieved size: {len(retrieved_data)} bytes")
-
-    # Decode the data
-    decoded_data = decode_blob_data(retrieved_data)
-    retrieved_text = decoded_data.decode('utf-8')
-
-    print(f"\nDecoded data: {retrieved_text}")
-
-    # Verify it matches
-    if retrieved_text == original_data:
-        print("\n✅ Data integrity verified - retrieved data matches original!")
-    else:
-        print("\n❌ Data mismatch - retrieved data differs from original!")
-
-    return retrieved_text
 
 
 def main():
@@ -129,11 +104,18 @@ def main():
     # Step 1: Disperse a blob
     print("\n=== Step 1: Dispersing Blob ===")
 
-    disperser = DisperserClientV2(
+    # Create payment config from network config
+    payment_config = PaymentConfig(
+        price_per_symbol=network_config.price_per_symbol,
+        min_num_symbols=network_config.min_num_symbols
+    )
+    
+    disperser = DisperserClientV2Full(
         hostname=network_config.disperser_host,
         port=network_config.disperser_port,
         use_secure_grpc=True,
-        signer=signer
+        signer=signer,
+        payment_config=payment_config
     )
 
     try:
@@ -153,37 +135,33 @@ def main():
 
     except Exception as e:
         print(f"\n❌ Dispersal error: {e}")
-        import traceback
         traceback.print_exc()
         sys.exit(1)
     finally:
         disperser.close()
 
     # Step 2: Retrieve the blob (if available)
-    print("\n\n=== Step 2: Retrieving Blob ===")
-    print("Note: Retrieval requires a retriever endpoint which may not be publicly available")
-    print("This is shown for demonstration purposes")
-
-    # Example retriever configuration (may not be accessible)
-    # Note: retriever endpoints may differ from disperser endpoints
-    retriever_host = network_config.disperser_host.replace("disperser", "retriever")
-    retriever = BlobRetriever(
-        hostname=retriever_host,  # Example endpoint
-        port=443,
-        use_secure_grpc=True,
-        signer=signer
-    )
-
-    try:
-        retrieve_blob(retriever, blob_key, original_data)
-    except Exception as e:
-        print(f"\n⚠️  Retrieval error (this is expected if retriever is not available): {e}")
-        print("\nNote: Blob retrieval typically requires:")
-        print("  1. Access to a retriever service endpoint")
-        print("  2. The blob to be fully finalized on the network")
-        print("  3. Proper authentication/authorization")
-    finally:
-        retriever.close()
+    print("\n\n=== Step 2: Blob Retrieval ===")
+    print("Note: Blob retrieval requires:")
+    print("  1. A retriever service endpoint (not publicly available)")
+    print("  2. The full blob header from dispersal (not just the key)")
+    print("  3. The reference block number at dispersal time")
+    print("  4. The quorum ID to retrieve from")
+    print("\nFor a working retrieval example, see:")
+    print("  - examples/blob_retrieval_example.py")
+    print("  - examples/dispersal_with_retrieval_support.py")
+    
+    # Example of what retrieval would look like:
+    print("\nRetrieval code pattern:")
+    print("""
+    # retriever = BlobRetriever(hostname="retriever.eigenda.xyz", ...)
+    # encoded_data = retriever.retrieve_blob(
+    #     blob_header=blob_header,        # Full header from dispersal
+    #     reference_block_number=123456,  # Block number at dispersal
+    #     quorum_id=0                     # Which quorum to retrieve from
+    # )
+    # original_data = decode_blob_data(encoded_data)
+    """)
 
     print("\n=== Example Complete ===")
 

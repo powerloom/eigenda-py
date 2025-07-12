@@ -10,6 +10,7 @@ from eigenda.payment import PaymentConfig
 from eigenda.codec.blob_codec import encode_blob_data
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
+from eth_account import Account
 
 
 def test_account(private_key: str, description: str):
@@ -99,7 +100,6 @@ def main():
 
         # Generate a new test account to show what happens with no payment
         print("\nGenerating a new account with no deposits or reservations...")
-        from eth_account import Account
         new_account = Account.create()
         print(f"New account: {new_account.address}")
         print("(This account has no ETH deposits or reservations)")

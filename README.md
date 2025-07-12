@@ -10,6 +10,9 @@ This client provides a Python interface to EigenDA, a decentralized data availab
 
 ✅ **Fully Working!** - The client successfully disperses blobs to EigenDA using both reservation-based and on-demand payments.
 
+### Important Update (Latest)
+**Fixed BlobStatus enum mismatch with v2 protocol** - The Python client now correctly maps blob status values to match the EigenDA v2 protobuf definition. This fixes the issue where status 0 (UNKNOWN) was being returned when blobs were actually being processed. Status values now correctly show QUEUED, ENCODED, etc.
+
 ### Implemented Features
 - Full gRPC v2 protocol support
 - ECDSA signature authentication
@@ -133,7 +136,7 @@ python examples/test_with_proper_payment.py
 
 # Output:
 # ✅ Success!
-# Status: BlobStatus.PROCESSING
+# Status: BlobStatus.QUEUED
 # Blob Key: 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109
 # Explorer: https://blobs-v2-testnet-holesky.eigenda.xyz/blobs/...
 ```
@@ -202,6 +205,26 @@ The client automatically:
 4. **Refreshes payment state before each blob** to sync with server (bug fix)
 
 See `examples/test_both_payments.py` for a complete example.
+
+### Checking Blob Status
+
+After dispersing a blob, you can check its status to monitor the dispersal process:
+
+```python
+# Check status of a blob
+status = client.get_blob_status(blob_key)
+print(f"Status: {status.name}")
+
+# Status values in v2 protocol:
+# - UNKNOWN (0): Error or unknown state
+# - QUEUED (1): Blob queued for processing
+# - ENCODED (2): Blob encoded into chunks
+# - GATHERING_SIGNATURES (3): Collecting node signatures
+# - COMPLETE (4): Successfully dispersed
+# - FAILED (5): Dispersal failed
+```
+
+See `examples/check_blob_status.py` for monitoring status until completion, or `examples/check_existing_blob_status.py` to check a specific blob key.
 
 ### Blob Retrieval
 
@@ -371,20 +394,32 @@ The unreachable line in `payment.py` is due to mathematical constraints: `(data_
 
 ### Running Examples
 
+All examples have been updated to work with the latest code changes, including proper BlobStatus enum values and correct API usage.
+
 ```bash
 # Using Poetry (recommended)
 poetry run python examples/test_both_payments.py
 
-# Full example with dispersal and retrieval
+# Full example with dispersal and status monitoring
 poetry run python examples/full_example.py
 
 # Check your PaymentVault balance and pricing
 poetry run python examples/check_payment_vault.py
 
+# Check blob status after dispersal (monitors until completion)
+poetry run python examples/check_blob_status.py
+
+# Check status of an existing blob
+poetry run python examples/check_existing_blob_status.py <blob_key_hex>
+
+# Simple example with mock client
+poetry run python examples/minimal_client.py
 # Or activate the virtual environment first
 poetry shell
 python examples/test_both_payments.py
 ```
+
+**Note**: All examples now properly handle the v2 protocol's status values (QUEUED, ENCODED, etc.) and use the correct API methods.
 
 ### Code Quality
 
@@ -432,6 +467,17 @@ poetry run pre-commit run --all-files
 poetry run python scripts/generate_grpc.py
 poetry run python scripts/fix_grpc_imports.py
 ```
+
+## Recent Updates
+
+### July 10th 2025
+- **Fixed BlobStatus enum mismatch**: Updated to match v2 protobuf values (QUEUED, ENCODED, etc.)
+- **Updated all examples**: Fixed status checking, DisperserClientV2Full initialization, and API usage
+- **Added status monitoring examples**: New examples for checking blob status during and after dispersal
+- **Improved error handling**: Better error messages and recovery in examples
+- **Code quality improvements**: 
+  - Removed all `sys.path` hacks from examples (Poetry handles imports properly)
+  - Moved all inline imports to top of files following Python best practices
 
 ## Requirements
 

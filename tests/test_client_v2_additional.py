@@ -35,27 +35,27 @@ class TestDisperserClientV2Additional:
         # Mock the disperser_v2_pb2 module
         with patch('eigenda.client_v2.disperser_v2_pb2') as mock_pb2:
             mock_pb2.ENCODED = 2
-            # ENCODED maps to GATHERING_SIGNATURES
-            assert client._parse_blob_status(2) == BlobStatus.GATHERING_SIGNATURES
+            # Test ENCODED status
+            assert client._parse_blob_status(2) == BlobStatus.ENCODED
 
     def test_parse_blob_status_certified(self, client):
         """Test _parse_blob_status for CERTIFIED status."""
         with patch('eigenda.client_v2.disperser_v2_pb2') as mock_pb2:
             mock_pb2.CERTIFIED = 3
-            # CERTIFIED maps to COMPLETE
-            assert client._parse_blob_status(3) == BlobStatus.COMPLETE
+            # GATHERING_SIGNATURES status
+            assert client._parse_blob_status(3) == BlobStatus.GATHERING_SIGNATURES
 
     def test_parse_blob_status_failed(self, client):
         """Test _parse_blob_status for FAILED status."""
         with patch('eigenda.client_v2.disperser_v2_pb2') as mock_pb2:
-            mock_pb2.FAILED = 4
-            assert client._parse_blob_status(4) == BlobStatus.FAILED
+            mock_pb2.FAILED = 5
+            assert client._parse_blob_status(5) == BlobStatus.FAILED
 
-    def test_parse_blob_status_insufficient_signatures(self, client):
-        """Test _parse_blob_status for INSUFFICIENT_SIGNATURES."""
+    def test_parse_blob_status_complete(self, client):
+        """Test _parse_blob_status for COMPLETE status."""
         with patch('eigenda.client_v2.disperser_v2_pb2') as mock_pb2:
-            mock_pb2.INSUFFICIENT_SIGNATURES = 5
-            assert client._parse_blob_status(5) == BlobStatus.INSUFFICIENT_SIGNATURES
+            mock_pb2.COMPLETE = 4
+            assert client._parse_blob_status(4) == BlobStatus.COMPLETE
 
     def test_parse_blob_status_unknown(self, client):
         """Test _parse_blob_status for unknown status."""
@@ -144,13 +144,13 @@ class TestDisperserClientV2Additional:
         mock_disperser_pb2.DisperseBlobRequest.return_value = mock_request
 
         # Mock _parse_blob_status
-        with patch.object(client, '_parse_blob_status', return_value=BlobStatus.PROCESSING):
+        with patch.object(client, '_parse_blob_status', return_value=BlobStatus.QUEUED):
             client._connect()
 
             data = b'test data'
             status, blob_key = client.disperse_blob(data, 0, [0, 1])
 
-            assert status == BlobStatus.PROCESSING
+            assert status == BlobStatus.QUEUED
             assert isinstance(blob_key, BlobKey)
             assert bytes(blob_key) == b'x' * 32
 
@@ -321,7 +321,7 @@ class TestDisperserClientV2Additional:
         """Test disperse_blob with custom timeout."""
         with patch.object(client, 'get_blob_commitment') as mock_commitment:
             with patch.object(client, '_stub') as mock_stub:
-                with patch.object(client, '_parse_blob_status', return_value=BlobStatus.PROCESSING):
+                with patch.object(client, '_parse_blob_status', return_value=BlobStatus.QUEUED):
                     # Setup mocks
                     mock_commitment_obj = Mock()
                     mock_commitment_obj.commitment = b'c' * 32

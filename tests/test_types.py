@@ -62,8 +62,8 @@ class TestBlobStatus:
     def test_blob_status_values(self):
         """Test that all expected status values exist."""
         assert BlobStatus.UNKNOWN.value == 0
-        assert BlobStatus.PROCESSING.value == 1
-        assert BlobStatus.GATHERING_SIGNATURES.value == 2
-        assert BlobStatus.COMPLETE.value == 3
-        assert BlobStatus.FAILED.value == 4
-        assert BlobStatus.INSUFFICIENT_SIGNATURES.value == 5
+        assert BlobStatus.QUEUED.value == 1
+        assert BlobStatus.ENCODED.value == 2
+        assert BlobStatus.GATHERING_SIGNATURES.value == 3
+        assert BlobStatus.COMPLETE.value == 4
+        assert BlobStatus.FAILED.value == 5

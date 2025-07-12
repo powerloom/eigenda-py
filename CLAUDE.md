@@ -440,6 +440,47 @@ Key discoveries made during development:
 - **Fix**: Modified `_create_blob_header()` to always refresh state for on-demand payments
 - **Result**: Multiple blobs can now be sent successfully without payment errors
 
+### BlobStatus Enum Fix - V2 Protocol Alignment (Latest)
+- **Fixed critical mismatch between Python BlobStatus enum and v2 protobuf values**
+- **Issue**: Python client was using incorrect status mappings, causing status 0 (UNKNOWN) to be returned when blob was actually being processed
+- **Root cause**: Python enum had different values than the actual v2 protobuf:
+  - Python had: PROCESSING=1, GATHERING_SIGNATURES=2, COMPLETE=3, etc.
+  - V2 protobuf has: QUEUED=1, ENCODED=2, GATHERING_SIGNATURES=3, COMPLETE=4, FAILED=5
+- **Fix**: Updated BlobStatus enum and all status mappings to match v2 protobuf exactly
+- **Updated files**:
+  - `core/types.py`: Corrected BlobStatus enum values
+  - `client_v2.py`: Fixed `_parse_blob_status()` mapping
+  - `client.py`: Mock client returns QUEUED instead of PROCESSING
+  - All test files updated to use new status names
+- **Result**: Status values now correctly reflect actual blob processing state
+- **New examples added**: `check_blob_status.py` and `check_existing_blob_status.py` for monitoring dispersal progress
+
+### Example Files Updated (Latest)
+- **Fixed all example files to work with the updated code**:
+  - `full_example.py`: Now uses DisperserClientV2Full with correct payment_config initialization
+  - `check_blob_status.py`: Fixed to pass hex string to get_blob_status() and parse response correctly
+  - All examples now handle the new BlobStatus enum values (QUEUED, ENCODED, etc.)
+- **Key fixes in examples**:
+  - Changed `get_blob_status(blob_key)` to `get_blob_status(blob_key.hex())`
+  - Parse status from response: `BlobStatus(response.status)`
+  - Fixed DisperserClientV2Full initialization with PaymentConfig
+  - Removed broken retrieval code from full_example.py
+- **All 10 examples tested and working**:
+  - Mock client examples work with new QUEUED status
+  - Real dispersal examples handle payment correctly
+  - Status checking examples properly monitor blob progress
+
+### Example Files Code Quality Improvements (Latest)
+- **Removed all sys.path hacks**: Since we're using Poetry, the `sys.path.insert()` hacks are no longer needed
+  - Cleaned `check_blob_status.py` and `check_existing_blob_status.py`
+  - All examples now import cleanly without path manipulation
+- **Moved all inline imports to top of files**:
+  - `full_example.py`: Moved `PaymentConfig` and `traceback` imports to top
+  - `check_payment_vault.py`: Moved `traceback` import to top
+  - `test_both_payments.py`: Moved `Account` import to top
+  - `test_with_proper_payment.py`: Moved `traceback` import to top
+- **Result**: All example files now follow Python best practices with imports at the top
+
 ### CI/CD Pipeline
 The project uses GitHub Actions for continuous integration:
 - Runs tests on Python 3.9, 3.10, 3.11, and 3.12
