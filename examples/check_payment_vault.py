@@ -74,17 +74,46 @@ def check_deposit_balance(contract, account_address: str) -> int:
 
 def check_reservation(contract, account_address: str) -> None:
     """Check and display reservation details."""
+    import time
     print("\nChecking reservation...")
     try:
         reservation = contract.functions.getReservation(account_address).call()
+        
+        # Check if reservation exists (non-zero values)
+        if reservation[0] == 0 and reservation[1] == 0 and reservation[2] == 0:
+            print("No reservation found for this account.")
+            return
+            
         print("Reservation found:")
-        print(f"  Symbols per second: {reservation[0]}")
-        print(f"  Start timestamp: {reservation[1]}")
-        print(f"  End timestamp: {reservation[2]}")
-        print(f"  Quorum numbers: {reservation[3].hex()}")
+        print(f"  Symbols per second: {reservation[0]:,}")
+        print(f"  Start timestamp: {reservation[1]} ({time.ctime(reservation[1]) if reservation[1] > 0 else 'Not set'})")
+        print(f"  End timestamp: {reservation[2]} ({time.ctime(reservation[2]) if reservation[2] > 0 else 'Not set'})")
+        
+        # Parse quorum numbers
+        quorum_bytes = reservation[3]
+        if quorum_bytes:
+            quorum_numbers = list(quorum_bytes)
+            print(f"  Quorum numbers: {quorum_numbers}")
+        else:
+            print(f"  Quorum numbers: [] (empty)")
+            
         print(f"  Quorum splits: {reservation[4].hex()}")
+        
+        # Check if currently active
+        current_time = int(time.time())
+        if reservation[1] > 0 and reservation[2] > 0:
+            if reservation[1] <= current_time <= reservation[2]:
+                print("  Status: ✅ ACTIVE")
+                remaining = reservation[2] - current_time
+                print(f"  Time remaining: {remaining // 3600} hours, {(remaining % 3600) // 60} minutes")
+            elif current_time < reservation[1]:
+                print("  Status: ⏳ NOT YET ACTIVE")
+                print(f"  Starts in: {(reservation[1] - current_time) // 3600} hours")
+            else:
+                print("  Status: ❌ EXPIRED")
+                print(f"  Expired: {(current_time - reservation[2]) // 3600} hours ago")
     except Exception as e:
-        print(f"No active reservation (or error): {e}")
+        print(f"Error checking reservation: {e}")
 
 
 def display_pricing_info(contract, deposit: int) -> None:

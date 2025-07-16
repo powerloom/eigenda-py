@@ -27,7 +27,7 @@ def test_account(private_key: str, description: str):
     print(f"Account: {signer.account}")
     print(f"Network: {network_config.network_name}")
 
-    # Create client with full payment support
+    # Create client with full payment support (try advanced reservations first)
     client = DisperserClientV2Full(
         hostname=network_config.disperser_host,
         port=network_config.disperser_port,
@@ -36,14 +36,33 @@ def test_account(private_key: str, description: str):
         payment_config=PaymentConfig(
             price_per_symbol=network_config.price_per_symbol,
             min_num_symbols=network_config.min_num_symbols
-        )
+        ),
+        use_advanced_reservations=True  # Enable advanced reservation support
     )
 
     try:
-        # Get payment info
+        # Check for advanced reservations first
         print("\nChecking payment configuration...")
+        has_advanced_reservation = False
+        
+        try:
+            advanced_state = client.get_payment_state_for_all_quorums()
+            if advanced_state and hasattr(advanced_state, 'quorum_reservations') and advanced_state.quorum_reservations:
+                print("✅ Advanced per-quorum reservations found!")
+                for quorum_id, res in advanced_state.quorum_reservations.items():
+                    print(f"  Quorum {quorum_id}: {res.symbols_per_second} symbols/sec")
+                has_advanced_reservation = True
+        except:
+            pass
+        
+        # Get payment info (will use simple check if advanced not available)
         payment_info = client.get_payment_info()
-        print(f"Payment type: {payment_info['payment_type']}")
+        
+        if has_advanced_reservation:
+            print(f"Payment type: advanced_reservation")
+        else:
+            print(f"Payment type: {payment_info['payment_type']}")
+            
         print(f"Has reservation: {payment_info['has_reservation']}")
 
         if payment_info['payment_type'] == 'on_demand':

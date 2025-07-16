@@ -351,7 +351,45 @@ Key discoveries made during development:
 
 ## Recent Updates
 
-### Poetry Configuration Enhanced (Latest)
+### Advanced Reservation Support (July 15th 2025)
+The Python client now has feature parity with the Go client for reservation handling:
+
+1. **Per-Quorum Reservations**: Full support for different reservations per quorum
+2. **Period Record Tracking**: Bin-based usage tracking with circular buffer implementation
+3. **Nanosecond Precision**: All timestamps now use nanoseconds matching Go client
+4. **Advanced Validation**: Complete reservation validation logic ported from Go
+5. **ReservationAccountant**: New accountant class handling both reservation and on-demand
+6. **GetPaymentStateForAllQuorums**: Support for the new gRPC method
+7. **Automatic Fallback**: Seamless switching between reservation and on-demand per quorum
+8. **Thread Safety**: All operations are thread-safe with proper locking
+9. **Comprehensive Tests**: 22 tests covering all reservation functionality
+
+Key files added/modified:
+- `src/eigenda/core/meterer.py` - Time utilities and validation functions
+- `src/eigenda/core/types.py` - Added reservation-related types
+- `src/eigenda/payment.py` - Added ReservationAccountant class
+- `src/eigenda/client_v2_full.py` - Updated to support per-quorum reservations
+- `tests/test_reservation_parity.py` - Comprehensive test suite
+- `examples/advanced_reservations.py` - Example demonstrating new features
+
+Examples updated for reservation support:
+- `check_payment_vault.py` - Shows reservation status, time remaining, human-readable timestamps
+- `test_both_payments.py` - Checks for advanced reservations, shows payment method selection
+- `full_example.py` - Added reservation checking before dispersal
+- `debug_payment_state.py` - Checks both simple and advanced payment states
+
+Key implementation details:
+- The client supports both simple (global) and advanced (per-quorum) reservations
+- Use `use_advanced_reservations=True` when creating DisperserClientV2Full
+- Client automatically falls back: advanced → simple → on-demand
+- Period records track usage in 3-bin circular buffer with overflow support
+
+Comparison with other clients:
+- **Go client**: Uses GetPaymentStateForAllQuorums (advanced reservations)
+- **Rust client**: Uses GetPaymentState (simple reservations only)
+- **Python client**: Supports BOTH approaches for maximum compatibility
+
+### Poetry Configuration Enhanced (July 10th 2025)
 - **Migrated to Poetry**: Project now uses Poetry for modern dependency management
 - **Organized dependencies**: Split into separate groups (dev, docs, notebook) for better control
 - **Updated metadata**: Added missing License classifier and Bug Tracker URL
@@ -359,7 +397,7 @@ Key discoveries made during development:
 - **Removed sys.path hacks**: All example files now work cleanly with Poetry's import handling
 - **Enhanced documentation**: Added comprehensive Poetry guide at `docs/POETRY_GUIDE.md`
 
-### Integration Tests Added (Latest)
+### Integration Tests Added (older)
 - Added 33 comprehensive integration tests with mock gRPC servers
 - Tests cover full dispersal flow, payment handling, error scenarios, and performance
 - All tests pass without requiring network connections
@@ -371,7 +409,7 @@ Key discoveries made during development:
 - Tests cover all functionality including connection management, blob dispersal, and edge cases
 - Overall test coverage improved from 85% to 88%
 
-### Test Coverage Milestone - 95% Overall Coverage! (Latest)
+### Test Coverage Milestone - 95% Overall Coverage! (older)
 - Achieved **100% coverage** for 13 out of 16 source files!
 - Files with 100% coverage:
   - `auth/signer.py` - Complete ECDSA signing implementation
@@ -394,7 +432,7 @@ Key discoveries made during development:
 - Overall project coverage: **95%** (832 statements, 41 missing)
 - All 330 tests passing (2 skipped)
 
-### Code Quality Improvements - 100% Linting Compliance! (Latest)
+### Code Quality Improvements - 100% Linting Compliance! (older)
 - **Achieved 0 linting errors** (down from 118 initially)
 - Fixed all linting issues systematically:
   - **68 files** with f-strings without placeholders (F541 errors) - removed unnecessary f-string prefixes
@@ -419,7 +457,7 @@ Key discoveries made during development:
   - Added coverage artifact uploads
   - Integrated linting checks in CI pipeline
 
-### Example Files Import Fix (Latest)
+### Example Files Import Fix (older)
 - Fixed import order issues in all 7 example files that were importing from `eigenda` before setting up `sys.path`
 - Files fixed:
   - `blob_retrieval_example.py`
@@ -432,7 +470,7 @@ Key discoveries made during development:
 - All examples can now be run directly with `python examples/<filename>.py` without needing PYTHONPATH
 - Proper pattern: Set `sys.path` BEFORE any `eigenda` imports
 
-### Critical Bug Fix - On-Demand Payment State Refresh (Latest)
+### Critical Bug Fix - On-Demand Payment State Refresh (older)
 - **Fixed bug in DisperserClientV2Full**: Client now refreshes payment state before each blob when using on-demand payments
 - **Issue**: Client was caching cumulative payment and not syncing with server between blobs
 - **Symptom**: "insufficient cumulative payment increment" errors when sending multiple blobs
@@ -440,7 +478,7 @@ Key discoveries made during development:
 - **Fix**: Modified `_create_blob_header()` to always refresh state for on-demand payments
 - **Result**: Multiple blobs can now be sent successfully without payment errors
 
-### BlobStatus Enum Fix - V2 Protocol Alignment (Latest)
+### BlobStatus Enum Fix - V2 Protocol Alignment (older)
 - **Fixed critical mismatch between Python BlobStatus enum and v2 protobuf values**
 - **Issue**: Python client was using incorrect status mappings, causing status 0 (UNKNOWN) to be returned when blob was actually being processed
 - **Root cause**: Python enum had different values than the actual v2 protobuf:
@@ -455,7 +493,7 @@ Key discoveries made during development:
 - **Result**: Status values now correctly reflect actual blob processing state
 - **New examples added**: `check_blob_status.py` and `check_existing_blob_status.py` for monitoring dispersal progress
 
-### Example Files Updated (Latest)
+### Example Files Updated (older)
 - **Fixed all example files to work with the updated code**:
   - `full_example.py`: Now uses DisperserClientV2Full with correct payment_config initialization
   - `check_blob_status.py`: Fixed to pass hex string to get_blob_status() and parse response correctly
@@ -470,7 +508,7 @@ Key discoveries made during development:
   - Real dispersal examples handle payment correctly
   - Status checking examples properly monitor blob progress
 
-### Example Files Code Quality Improvements (Latest)
+### Example Files Code Quality Improvements (older)
 - **Removed all sys.path hacks**: Since we're using Poetry, the `sys.path.insert()` hacks are no longer needed
   - Cleaned `check_blob_status.py` and `check_existing_blob_status.py`
   - All examples now import cleanly without path manipulation
