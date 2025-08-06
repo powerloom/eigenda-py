@@ -1,18 +1,17 @@
 """Integration tests for the EigenDA client."""
 
 import os
+
 import pytest
-from eigenda import MockDisperserClient, LocalBlobRequestSigner
+
+from eigenda import LocalBlobRequestSigner, MockDisperserClient
 from eigenda.codec import encode_blob_data
 
 
 class TestIntegration:
     """Integration tests that can be run against a real disperser."""
 
-    @pytest.mark.skipif(
-        not os.getenv("EIGENDA_PRIVATE_KEY"),
-        reason="EIGENDA_PRIVATE_KEY not set"
-    )
+    @pytest.mark.skipif(not os.getenv("EIGENDA_PRIVATE_KEY"), reason="EIGENDA_PRIVATE_KEY not set")
     def test_disperse_blob_real(self):
         """Test dispersing a blob to the real network."""
         private_key = os.getenv("EIGENDA_PRIVATE_KEY")
@@ -22,7 +21,7 @@ class TestIntegration:
             hostname="disperser-testnet-sepolia.eigenda.xyz",
             port=443,
             use_secure_grpc=True,
-            signer=signer
+            signer=signer,
         )
 
         try:
@@ -32,9 +31,7 @@ class TestIntegration:
 
             # Disperse blob
             status, blob_key = client.disperse_blob(
-                data=encoded_data,
-                blob_version=0,
-                quorum_ids=[0, 1]
+                data=encoded_data, blob_version=0, quorum_ids=[0, 1]
             )
 
             assert status is not None
@@ -51,10 +48,7 @@ class TestIntegration:
         signer = LocalBlobRequestSigner(dummy_key)
 
         with MockDisperserClient(
-            hostname="example.com",
-            port=443,
-            use_secure_grpc=True,
-            signer=signer
+            hostname="example.com", port=443, use_secure_grpc=True, signer=signer
         ) as client:
             assert client._channel is None  # Not connected yet
             # Would connect on first use

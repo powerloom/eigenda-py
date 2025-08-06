@@ -9,13 +9,9 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    31,
-    0,
-    '',
-    'validator/node_v2.proto'
+    _runtime_version.Domain.PUBLIC, 6, 31, 0, "", "validator/node_v2.proto"
 )
 # @@protoc_insertion_point(imports)
 
@@ -24,31 +20,34 @@ _sym_db = _symbol_database.Default()
 
 from eigenda.grpc.common.v2 import common_v2_pb2 as common_dot_v2_dot_common__v2__pb2
 
-
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17validator/node_v2.proto\x12\tvalidator\x1a\x19\x63ommon/v2/common_v2.proto\"p\n\x12StoreChunksRequest\x12\x1f\n\x05\x62\x61tch\x18\x01 \x01(\x0b\x32\x10.common.v2.Batch\x12\x13\n\x0b\x64isperserID\x18\x02 \x01(\r\x12\x11\n\ttimestamp\x18\x03 \x01(\r\x12\x11\n\tsignature\x18\x04 \x01(\x0c\"%\n\x10StoreChunksReply\x12\x11\n\tsignature\x18\x01 \x01(\x0c\"7\n\x10GetChunksRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x11\n\tquorum_id\x18\x02 \x01(\r\"_\n\x0eGetChunksReply\x12\x0e\n\x06\x63hunks\x18\x01 \x03(\x0c\x12=\n\x15\x63hunk_encoding_format\x18\x02 \x01(\x0e\x32\x1e.validator.ChunkEncodingFormat\"\x14\n\x12GetNodeInfoRequest\"`\n\x10GetNodeInfoReply\x12\x0e\n\x06semver\x18\x01 \x01(\t\x12\x0c\n\x04\x61rch\x18\x02 \x01(\t\x12\n\n\x02os\x18\x03 \x01(\t\x12\x0f\n\x07num_cpu\x18\x04 \x01(\r\x12\x11\n\tmem_bytes\x18\x05 \x01(\x04*-\n\x13\x43hunkEncodingFormat\x12\x0b\n\x07UNKNOWN\x10\x00\x12\t\n\x05GNARK\x10\x01\x32\xa5\x01\n\tDispersal\x12K\n\x0bStoreChunks\x12\x1d.validator.StoreChunksRequest\x1a\x1b.validator.StoreChunksReply\"\x00\x12K\n\x0bGetNodeInfo\x12\x1d.validator.GetNodeInfoRequest\x1a\x1b.validator.GetNodeInfoReply\"\x00\x32\x9f\x01\n\tRetrieval\x12\x45\n\tGetChunks\x12\x1b.validator.GetChunksRequest\x1a\x19.validator.GetChunksReply\"\x00\x12K\n\x0bGetNodeInfo\x12\x1d.validator.GetNodeInfoRequest\x1a\x1b.validator.GetNodeInfoReply\"\x00\x42\x31Z/github.com/Layr-Labs/eigenda/api/grpc/validatorb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x17validator/node_v2.proto\x12\tvalidator\x1a\x19\x63ommon/v2/common_v2.proto"p\n\x12StoreChunksRequest\x12\x1f\n\x05\x62\x61tch\x18\x01 \x01(\x0b\x32\x10.common.v2.Batch\x12\x13\n\x0b\x64isperserID\x18\x02 \x01(\r\x12\x11\n\ttimestamp\x18\x03 \x01(\r\x12\x11\n\tsignature\x18\x04 \x01(\x0c"%\n\x10StoreChunksReply\x12\x11\n\tsignature\x18\x01 \x01(\x0c"7\n\x10GetChunksRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x11\n\tquorum_id\x18\x02 \x01(\r"_\n\x0eGetChunksReply\x12\x0e\n\x06\x63hunks\x18\x01 \x03(\x0c\x12=\n\x15\x63hunk_encoding_format\x18\x02 \x01(\x0e\x32\x1e.validator.ChunkEncodingFormat"\x14\n\x12GetNodeInfoRequest"`\n\x10GetNodeInfoReply\x12\x0e\n\x06semver\x18\x01 \x01(\t\x12\x0c\n\x04\x61rch\x18\x02 \x01(\t\x12\n\n\x02os\x18\x03 \x01(\t\x12\x0f\n\x07num_cpu\x18\x04 \x01(\r\x12\x11\n\tmem_bytes\x18\x05 \x01(\x04*-\n\x13\x43hunkEncodingFormat\x12\x0b\n\x07UNKNOWN\x10\x00\x12\t\n\x05GNARK\x10\x01\x32\xa5\x01\n\tDispersal\x12K\n\x0bStoreChunks\x12\x1d.validator.StoreChunksRequest\x1a\x1b.validator.StoreChunksReply"\x00\x12K\n\x0bGetNodeInfo\x12\x1d.validator.GetNodeInfoRequest\x1a\x1b.validator.GetNodeInfoReply"\x00\x32\x9f\x01\n\tRetrieval\x12\x45\n\tGetChunks\x12\x1b.validator.GetChunksRequest\x1a\x19.validator.GetChunksReply"\x00\x12K\n\x0bGetNodeInfo\x12\x1d.validator.GetNodeInfoRequest\x1a\x1b.validator.GetNodeInfoReply"\x00\x42\x31Z/github.com/Layr-Labs/eigenda/api/grpc/validatorb\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'validator.node_v2_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "validator.node_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-  _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z/github.com/Layr-Labs/eigenda/api/grpc/validator'
-  _globals['_CHUNKENCODINGFORMAT']._serialized_start=492
-  _globals['_CHUNKENCODINGFORMAT']._serialized_end=537
-  _globals['_STORECHUNKSREQUEST']._serialized_start=65
-  _globals['_STORECHUNKSREQUEST']._serialized_end=177
-  _globals['_STORECHUNKSREPLY']._serialized_start=179
-  _globals['_STORECHUNKSREPLY']._serialized_end=216
-  _globals['_GETCHUNKSREQUEST']._serialized_start=218
-  _globals['_GETCHUNKSREQUEST']._serialized_end=273
-  _globals['_GETCHUNKSREPLY']._serialized_start=275
-  _globals['_GETCHUNKSREPLY']._serialized_end=370
-  _globals['_GETNODEINFOREQUEST']._serialized_start=372
-  _globals['_GETNODEINFOREQUEST']._serialized_end=392
-  _globals['_GETNODEINFOREPLY']._serialized_start=394
-  _globals['_GETNODEINFOREPLY']._serialized_end=490
-  _globals['_DISPERSAL']._serialized_start=540
-  _globals['_DISPERSAL']._serialized_end=705
-  _globals['_RETRIEVAL']._serialized_start=708
-  _globals['_RETRIEVAL']._serialized_end=867
+    _globals["DESCRIPTOR"]._loaded_options = None
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z/github.com/Layr-Labs/eigenda/api/grpc/validator"
+    )
+    _globals["_CHUNKENCODINGFORMAT"]._serialized_start = 492
+    _globals["_CHUNKENCODINGFORMAT"]._serialized_end = 537
+    _globals["_STORECHUNKSREQUEST"]._serialized_start = 65
+    _globals["_STORECHUNKSREQUEST"]._serialized_end = 177
+    _globals["_STORECHUNKSREPLY"]._serialized_start = 179
+    _globals["_STORECHUNKSREPLY"]._serialized_end = 216
+    _globals["_GETCHUNKSREQUEST"]._serialized_start = 218
+    _globals["_GETCHUNKSREQUEST"]._serialized_end = 273
+    _globals["_GETCHUNKSREPLY"]._serialized_start = 275
+    _globals["_GETCHUNKSREPLY"]._serialized_end = 370
+    _globals["_GETNODEINFOREQUEST"]._serialized_start = 372
+    _globals["_GETNODEINFOREQUEST"]._serialized_end = 392
+    _globals["_GETNODEINFOREPLY"]._serialized_start = 394
+    _globals["_GETNODEINFOREPLY"]._serialized_end = 490
+    _globals["_DISPERSAL"]._serialized_start = 540
+    _globals["_DISPERSAL"]._serialized_end = 705
+    _globals["_RETRIEVAL"]._serialized_start = 708
+    _globals["_RETRIEVAL"]._serialized_end = 867
 # @@protoc_insertion_point(module_scope)

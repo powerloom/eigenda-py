@@ -4,7 +4,7 @@ This document contains important implementation details and context for the Eige
 
 ## Project Overview
 
-The Python client is being developed to provide Python support for EigenDA v2, with reference implementations in Go (`eigenda-client-go/`) and Rust (`eigenda-client-rs/`).
+The Python client provides full Python support for EigenDA v2, with feature parity to the reference implementations in Go and Rust. The package is published to PyPI as `powerloom-eigenda`.
 
 ## Project Structure
 
@@ -247,6 +247,31 @@ pip install -r requirements.txt
 
 Note: The .env file defaults to Holesky testnet. To use Sepolia, uncomment the EIGENDA_DISPERSER_HOST line.
 
+## PyPI Publishing
+
+The package is published to PyPI as `powerloom-eigenda` and can be installed with:
+
+```bash
+pip install powerloom-eigenda
+```
+
+### Publishing Workflow
+
+The project uses GitHub Actions for automated publishing:
+- **TestPyPI**: Publishes on pushes to `develop` branch and pull requests to `master`/`main`
+  - Automatically generates dev versions with timestamps and PR numbers
+- **PyPI**: Publishes on version tags (`v*`) and GitHub releases
+- Uses trusted publishing (OIDC) - no API tokens needed in secrets
+
+### Package Configuration
+
+- **Package name**: `powerloom-eigenda`
+- **Version management**: Manual versioning in pyproject.toml
+  - Dev versions for TestPyPI: `0.1.0.dev<timestamp><PR_number>`
+  - Production versions from git tags
+- **Build system**: Poetry with Poetry Core backend
+- **Python support**: 3.9 - 3.13
+
 ## Project Status
 
 The EigenDA Python client v2 is now **fully functional** and ready for production use. All core features have been implemented:
@@ -350,6 +375,17 @@ Key discoveries made during development:
 - G2 points use quadratic extension field Fp2 for decompression
 
 ## Recent Updates
+
+### PyPI Publishing Support Added (August 6th 2025)
+The Python client is now ready for publication to PyPI as the `eigenda` package:
+
+1. **Package Renamed**: Changed from `eigenda-py` to `eigenda` for simpler installation
+2. **GitHub Actions Workflow**: Added automated publishing pipeline
+   - TestPyPI for development releases (`develop` branch)
+   - PyPI for stable releases (version tags)
+   - Uses trusted publishing (OIDC) for secure deployment
+3. **Dynamic Versioning**: Configured `poetry-dynamic-versioning` for automatic version calculation from git tags
+4. **Installation**: Users can now install with `pip install powerloom-eigenda`
 
 ### Default Network Changed to Sepolia (August 6th 2025)
 The Python client now uses **Sepolia testnet as the default** instead of Holesky:

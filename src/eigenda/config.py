@@ -8,6 +8,7 @@ from typing import Optional
 @dataclass
 class NetworkConfig:
     """Network configuration for EigenDA."""
+
     disperser_host: str
     disperser_port: int
     explorer_base_url: str
@@ -26,7 +27,7 @@ NETWORK_CONFIGS = {
         network_name="Holesky Testnet",
         payment_vault_address="0x4a7Fff191BCDa5806f1Bc8689afc1417c08C61AB",
         price_per_symbol=447000000,  # wei per symbol
-        min_num_symbols=4096
+        min_num_symbols=4096,
     ),
     "sepolia": NetworkConfig(
         disperser_host="disperser-testnet-sepolia.eigenda.xyz",
@@ -35,7 +36,7 @@ NETWORK_CONFIGS = {
         network_name="Sepolia Testnet",
         payment_vault_address="0x2E1BDB221E7D6bD9B7b2365208d41A5FD70b24Ed",
         price_per_symbol=447000000,  # wei per symbol
-        min_num_symbols=4096
+        min_num_symbols=4096,
     ),
     "mainnet": NetworkConfig(
         disperser_host="disperser.eigenda.xyz",
@@ -44,8 +45,8 @@ NETWORK_CONFIGS = {
         network_name="Ethereum Mainnet",
         payment_vault_address="0xb2e7ef419a2A399472ae22ef5cFcCb8bE97A4B05",
         price_per_symbol=447000000,  # wei per symbol
-        min_num_symbols=4096
-    )
+        min_num_symbols=4096,
+    ),
 }
 
 
@@ -78,7 +79,7 @@ def get_network_config() -> NetworkConfig:
         network_name=base_config.network_name,
         payment_vault_address=base_config.payment_vault_address,
         price_per_symbol=base_config.price_per_symbol,
-        min_num_symbols=base_config.min_num_symbols
+        min_num_symbols=base_config.min_num_symbols,
     )
 
     return config

@@ -1,17 +1,18 @@
 """Tests for G2 point decompression."""
 
 import pytest
+
+from eigenda.utils.fp2_arithmetic import Fp2, P
 from eigenda.utils.g2_decompression import (
+    B_A0,
+    B_A1,
+    COMPRESSED_INFINITY,
+    COMPRESSED_LARGEST,
+    COMPRESSED_SMALLEST,
+    MASK,
     decompress_g2_point_full,
     decompress_g2_point_simple,
-    COMPRESSED_SMALLEST,
-    COMPRESSED_LARGEST,
-    COMPRESSED_INFINITY,
-    MASK,
-    B_A0,
-    B_A1
 )
-from eigenda.utils.fp2_arithmetic import Fp2, P
 
 
 class TestG2DecompressionBasic:
@@ -33,7 +34,7 @@ class TestG2DecompressionBasic:
         """Test that invalid length raises error."""
         # Test with wrong lengths
         for length in [0, 32, 63, 65, 128]:
-            compressed = b'\x00' * length
+            compressed = b"\x00" * length
             with pytest.raises(ValueError, match=f"Expected 64 bytes.*got {length}"):
                 decompress_g2_point_full(compressed)
 
@@ -42,7 +43,7 @@ class TestG2DecompressionBasic:
         # Test that flags are properly extracted
         test_flags = [
             COMPRESSED_SMALLEST,  # 0x80
-            COMPRESSED_LARGEST,   # 0xC0
+            COMPRESSED_LARGEST,  # 0xC0
             COMPRESSED_INFINITY,  # 0x40
         ]
 
@@ -67,13 +68,13 @@ class TestG2DecompressionBasic:
 
         # Set x1 (in first 32 bytes, with flag)
         x1_value = 12345
-        x1_bytes = x1_value.to_bytes(32, byteorder='big')
+        x1_bytes = x1_value.to_bytes(32, byteorder="big")
         compressed[:32] = x1_bytes
         compressed[0] |= COMPRESSED_SMALLEST  # Re-apply flag
 
         # Set x0 (in second 32 bytes)
         x0_value = 67890
-        x0_bytes = x0_value.to_bytes(32, byteorder='big')
+        x0_bytes = x0_value.to_bytes(32, byteorder="big")
         compressed[32:] = x0_bytes
 
         # Try to decompress (may fail if not a valid point)
@@ -99,8 +100,8 @@ class TestG2DecompressionSimple:
         x1_value = 0x1234567890ABCDEF
         x0_value = 0xFEDCBA0987654321
 
-        compressed[:32] = x1_value.to_bytes(32, byteorder='big')
-        compressed[32:] = x0_value.to_bytes(32, byteorder='big')
+        compressed[:32] = x1_value.to_bytes(32, byteorder="big")
+        compressed[32:] = x0_value.to_bytes(32, byteorder="big")
 
         (x, y) = decompress_g2_point_simple(bytes(compressed))
 
@@ -111,7 +112,7 @@ class TestG2DecompressionSimple:
     def test_simple_decompression_invalid_length(self):
         """Test that simple decompression validates length."""
         for length in [0, 32, 63, 65, 128]:
-            compressed = b'\x00' * length
+            compressed = b"\x00" * length
             with pytest.raises(ValueError, match=f"Expected 64 bytes.*got {length}"):
                 decompress_g2_point_simple(compressed)
 
@@ -131,10 +132,10 @@ class TestG2CompressionConsistency:
     def test_flag_values(self):
         """Test that compression flag values are correct."""
         # Flags should be in the top 2 bits
-        assert COMPRESSED_INFINITY == 0x40      # 0100 0000
-        assert COMPRESSED_SMALLEST == 0x80      # 1000 0000
-        assert COMPRESSED_LARGEST == 0xC0       # 1100 0000
-        assert MASK == 0xC0                     # 1100 0000 (OR of SMALLEST and LARGEST)
+        assert COMPRESSED_INFINITY == 0x40  # 0100 0000
+        assert COMPRESSED_SMALLEST == 0x80  # 1000 0000
+        assert COMPRESSED_LARGEST == 0xC0  # 1100 0000
+        assert MASK == 0xC0  # 1100 0000 (OR of SMALLEST and LARGEST)
 
     def test_curve_parameters(self):
         """Test that curve parameters are defined."""
@@ -151,8 +152,8 @@ class TestG2CompressionConsistency:
         x1 = 0x090A0B0C0D0E0F10
 
         compressed = bytearray(64)
-        compressed[0:32] = x1.to_bytes(32, byteorder='big')
-        compressed[32:64] = x0.to_bytes(32, byteorder='big')
+        compressed[0:32] = x1.to_bytes(32, byteorder="big")
+        compressed[32:64] = x0.to_bytes(32, byteorder="big")
         compressed[0] |= COMPRESSED_SMALLEST
 
         try:
@@ -239,14 +240,14 @@ class TestG2DecompressionEdgeCases:
 
         # Create compressed point with COMPRESSED_LARGEST flag
         compressed_largest = bytearray(64)
-        compressed_largest[:32] = g2_gen_x1.to_bytes(32, byteorder='big')
-        compressed_largest[32:] = g2_gen_x0.to_bytes(32, byteorder='big')
+        compressed_largest[:32] = g2_gen_x1.to_bytes(32, byteorder="big")
+        compressed_largest[32:] = g2_gen_x0.to_bytes(32, byteorder="big")
         compressed_largest[0] |= COMPRESSED_LARGEST
 
         # Create compressed point with COMPRESSED_SMALLEST flag
         compressed_smallest = bytearray(64)
-        compressed_smallest[:32] = g2_gen_x1.to_bytes(32, byteorder='big')
-        compressed_smallest[32:] = g2_gen_x0.to_bytes(32, byteorder='big')
+        compressed_smallest[:32] = g2_gen_x1.to_bytes(32, byteorder="big")
+        compressed_smallest[32:] = g2_gen_x0.to_bytes(32, byteorder="big")
         compressed_smallest[0] |= COMPRESSED_SMALLEST
 
         try:
@@ -289,8 +290,8 @@ class TestG2DecompressionEdgeCases:
 
         for x0, x1 in test_cases:
             compressed = bytearray(64)
-            compressed[:32] = x1.to_bytes(32, byteorder='big')
-            compressed[32:] = x0.to_bytes(32, byteorder='big')
+            compressed[:32] = x1.to_bytes(32, byteorder="big")
+            compressed[32:] = x0.to_bytes(32, byteorder="big")
             compressed[0] |= COMPRESSED_LARGEST
 
             try:
@@ -311,8 +312,8 @@ class TestG2DecompressionEdgeCases:
         # Let's try the point at x = (b.a0, 0) which gives y² = x³ + b
         # This might give us a y with a1 component = 0
         compressed_special = bytearray(64)
-        compressed_special[:32] = (0).to_bytes(32, byteorder='big')  # x1 = 0
-        compressed_special[32:] = B_A0.to_bytes(32, byteorder='big')  # x0 = b.a0
+        compressed_special[:32] = (0).to_bytes(32, byteorder="big")  # x1 = 0
+        compressed_special[32:] = B_A0.to_bytes(32, byteorder="big")  # x0 = b.a0
         compressed_special[0] |= COMPRESSED_SMALLEST
 
         try:
@@ -341,8 +342,8 @@ class TestG2DecompressionEdgeCases:
 
         # Set x to maximum field values
         max_value = P - 1
-        compressed[:32] = max_value.to_bytes(32, byteorder='big')
-        compressed[32:] = max_value.to_bytes(32, byteorder='big')
+        compressed[:32] = max_value.to_bytes(32, byteorder="big")
+        compressed[32:] = max_value.to_bytes(32, byteorder="big")
         compressed[0] |= COMPRESSED_SMALLEST  # Re-apply flag
 
         try:

@@ -1,8 +1,9 @@
 """ABI encoding utilities for EigenDA v2."""
 
+from typing import Any, Tuple
+
 from eth_abi import encode
 from eth_utils import keccak
-from typing import Tuple, Any
 
 
 def encode_blob_commitments(commitment: Any) -> bytes:
@@ -22,40 +23,42 @@ def encode_blob_commitments(commitment: Any) -> bytes:
         ABI encoded bytes
     """
     # Extract G1 point (commitment)
-    commitment_x = int.from_bytes(commitment.commitment.x, byteorder='big')
-    commitment_y = int.from_bytes(commitment.commitment.y, byteorder='big')
+    commitment_x = int.from_bytes(commitment.commitment.x, byteorder="big")
+    commitment_y = int.from_bytes(commitment.commitment.y, byteorder="big")
 
     # Extract G2 points (length_commitment and length_proof)
     # G2 points in Ethereum use (A1, A0) ordering instead of (A0, A1)
     length_commitment_x = [
-        int.from_bytes(commitment.length_commitment.x_a1, byteorder='big'),
-        int.from_bytes(commitment.length_commitment.x_a0, byteorder='big')
+        int.from_bytes(commitment.length_commitment.x_a1, byteorder="big"),
+        int.from_bytes(commitment.length_commitment.x_a0, byteorder="big"),
     ]
     length_commitment_y = [
-        int.from_bytes(commitment.length_commitment.y_a1, byteorder='big'),
-        int.from_bytes(commitment.length_commitment.y_a0, byteorder='big')
+        int.from_bytes(commitment.length_commitment.y_a1, byteorder="big"),
+        int.from_bytes(commitment.length_commitment.y_a0, byteorder="big"),
     ]
 
     length_proof_x = [
-        int.from_bytes(commitment.length_proof.x_a1, byteorder='big'),
-        int.from_bytes(commitment.length_proof.x_a0, byteorder='big')
+        int.from_bytes(commitment.length_proof.x_a1, byteorder="big"),
+        int.from_bytes(commitment.length_proof.x_a0, byteorder="big"),
     ]
     length_proof_y = [
-        int.from_bytes(commitment.length_proof.y_a1, byteorder='big'),
-        int.from_bytes(commitment.length_proof.y_a0, byteorder='big')
+        int.from_bytes(commitment.length_proof.y_a1, byteorder="big"),
+        int.from_bytes(commitment.length_proof.y_a0, byteorder="big"),
     ]
 
     # Encode the entire commitments struct
     # This matches the abiBlobCommitments struct in Go
     encoded = encode(
-        ['(uint256,uint256,(uint256[2],uint256[2]),(uint256[2],uint256[2]),uint32)'],
-        [(
-            commitment_x,
-            commitment_y,
-            (length_commitment_x, length_commitment_y),
-            (length_proof_x, length_proof_y),
-            commitment.data_length
-        )]
+        ["(uint256,uint256,(uint256[2],uint256[2]),(uint256[2],uint256[2]),uint32)"],
+        [
+            (
+                commitment_x,
+                commitment_y,
+                (length_commitment_x, length_commitment_y),
+                (length_proof_x, length_proof_y),
+                commitment.data_length,
+            )
+        ],
     )
 
     return encoded
@@ -82,15 +85,11 @@ def calculate_blob_key(blob_header: Any) -> bytes:
     # First, encode version, quorum numbers, and commitments
     header_encoded = encode(
         [
-            'uint16',
-            'bytes',
-            '(uint256,uint256,(uint256[2],uint256[2]),(uint256[2],uint256[2]),uint32)'
+            "uint16",
+            "bytes",
+            "(uint256,uint256,(uint256[2],uint256[2]),(uint256[2],uint256[2]),uint32)",
         ],
-        [
-            blob_header.version,
-            quorum_bytes,
-            encode_blob_commitments_tuple(blob_header.commitment)
-        ]
+        [blob_header.version, quorum_bytes, encode_blob_commitments_tuple(blob_header.commitment)],
     )
 
     # Hash the header
@@ -101,10 +100,7 @@ def calculate_blob_key(blob_header: Any) -> bytes:
 
     # Second encoding: header hash + payment metadata hash
     # This is encoded as a tuple per the Go implementation
-    final_encoded = encode(
-        ['(bytes32,bytes32)'],
-        [(header_hash, payment_hash)]
-    )
+    final_encoded = encode(["(bytes32,bytes32)"], [(header_hash, payment_hash)])
 
     # Final hash to get blob key
     blob_key = keccak(final_encoded)
@@ -139,8 +135,8 @@ def encode_blob_commitments_tuple(commitment: Any) -> Tuple:
         commitment_x, commitment_y = decompress_g1_point_gnark(commitment_bytes)
     else:
         # If somehow we get uncompressed format (64 bytes)
-        commitment_x = int.from_bytes(commitment_bytes[:32], byteorder='big')
-        commitment_y = int.from_bytes(commitment_bytes[32:64], byteorder='big')
+        commitment_x = int.from_bytes(commitment_bytes[:32], byteorder="big")
+        commitment_y = int.from_bytes(commitment_bytes[32:64], byteorder="big")
 
     # Extract G2 points with Ethereum ordering (A1, A0)
     # The disperser sends compressed G2 points (64 bytes each)
@@ -154,20 +150,20 @@ def encode_blob_commitments_tuple(commitment: Any) -> Tuple:
         (lc_x_a0, lc_x_a1), (lc_y_a0, lc_y_a1) = decompress_g2_point_gnark(length_commitment_bytes)
     else:
         # Full 128 bytes with X and Y
-        lc_x_a0 = int.from_bytes(length_commitment_bytes[0:32], byteorder='big')
-        lc_x_a1 = int.from_bytes(length_commitment_bytes[32:64], byteorder='big')
-        lc_y_a0 = int.from_bytes(length_commitment_bytes[64:96], byteorder='big')
-        lc_y_a1 = int.from_bytes(length_commitment_bytes[96:128], byteorder='big')
+        lc_x_a0 = int.from_bytes(length_commitment_bytes[0:32], byteorder="big")
+        lc_x_a1 = int.from_bytes(length_commitment_bytes[32:64], byteorder="big")
+        lc_y_a0 = int.from_bytes(length_commitment_bytes[64:96], byteorder="big")
+        lc_y_a1 = int.from_bytes(length_commitment_bytes[96:128], byteorder="big")
 
     if len(length_proof_bytes) == 64:
         # Compressed G2 format
         (lp_x_a0, lp_x_a1), (lp_y_a0, lp_y_a1) = decompress_g2_point_gnark(length_proof_bytes)
     else:
         # Full 128 bytes with X and Y
-        lp_x_a0 = int.from_bytes(length_proof_bytes[0:32], byteorder='big')
-        lp_x_a1 = int.from_bytes(length_proof_bytes[32:64], byteorder='big')
-        lp_y_a0 = int.from_bytes(length_proof_bytes[64:96], byteorder='big')
-        lp_y_a1 = int.from_bytes(length_proof_bytes[96:128], byteorder='big')
+        lp_x_a0 = int.from_bytes(length_proof_bytes[0:32], byteorder="big")
+        lp_x_a1 = int.from_bytes(length_proof_bytes[32:64], byteorder="big")
+        lp_y_a0 = int.from_bytes(length_proof_bytes[64:96], byteorder="big")
+        lp_y_a1 = int.from_bytes(length_proof_bytes[96:128], byteorder="big")
 
     # Return in Ethereum ordering (A1, A0)
     return (
@@ -175,7 +171,7 @@ def encode_blob_commitments_tuple(commitment: Any) -> Tuple:
         commitment_y,
         ([lc_x_a1, lc_x_a0], [lc_y_a1, lc_y_a0]),
         ([lp_x_a1, lp_x_a0], [lp_y_a1, lp_y_a0]),
-        commitment.length
+        commitment.length,
     )
 
 
@@ -196,20 +192,19 @@ def hash_payment_metadata(payment_header: Any) -> bytes:
     """
     # Ensure account_id has 0x prefix
     account_id = payment_header.account_id
-    if not account_id.startswith('0x'):
-        account_id = '0x' + account_id
+    if not account_id.startswith("0x"):
+        account_id = "0x" + account_id
 
     # Convert cumulative_payment from bytes to int
     # Empty bytes means 0 (reservation-based payment)
     if len(payment_header.cumulative_payment) == 0:
         cumulative_payment = 0
     else:
-        cumulative_payment = int.from_bytes(payment_header.cumulative_payment, byteorder='big')
+        cumulative_payment = int.from_bytes(payment_header.cumulative_payment, byteorder="big")
 
     # ABI encode as tuple matching Go implementation
     encoded = encode(
-        ['(string,int64,uint256)'],
-        [(account_id, payment_header.timestamp, cumulative_payment)]
+        ["(string,int64,uint256)"], [(account_id, payment_header.timestamp, cumulative_payment)]
     )
 
     return keccak(encoded)

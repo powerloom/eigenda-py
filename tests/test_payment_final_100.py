@@ -25,7 +25,7 @@ def test_payment_line_42_direct():
 
         # This is the code we want to test
         if symbols == 0:  # Line 41
-            return 1      # Line 42 - this is what we're testing!
+            return 1  # Line 42 - this is what we're testing!
 
         # Find next power of 2
         power = 1
@@ -56,8 +56,10 @@ def test_payment_line_42_direct():
 def test_all_payment_functions():
     """Test all functions in payment.py for completeness."""
     from eigenda.payment import (
-        PaymentConfig, get_blob_length_power_of_2,
-        calculate_payment_increment, SimpleAccountant
+        PaymentConfig,
+        SimpleAccountant,
+        calculate_payment_increment,
+        get_blob_length_power_of_2,
     )
 
     # Test PaymentConfig
@@ -108,4 +110,4 @@ def test_all_payment_functions():
     payment_bytes, increment = accountant.account_blob(100)
     assert increment > 0
     assert len(payment_bytes) > 0
-    assert int.from_bytes(payment_bytes, 'big') == 1000 + increment
+    assert int.from_bytes(payment_bytes, "big") == 1000 + increment

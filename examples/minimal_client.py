@@ -4,10 +4,13 @@
 import os
 import sys
 import time
-from eigenda.config import get_network_config, get_explorer_url
-from eigenda.codec import encode_blob_data
-from eigenda import MockDisperserClient as DisperserClient, LocalBlobRequestSigner
+
 from dotenv import load_dotenv
+
+from eigenda import LocalBlobRequestSigner
+from eigenda import MockDisperserClient as DisperserClient
+from eigenda.codec import encode_blob_data
+from eigenda.config import get_explorer_url, get_network_config
 
 
 def main():
@@ -41,13 +44,13 @@ def main():
         hostname=network_config.disperser_host,
         port=network_config.disperser_port,
         use_secure_grpc=True,
-        signer=signer
+        signer=signer,
     )
 
     try:
         # Prepare test data
         test_data = f"Test data from Python client - {time.strftime('%Y-%m-%d %H:%M:%S')}"
-        raw_data = test_data.encode('utf-8')
+        raw_data = test_data.encode("utf-8")
 
         # Encode the data
         encoded_data = encode_blob_data(raw_data)
@@ -57,9 +60,7 @@ def main():
 
         # Disperse the blob
         status, blob_key = client.disperse_blob(
-            data=encoded_data,
-            blob_version=0,
-            quorum_ids=[0, 1]
+            data=encoded_data, blob_version=0, quorum_ids=[0, 1]
         )
 
         print("\n✅ Success!")

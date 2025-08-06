@@ -1,9 +1,12 @@
 """Complete tests for payment.py to achieve 100% coverage."""
 
 import pytest
+
 from eigenda.payment import (
-    PaymentConfig, get_blob_length_power_of_2,
-    calculate_payment_increment, SimpleAccountant
+    PaymentConfig,
+    SimpleAccountant,
+    calculate_payment_increment,
+    get_blob_length_power_of_2,
 )
 
 
@@ -148,7 +151,7 @@ class TestSimpleAccountant:
         payment_bytes, increment = accountant.account_blob(100)
 
         assert increment == 4 * 100  # 400
-        assert payment_bytes == (500 + 400).to_bytes(2, 'big')  # 900 fits in 2 bytes
+        assert payment_bytes == (500 + 400).to_bytes(2, "big")  # 900 fits in 2 bytes
 
     def test_account_blob_large_payment(self):
         """Test account_blob with large payment requiring more bytes."""
@@ -163,4 +166,4 @@ class TestSimpleAccountant:
 
         # Verify the bytes representation is correct
         expected_total = expected_increment
-        assert int.from_bytes(payment_bytes, 'big') == expected_total
+        assert int.from_bytes(payment_bytes, "big") == expected_total

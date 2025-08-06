@@ -9,43 +9,39 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    31,
-    0,
-    '',
-    'relay/relay.proto'
+    _runtime_version.Domain.PUBLIC, 6, 31, 0, "", "relay/relay.proto"
 )
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-
-
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11relay/relay.proto\x12\x05relay\"\"\n\x0eGetBlobRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\"\x1c\n\x0cGetBlobReply\x12\x0c\n\x04\x62lob\x18\x01 \x01(\x0c\"\x83\x01\n\x10GetChunksRequest\x12+\n\x0e\x63hunk_requests\x18\x01 \x03(\x0b\x32\x13.relay.ChunkRequest\x12\x13\n\x0boperator_id\x18\x02 \x01(\x0c\x12\x11\n\ttimestamp\x18\x03 \x01(\r\x12\x1a\n\x12operator_signature\x18\x04 \x01(\x0c\">\n\x13\x43hunkRequestByIndex\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x15\n\rchunk_indices\x18\x02 \x03(\r\"O\n\x13\x43hunkRequestByRange\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x13\n\x0bstart_index\x18\x02 \x01(\r\x12\x11\n\tend_index\x18\x03 \x01(\r\"y\n\x0c\x43hunkRequest\x12.\n\x08\x62y_index\x18\x01 \x01(\x0b\x32\x1a.relay.ChunkRequestByIndexH\x00\x12.\n\x08\x62y_range\x18\x02 \x01(\x0b\x32\x1a.relay.ChunkRequestByRangeH\x00\x42\t\n\x07request\"\x1e\n\x0eGetChunksReply\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\x0c\x32\x7f\n\x05Relay\x12\x37\n\x07GetBlob\x12\x15.relay.GetBlobRequest\x1a\x13.relay.GetBlobReply\"\x00\x12=\n\tGetChunks\x12\x17.relay.GetChunksRequest\x1a\x15.relay.GetChunksReply\"\x00\x42-Z+github.com/Layr-Labs/eigenda/api/grpc/relayb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x11relay/relay.proto\x12\x05relay""\n\x0eGetBlobRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c"\x1c\n\x0cGetBlobReply\x12\x0c\n\x04\x62lob\x18\x01 \x01(\x0c"\x83\x01\n\x10GetChunksRequest\x12+\n\x0e\x63hunk_requests\x18\x01 \x03(\x0b\x32\x13.relay.ChunkRequest\x12\x13\n\x0boperator_id\x18\x02 \x01(\x0c\x12\x11\n\ttimestamp\x18\x03 \x01(\r\x12\x1a\n\x12operator_signature\x18\x04 \x01(\x0c">\n\x13\x43hunkRequestByIndex\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x15\n\rchunk_indices\x18\x02 \x03(\r"O\n\x13\x43hunkRequestByRange\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x13\n\x0bstart_index\x18\x02 \x01(\r\x12\x11\n\tend_index\x18\x03 \x01(\r"y\n\x0c\x43hunkRequest\x12.\n\x08\x62y_index\x18\x01 \x01(\x0b\x32\x1a.relay.ChunkRequestByIndexH\x00\x12.\n\x08\x62y_range\x18\x02 \x01(\x0b\x32\x1a.relay.ChunkRequestByRangeH\x00\x42\t\n\x07request"\x1e\n\x0eGetChunksReply\x12\x0c\n\x04\x64\x61ta\x18\x01 \x03(\x0c\x32\x7f\n\x05Relay\x12\x37\n\x07GetBlob\x12\x15.relay.GetBlobRequest\x1a\x13.relay.GetBlobReply"\x00\x12=\n\tGetChunks\x12\x17.relay.GetChunksRequest\x1a\x15.relay.GetChunksReply"\x00\x42-Z+github.com/Layr-Labs/eigenda/api/grpc/relayb\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'relay.relay_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "relay.relay_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-  _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z+github.com/Layr-Labs/eigenda/api/grpc/relay'
-  _globals['_GETBLOBREQUEST']._serialized_start=28
-  _globals['_GETBLOBREQUEST']._serialized_end=62
-  _globals['_GETBLOBREPLY']._serialized_start=64
-  _globals['_GETBLOBREPLY']._serialized_end=92
-  _globals['_GETCHUNKSREQUEST']._serialized_start=95
-  _globals['_GETCHUNKSREQUEST']._serialized_end=226
-  _globals['_CHUNKREQUESTBYINDEX']._serialized_start=228
-  _globals['_CHUNKREQUESTBYINDEX']._serialized_end=290
-  _globals['_CHUNKREQUESTBYRANGE']._serialized_start=292
-  _globals['_CHUNKREQUESTBYRANGE']._serialized_end=371
-  _globals['_CHUNKREQUEST']._serialized_start=373
-  _globals['_CHUNKREQUEST']._serialized_end=494
-  _globals['_GETCHUNKSREPLY']._serialized_start=496
-  _globals['_GETCHUNKSREPLY']._serialized_end=526
-  _globals['_RELAY']._serialized_start=528
-  _globals['_RELAY']._serialized_end=655
+    _globals["DESCRIPTOR"]._loaded_options = None
+    _globals["DESCRIPTOR"]._serialized_options = b"Z+github.com/Layr-Labs/eigenda/api/grpc/relay"
+    _globals["_GETBLOBREQUEST"]._serialized_start = 28
+    _globals["_GETBLOBREQUEST"]._serialized_end = 62
+    _globals["_GETBLOBREPLY"]._serialized_start = 64
+    _globals["_GETBLOBREPLY"]._serialized_end = 92
+    _globals["_GETCHUNKSREQUEST"]._serialized_start = 95
+    _globals["_GETCHUNKSREQUEST"]._serialized_end = 226
+    _globals["_CHUNKREQUESTBYINDEX"]._serialized_start = 228
+    _globals["_CHUNKREQUESTBYINDEX"]._serialized_end = 290
+    _globals["_CHUNKREQUESTBYRANGE"]._serialized_start = 292
+    _globals["_CHUNKREQUESTBYRANGE"]._serialized_end = 371
+    _globals["_CHUNKREQUEST"]._serialized_start = 373
+    _globals["_CHUNKREQUEST"]._serialized_end = 494
+    _globals["_GETCHUNKSREPLY"]._serialized_start = 496
+    _globals["_GETCHUNKSREPLY"]._serialized_end = 526
+    _globals["_RELAY"]._serialized_start = 528
+    _globals["_RELAY"]._serialized_end = 655
 # @@protoc_insertion_point(module_scope)

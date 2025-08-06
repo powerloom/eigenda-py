@@ -1,10 +1,14 @@
 """Complete tests for payment.py to achieve 100% coverage including line 42."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from eigenda.payment import (
-    PaymentConfig, get_blob_length_power_of_2,
-    calculate_payment_increment, SimpleAccountant
+    PaymentConfig,
+    SimpleAccountant,
+    calculate_payment_increment,
+    get_blob_length_power_of_2,
 )
 
 
@@ -49,7 +53,7 @@ class TestPaymentComplete100:
         # symbols can only be 0 if data_len is 0, which is handled earlier
 
         # We'll patch the function to test the logic path
-        with patch('eigenda.payment.get_blob_length_power_of_2') as mock_func:
+        with patch("eigenda.payment.get_blob_length_power_of_2") as mock_func:
             # Create a custom implementation that forces symbols = 0
             def custom_impl(data_len):
                 if data_len == 999:  # Special test value
@@ -146,7 +150,7 @@ class TestPaymentComplete100:
 
         assert increment == 4 * 100  # 400
         expected_total = 500 + 400  # 900
-        assert payment_bytes == expected_total.to_bytes(2, 'big')
+        assert payment_bytes == expected_total.to_bytes(2, "big")
         # Note: account_blob does NOT update the internal cumulative_payment
         assert accountant.cumulative_payment == 500  # Unchanged
 
@@ -164,7 +168,7 @@ class TestPaymentComplete100:
 
         # Verify the bytes representation
         expected_total = expected_increment
-        assert int.from_bytes(payment_bytes, 'big') == expected_total
+        assert int.from_bytes(payment_bytes, "big") == expected_total
         # Note: account_blob does NOT update the internal cumulative_payment
         assert accountant.cumulative_payment == 0  # Unchanged
 
@@ -176,7 +180,7 @@ class TestPaymentComplete100:
         # First blob
         payment_bytes1, increment1 = accountant.account_blob(50)
         assert accountant.cumulative_payment == 0  # Not updated internally
-        assert int.from_bytes(payment_bytes1, 'big') == increment1
+        assert int.from_bytes(payment_bytes1, "big") == increment1
 
         # Manually update for next calculation
         accountant.set_cumulative_payment(increment1)
@@ -184,7 +188,7 @@ class TestPaymentComplete100:
         # Second blob
         payment_bytes2, increment2 = accountant.account_blob(100)
         assert accountant.cumulative_payment == increment1  # Still at first value
-        assert int.from_bytes(payment_bytes2, 'big') == increment1 + increment2
+        assert int.from_bytes(payment_bytes2, "big") == increment1 + increment2
 
     def test_payment_bytes_length(self):
         """Test that payment bytes have correct length."""

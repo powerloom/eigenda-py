@@ -1,7 +1,8 @@
 """G2 point decompression for BN254."""
 
 from typing import Tuple
-from .fp2_arithmetic import Fp2, sqrt_fp2, P
+
+from .fp2_arithmetic import Fp2, P, sqrt_fp2
 
 # BN254 G2 curve: y^2 = x^3 + b where b is in Fp2
 # b = (19485874751759354771024239261021720505790618469301721065564631296452457478373,
@@ -11,7 +12,7 @@ B_A1 = 2669297911199911612469073871372838425450769653329002885693785109103076366
 
 # Compression flags from gnark-crypto
 COMPRESSED_SMALLEST = 0b10 << 6  # 0x80
-COMPRESSED_LARGEST = 0b11 << 6   # 0xC0
+COMPRESSED_LARGEST = 0b11 << 6  # 0xC0
 COMPRESSED_INFINITY = 0b01 << 6  # 0x40
 MASK = COMPRESSED_INFINITY | COMPRESSED_SMALLEST | COMPRESSED_LARGEST
 
@@ -45,8 +46,8 @@ def decompress_g2_point_full(compressed: bytes) -> Tuple[Tuple[int, int], Tuple[
 
     # Extract X coordinates (note the ordering: x1 comes first, then x0)
     # This matches gnark serialization
-    x1 = int.from_bytes(x_bytes[0:32], byteorder='big')
-    x0 = int.from_bytes(x_bytes[32:64], byteorder='big')
+    x1 = int.from_bytes(x_bytes[0:32], byteorder="big")
+    x0 = int.from_bytes(x_bytes[32:64], byteorder="big")
 
     # Create Fp2 element for x
     x = Fp2(x0, x1)
@@ -96,8 +97,8 @@ def decompress_g2_point_simple(compressed: bytes) -> Tuple[Tuple[int, int], Tupl
         raise ValueError(f"Expected 64 bytes for compressed G2 point, got {len(compressed)}")
 
     # Extract X coordinates
-    x1 = int.from_bytes(compressed[0:32], byteorder='big')
-    x0 = int.from_bytes(compressed[32:64], byteorder='big')
+    x1 = int.from_bytes(compressed[0:32], byteorder="big")
+    x0 = int.from_bytes(compressed[32:64], byteorder="big")
 
     # Return with placeholder Y values
     return ((x0, x1), (0, 0))

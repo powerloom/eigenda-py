@@ -1,10 +1,24 @@
-# EigenDA Python Client
+# EigenDA Python Client by Powerloom
 
-A Python implementation of the EigenDA v2 client for interacting with the EigenDA protocol.
+[![PyPI version](https://badge.fury.io/py/powerloom-eigenda.svg)](https://badge.fury.io/py/powerloom-eigenda)
+[![Python](https://img.shields.io/pypi/pyversions/powerloom-eigenda.svg)](https://pypi.org/project/powerloom-eigenda/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml)
+
+> This is an unofficial Python implementation of the EigenDA v2 client, developed by Powerloom, for interacting with the EigenDA protocol. Please note that it is on the bleeding edge and not recommended for use in production environments.
 
 ## Overview
 
 This client provides a Python interface to EigenDA, a decentralized data availability service. It includes full authentication support and compatibility with the official Go and Rust implementations.
+
+### Package Contents
+
+The `eigenda` package includes:
+- **DisperserClientV2Full** - Full-featured client with automatic payment handling
+- **DisperserClientV2** - Low-level gRPC client for advanced use cases
+- **MockDisperserClient** - Mock client for testing without network calls
+- **BlobRetriever** - Client for retrieving dispersed blobs
+- Complete type definitions and utilities for EigenDA protocol v2
 
 ## Status
 
@@ -25,13 +39,35 @@ This client provides a Python interface to EigenDA, a decentralized data availab
 - Automatic payment method selection
 - Proper payment calculation based on blob size
 
+## Requirements
+
+- Python 3.9 or higher
+- Ethereum private key for signing requests
+- Network access to EigenDA disperser endpoints
+
 ## Installation
 
-### Using Poetry (Recommended)
+### From PyPI (For Users)
+
+```bash
+# Install from PyPI
+pip install powerloom-eigenda
+
+# Or install from TestPyPI for pre-release versions
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple powerloom-eigenda
+```
+
+### From Source (For Development)
+
+#### Using Poetry (Recommended)
 
 The project uses Poetry for dependency management, which provides better dependency resolution and reproducible builds.
 
 ```bash
+# Clone the repository
+git clone https://github.com/powerloom/eigenda-py.git
+cd eigenda-py
+
 # Install Poetry if you haven't already
 curl -sSL https://install.python-poetry.org | python3 -
 
@@ -47,11 +83,15 @@ poetry install --with docs,notebook
 
 For detailed Poetry usage instructions, see our [Poetry Guide](docs/POETRY_GUIDE.md).
 
-### Using pip
+#### Using pip
 
 If you prefer to use pip directly:
 
 ```bash
+# Clone and install
+git clone https://github.com/powerloom/eigenda-py.git
+cd eigenda-py
+
 # Export requirements from Poetry (if requirements.txt doesn't exist)
 poetry export -f requirements.txt --output requirements.txt --without-hashes
 
@@ -60,6 +100,51 @@ pip install -r requirements.txt
 ```
 
 ## Quick Start
+
+### Using the Package
+
+After installing via pip, you can use the package directly in your Python code:
+
+```python
+from eigenda import DisperserClientV2Full
+from eigenda.payment import PaymentConfig
+import os
+
+# Set up payment configuration
+payment_config = PaymentConfig(
+    private_key=os.getenv("EIGENDA_PRIVATE_KEY"),
+    network="sepolia"  # or "holesky", "mainnet"
+)
+
+# Create client
+client = DisperserClientV2Full(
+    host="disperser-testnet-sepolia.eigenda.xyz",
+    port=443,
+    use_secure_grpc=True,
+    payment_config=payment_config
+)
+
+# Disperse data
+data = b"Hello, EigenDA!"
+blob_key = client.disperse_blob(data)
+print(f"Blob key: {blob_key.hex()}")
+
+# Check status
+status = client.get_blob_status(blob_key.hex())
+print(f"Status: {status}")
+
+# Clean up
+client.close()
+```
+
+### Checking Package Version
+
+```python
+import eigenda
+print(eigenda.__version__)  # Output: 0.1.0
+```
+
+### Running Examples from Source
 
 1. **Set Environment Variables**
 ```bash
@@ -580,4 +665,4 @@ MIT License - Copyright (c) 2025 Powerloom
 
 ## About
 
-This Python client for EigenDA v2 was developed by [Powerloom](https://powerloom.io/), a decentralized data protocol. For questions or support, please reach out to the Powerloom team.
+This unofficial Python client for EigenDA v2 was developed by [Powerloom](https://powerloom.io/), a decentralized data protocol. For questions or support, please reach out to the Powerloom team using the [issue tracker](https://github.com/powerloom/eigenda-py/issues).

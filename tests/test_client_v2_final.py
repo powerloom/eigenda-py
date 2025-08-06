@@ -1,11 +1,13 @@
 """Final tests for client_v2.py to achieve 100% coverage."""
 
-import pytest
-import grpc
 from unittest.mock import Mock, patch
-from eigenda.client_v2 import DisperserClientV2
-from eigenda.core.types import BlobStatus, BlobKey
+
+import grpc
+import pytest
+
 from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2 import DisperserClientV2
+from eigenda.core.types import BlobKey, BlobStatus
 
 
 class TestDisperserClientV2Final:
@@ -16,22 +18,19 @@ class TestDisperserClientV2Final:
         """Create a mock signer."""
         signer = Mock(spec=LocalBlobRequestSigner)
         signer.get_account_id.return_value = "0x1234567890123456789012345678901234567890"
-        signer.sign_blob_request.return_value = b"signature" + b'\x00' * 56  # 65 bytes
+        signer.sign_blob_request.return_value = b"signature" + b"\x00" * 56  # 65 bytes
         return signer
 
     @pytest.fixture
     def client(self, mock_signer):
         """Create a test client."""
         return DisperserClientV2(
-            hostname="test.disperser.com",
-            port=443,
-            use_secure_grpc=True,
-            signer=mock_signer
+            hostname="test.disperser.com", port=443, use_secure_grpc=True, signer=mock_signer
         )
 
-    @patch('eigenda.client_v2.disperser_v2_pb2_grpc.DisperserStub')
-    @patch('eigenda.client_v2.disperser_v2_pb2')
-    @patch('eigenda.client_v2.common_v2_pb2')
+    @patch("eigenda.client_v2.disperser_v2_pb2_grpc.DisperserStub")
+    @patch("eigenda.client_v2.disperser_v2_pb2")
+    @patch("eigenda.client_v2.common_v2_pb2")
     def test_disperse_blob_full_flow_to_cover_lines_128_153(
         self, mock_common_pb2, mock_disperser_pb2, mock_stub_class, client
     ):
@@ -53,9 +52,9 @@ class TestDisperserClientV2Final:
         # Mock blob commitment response
         mock_commitment_response = Mock()
         mock_commitment = Mock()
-        mock_commitment.commitment = b'c' * 32
-        mock_commitment.length_commitment = b'l' * 32
-        mock_commitment.length_proof = b'p' * 32
+        mock_commitment.commitment = b"c" * 32
+        mock_commitment.length_commitment = b"l" * 32
+        mock_commitment.length_proof = b"p" * 32
         mock_commitment.length = 100
         mock_commitment_response.blob_commitment = mock_commitment
         mock_stub.GetBlobCommitment.return_value = mock_commitment_response
@@ -63,7 +62,7 @@ class TestDisperserClientV2Final:
         # Mock disperse response
         mock_disperse_response = Mock()
         mock_disperse_response.result = 1  # Some status
-        mock_disperse_response.blob_key = b'x' * 32
+        mock_disperse_response.blob_key = b"x" * 32
         mock_stub.DisperseBlob.return_value = mock_disperse_response
 
         # Mock status enums
@@ -73,7 +72,7 @@ class TestDisperserClientV2Final:
         client._connect()
 
         # Call disperse_blob
-        data = b'test data'
+        data = b"test data"
         status, blob_key = client.disperse_blob(data, 0, [0, 1])
 
         # Verify all the calls were made (lines 128-153)
@@ -81,18 +80,18 @@ class TestDisperserClientV2Final:
         mock_disperser_pb2.DisperseBlobRequest.assert_called_once_with(
             blob=data,
             blob_header=mock_blob_header,
-            signature=client.signer.sign_blob_request.return_value
+            signature=client.signer.sign_blob_request.return_value,
         )
         mock_stub.DisperseBlob.assert_called_once()
 
         # Verify result
         assert status == BlobStatus.QUEUED
         assert isinstance(blob_key, BlobKey)
-        assert bytes(blob_key) == b'x' * 32
+        assert bytes(blob_key) == b"x" * 32
 
-    @patch('eigenda.client_v2.disperser_v2_pb2_grpc.DisperserStub')
-    @patch('eigenda.client_v2.disperser_v2_pb2')
-    @patch('eigenda.client_v2.common_v2_pb2')
+    @patch("eigenda.client_v2.disperser_v2_pb2_grpc.DisperserStub")
+    @patch("eigenda.client_v2.disperser_v2_pb2")
+    @patch("eigenda.client_v2.common_v2_pb2")
     def test_disperse_blob_grpc_error_line_152_153(
         self, mock_common_pb2, mock_disperser_pb2, mock_stub_class, client
     ):
@@ -114,9 +113,9 @@ class TestDisperserClientV2Final:
         # Mock blob commitment response
         mock_commitment_response = Mock()
         mock_commitment = Mock()
-        mock_commitment.commitment = b'c' * 32
-        mock_commitment.length_commitment = b'l' * 32
-        mock_commitment.length_proof = b'p' * 32
+        mock_commitment.commitment = b"c" * 32
+        mock_commitment.length_commitment = b"l" * 32
+        mock_commitment.length_proof = b"p" * 32
         mock_commitment.length = 100
         mock_commitment_response.blob_commitment = mock_commitment
         mock_stub.GetBlobCommitment.return_value = mock_commitment_response
@@ -132,7 +131,7 @@ class TestDisperserClientV2Final:
 
         # Call disperse_blob and expect exception
         with pytest.raises(Exception) as exc_info:
-            client.disperse_blob(b'test data', 0, [0, 1])
+            client.disperse_blob(b"test data", 0, [0, 1])
 
         # Verify error message (line 153)
         assert "gRPC error" in str(exc_info.value)

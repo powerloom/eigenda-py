@@ -17,21 +17,15 @@ class Fp2:
         self.a0 = a0 % P
         self.a1 = a1 % P
 
-    def __add__(self, other: 'Fp2') -> 'Fp2':
+    def __add__(self, other: "Fp2") -> "Fp2":
         """Add two Fp2 elements."""
-        return Fp2(
-            (self.a0 + other.a0) % P,
-            (self.a1 + other.a1) % P
-        )
+        return Fp2((self.a0 + other.a0) % P, (self.a1 + other.a1) % P)
 
-    def __sub__(self, other: 'Fp2') -> 'Fp2':
+    def __sub__(self, other: "Fp2") -> "Fp2":
         """Subtract two Fp2 elements."""
-        return Fp2(
-            (self.a0 - other.a0) % P,
-            (self.a1 - other.a1) % P
-        )
+        return Fp2((self.a0 - other.a0) % P, (self.a1 - other.a1) % P)
 
-    def __mul__(self, other: 'Fp2') -> 'Fp2':
+    def __mul__(self, other: "Fp2") -> "Fp2":
         """
         Multiply two Fp2 elements.
         (a0 + a1*u) * (b0 + b1*u) = (a0*b0 - a1*b1) + (a0*b1 + a1*b0)*u
@@ -39,24 +33,21 @@ class Fp2:
         """
         return Fp2(
             (self.a0 * other.a0 - self.a1 * other.a1) % P,
-            (self.a0 * other.a1 + self.a1 * other.a0) % P
+            (self.a0 * other.a1 + self.a1 * other.a0) % P,
         )
 
-    def square(self) -> 'Fp2':
+    def square(self) -> "Fp2":
         """
         Square an Fp2 element.
         (a0 + a1*u)^2 = (a0^2 - a1^2) + 2*a0*a1*u
         """
-        return Fp2(
-            (self.a0 * self.a0 - self.a1 * self.a1) % P,
-            (2 * self.a0 * self.a1) % P
-        )
+        return Fp2((self.a0 * self.a0 - self.a1 * self.a1) % P, (2 * self.a0 * self.a1) % P)
 
-    def conjugate(self) -> 'Fp2':
+    def conjugate(self) -> "Fp2":
         """Return conjugate a0 - a1*u."""
         return Fp2(self.a0, (-self.a1) % P)
 
-    def inverse(self) -> 'Fp2':
+    def inverse(self) -> "Fp2":
         """
         Compute multiplicative inverse.
         1/(a0 + a1*u) = (a0 - a1*u)/(a0^2 + a1^2)
@@ -64,12 +55,9 @@ class Fp2:
         norm = (self.a0 * self.a0 + self.a1 * self.a1) % P
         norm_inv = pow(norm, P - 2, P)  # Fermat's little theorem
         conj = self.conjugate()
-        return Fp2(
-            (conj.a0 * norm_inv) % P,
-            (conj.a1 * norm_inv) % P
-        )
+        return Fp2((conj.a0 * norm_inv) % P, (conj.a1 * norm_inv) % P)
 
-    def __eq__(self, other: 'Fp2') -> bool:
+    def __eq__(self, other: "Fp2") -> bool:
         """Check equality."""
         return self.a0 == other.a0 and self.a1 == other.a1
 

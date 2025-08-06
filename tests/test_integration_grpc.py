@@ -9,21 +9,21 @@ import grpc
 import pytest
 
 from eigenda.client_v2_full import DisperserClientV2Full
-from eigenda.grpc.disperser.v2 import disperser_v2_pb2, disperser_v2_pb2_grpc
-from eigenda.grpc.common.v2 import common_v2_pb2
 from eigenda.grpc.common import common_pb2
+from eigenda.grpc.common.v2 import common_v2_pb2
+from eigenda.grpc.disperser.v2 import disperser_v2_pb2, disperser_v2_pb2_grpc
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def mock_signer():
     """Mock signer for authentication."""
     signer = Mock()
     signer.account = Mock()
-    signer.account.address = '0x1234567890123456789012345678901234567890'
-    signer.get_account_id = Mock(return_value='0x1234567890123456789012345678901234567890')
-    signer.sign_blob_request = Mock(return_value=b'\x00' * 65)
-    signer.sign_payment_state_request = Mock(return_value=b'\x00' * 65)
-    signer.unsafe_sign_hash = Mock(return_value=Mock(signature=b'\x00' * 65))
+    signer.account.address = "0x1234567890123456789012345678901234567890"
+    signer.get_account_id = Mock(return_value="0x1234567890123456789012345678901234567890")
+    signer.sign_blob_request = Mock(return_value=b"\x00" * 65)
+    signer.sign_payment_state_request = Mock(return_value=b"\x00" * 65)
+    signer.unsafe_sign_hash = Mock(return_value=Mock(signature=b"\x00" * 65))
     return signer
 
 
@@ -43,32 +43,31 @@ class MockDisperserServicer(disperser_v2_pb2_grpc.DisperserServicer):
                 start_timestamp=1000000000,
                 end_timestamp=2000000000,
                 quorum_numbers=bytes([0, 1]),
-                quorum_splits=[50, 50]
+                quorum_splits=[50, 50],
             ),
-            cumulative_payment=b'\x00' * 32,
-            onchain_cumulative_payment=b'\x00' * 32
+            cumulative_payment=b"\x00" * 32,
+            onchain_cumulative_payment=b"\x00" * 32,
         )
 
         self.disperse_blob_response = disperser_v2_pb2.DisperseBlobReply(
             result=disperser_v2_pb2.BlobStatus.QUEUED,
-            blob_key=b'test_blob_key_1234567890' + b'\x00' * 8  # Pad to 32 bytes
+            blob_key=b"test_blob_key_1234567890" + b"\x00" * 8,  # Pad to 32 bytes
         )
 
         self.blob_status_response = disperser_v2_pb2.BlobStatusReply(
             status=disperser_v2_pb2.BlobStatus.COMPLETE,
             signed_batch=disperser_v2_pb2.SignedBatch(
                 header=common_v2_pb2.BatchHeader(
-                    batch_root=b'\x01' * 32,
-                    reference_block_number=12345678
+                    batch_root=b"\x01" * 32, reference_block_number=12345678
                 ),
                 attestation=disperser_v2_pb2.Attestation(
                     non_signer_pubkeys=[],
-                    apk_g2=b'\x01' * 128,
-                    quorum_apks=[b'\x02' * 64],
-                    sigma=b'\x03' * 64,
+                    apk_g2=b"\x01" * 128,
+                    quorum_apks=[b"\x02" * 64],
+                    sigma=b"\x03" * 64,
                     quorum_numbers=[0],
-                    quorum_signed_percentages=b'\x64'
-                )
+                    quorum_signed_percentages=b"\x64",
+                ),
             ),
             blob_inclusion_info=disperser_v2_pb2.BlobInclusionInfo(
                 blob_certificate=common_v2_pb2.BlobCertificate(
@@ -76,30 +75,30 @@ class MockDisperserServicer(disperser_v2_pb2_grpc.DisperserServicer):
                         version=1,
                         quorum_numbers=[0, 1],
                         commitment=common_pb2.BlobCommitment(
-                            commitment=b'\x01' * 64,
-                            length_commitment=b'\x02' * 48,
-                            length_proof=b'\x03' * 48,
-                            length=1024
+                            commitment=b"\x01" * 64,
+                            length_commitment=b"\x02" * 48,
+                            length_proof=b"\x03" * 48,
+                            length=1024,
                         ),
                         payment_header=common_v2_pb2.PaymentHeader(
-                            account_id='0x1234567890123456789012345678901234567890',
+                            account_id="0x1234567890123456789012345678901234567890",
                             timestamp=1000000000,
-                            cumulative_payment=b'\x00' * 32
-                        )
+                            cumulative_payment=b"\x00" * 32,
+                        ),
                     ),
-                    signature=b'\x00' * 65
+                    signature=b"\x00" * 65,
                 ),
                 blob_index=0,
-                inclusion_proof=b'\x00' * 32
-            )
+                inclusion_proof=b"\x00" * 32,
+            ),
         )
 
         self.blob_commit_response = disperser_v2_pb2.BlobCommitmentReply(
             blob_commitment=common_pb2.BlobCommitment(
-                commitment=b'\x01' * 64,
-                length_commitment=b'\x02' * 48,
-                length_proof=b'\x03' * 48,
-                length=1024
+                commitment=b"\x01" * 64,
+                length_commitment=b"\x02" * 48,
+                length_proof=b"\x03" * 48,
+                length=1024,
             )
         )
 
@@ -112,8 +111,8 @@ class MockDisperserServicer(disperser_v2_pb2_grpc.DisperserServicer):
         """Mock DisperseBlob RPC."""
         self.disperse_blob_called = True
         # Validate request
-        assert request.blob == b'hello world'
-        assert hasattr(request, 'blob_header')
+        assert request.blob == b"hello world"
+        assert hasattr(request, "blob_header")
         return self.disperse_blob_response
 
     def GetBlobStatus(self, request, context):
@@ -142,27 +141,24 @@ class TestGRPCIntegration:
         disperser_v2_pb2_grpc.add_DisperserServicer_to_server(mock_servicer, server)
 
         # Listen on a random available port
-        port = server.add_insecure_port('[::]:0')
+        port = server.add_insecure_port("[::]:0")
         server.start()
 
-        yield f'localhost:{port}'
+        yield f"localhost:{port}"
 
         server.stop(0)
 
     def test_full_dispersal_flow(self, grpc_server, mock_servicer, mock_signer):
         """Test full blob dispersal flow with real gRPC."""
         # Create client pointing to our mock server
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         client = DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         )
 
         try:
             # Test dispersal
-            data = b'hello world'
+            data = b"hello world"
             status, blob_key = client.disperse_blob(data)
 
             # Verify servicer was called
@@ -170,7 +166,7 @@ class TestGRPCIntegration:
             assert mock_servicer.disperse_blob_called
 
             # Verify blob key (32-byte key)
-            expected_key = b'test_blob_key_1234567890' + b'\x00' * 8
+            expected_key = b"test_blob_key_1234567890" + b"\x00" * 8
             assert bytes(blob_key) == expected_key
 
         finally:
@@ -178,12 +174,9 @@ class TestGRPCIntegration:
 
     def test_payment_state_retrieval(self, grpc_server, mock_servicer, mock_signer):
         """Test payment state retrieval."""
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         client = DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         )
 
         try:
@@ -202,17 +195,14 @@ class TestGRPCIntegration:
 
     def test_blob_status_polling(self, grpc_server, mock_servicer, mock_signer):
         """Test blob status polling."""
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         client = DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         )
 
         try:
             # Get blob status
-            blob_key_hex = (b'test_blob_key_1234567890' + b'\x00' * 8).hex()
+            blob_key_hex = (b"test_blob_key_1234567890" + b"\x00" * 8).hex()
             status = client.get_blob_status(blob_key_hex)
 
             # Verify servicer was called
@@ -228,17 +218,14 @@ class TestGRPCIntegration:
 
     def test_blob_commitment_retrieval(self, grpc_server, mock_servicer, mock_signer):
         """Test blob commitment retrieval."""
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         client = DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         )
 
         try:
             # Get blob commitment - this takes data, not blob key
-            test_data = b'test data for commitment'
+            test_data = b"test data for commitment"
             commitment = client.get_blob_commitment(test_data)
 
             # Verify servicer was called
@@ -254,12 +241,9 @@ class TestGRPCIntegration:
 
     def test_context_manager(self, grpc_server, mock_servicer, mock_signer):
         """Test client as context manager."""
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         with DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         ) as client:
             # Test basic operation
             state = client.get_payment_state()
@@ -269,20 +253,18 @@ class TestGRPCIntegration:
     @pytest.mark.skip(reason="Payment state is checked lazily, not immediately")
     def test_error_handling(self, grpc_server, mock_servicer, mock_signer):
         """Test error handling in gRPC calls."""
+
         # Make servicer return error
         def error_response(request, context):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service unavailable')
+            context.set_details("Service unavailable")
             raise Exception("Service unavailable")
 
         mock_servicer.GetPaymentState = error_response
 
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         client = DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         )
 
         try:
@@ -302,46 +284,42 @@ class TestMockGRPCServer:
     def test_dispersal_with_mock_server(self, mock_signer):
         """Test dispersal with fully mocked server."""
         # Create mock channel
-        with patch('grpc.insecure_channel') as mock_channel:
+        with patch("grpc.insecure_channel") as mock_channel:
             mock_stub = Mock()
             mock_channel.return_value = Mock()
 
             with patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub',
-                return_value=mock_stub
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub",
+                return_value=mock_stub,
             ):
                 # Mock the RPC calls
                 mock_stub.GetPaymentState.return_value = disperser_v2_pb2.GetPaymentStateReply(
-                    cumulative_payment=b'\x00' * 32,
-                    onchain_cumulative_payment=b'\x00' * 32
+                    cumulative_payment=b"\x00" * 32, onchain_cumulative_payment=b"\x00" * 32
                 )
 
                 mock_stub.DisperseBlob.return_value = disperser_v2_pb2.DisperseBlobReply(
                     result=disperser_v2_pb2.BlobStatus.QUEUED,
-                    blob_key=b'mock_blob_key' + b'\x00' * 19  # Pad to 32 bytes
+                    blob_key=b"mock_blob_key" + b"\x00" * 19,  # Pad to 32 bytes
                 )
                 # Add GetBlobCommitment response
                 mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(
                     blob_commitment=common_pb2.BlobCommitment(
-                        commitment=b'\x01' * 64,
-                        length_commitment=b'\x02' * 48,
-                        length_proof=b'\x03' * 48,
-                        length=9  # for 'test data'
+                        commitment=b"\x01" * 64,
+                        length_commitment=b"\x02" * 48,
+                        length_proof=b"\x03" * 48,
+                        length=9,  # for 'test data'
                     )
                 )
 
                 # Create client
                 client = DisperserClientV2Full(
-                    hostname='localhost',
-                    port=50051,
-                    signer=mock_signer,
-                    use_secure_grpc=False
+                    hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
                 )
 
                 try:
                     # Test dispersal
-                    status, blob_key = client.disperse_blob(b'test data')
-                    expected_key = b'mock_blob_key' + b'\x00' * 19
+                    status, blob_key = client.disperse_blob(b"test data")
+                    expected_key = b"mock_blob_key" + b"\x00" * 19
                     assert bytes(blob_key) == expected_key
 
                     # Verify calls
@@ -358,7 +336,7 @@ class TestAsyncOperations:
     @pytest.mark.asyncio
     async def test_async_dispersal(self, mock_signer):
         """Test async blob dispersal."""
-        with patch('grpc.aio.insecure_channel') as mock_channel:
+        with patch("grpc.aio.insecure_channel") as mock_channel:
             # Mock async channel and stub
             mock_async_stub = Mock()
             mock_channel.return_value = Mock()
@@ -367,15 +345,15 @@ class TestAsyncOperations:
             async def mock_get_payment_state(request):
                 return disperser_v2_pb2.GetPaymentStateReply(
                     payment_state=disperser_v2_pb2.PaymentState(
-                        account_id='0x1234567890123456789012345678901234567890',
-                        cumulative_payment=b'\x00' * 32
+                        account_id="0x1234567890123456789012345678901234567890",
+                        cumulative_payment=b"\x00" * 32,
                     )
                 )
 
             async def mock_disperse_blob(request):
                 return disperser_v2_pb2.DisperseBlobReply(
                     result=disperser_v2_pb2.BlobStatus.QUEUED,
-                    blob_key=b'async_blob_key' + b'\x00' * 18  # Pad to 32 bytes
+                    blob_key=b"async_blob_key" + b"\x00" * 18,  # Pad to 32 bytes
                 )
 
             mock_async_stub.GetPaymentState = mock_get_payment_state
@@ -405,21 +383,18 @@ class TestConcurrentOperations:
         disperser_v2_pb2_grpc.add_DisperserServicer_to_server(mock_servicer, server)
 
         # Listen on a random available port
-        port = server.add_insecure_port('[::]:0')
+        port = server.add_insecure_port("[::]:0")
         server.start()
 
-        yield f'localhost:{port}'
+        yield f"localhost:{port}"
 
         server.stop(0)
 
     def test_concurrent_dispersals(self, grpc_server, mock_servicer, mock_signer):
         """Test multiple concurrent blob dispersals."""
-        host, port = grpc_server.split(':')
+        host, port = grpc_server.split(":")
         client = DisperserClientV2Full(
-            hostname=host,
-            port=int(port),
-            signer=mock_signer,
-            use_secure_grpc=False
+            hostname=host, port=int(port), signer=mock_signer, use_secure_grpc=False
         )
 
         try:
@@ -436,10 +411,7 @@ class TestConcurrentOperations:
 
             # Start 5 concurrent dispersals
             for i in range(5):
-                thread = threading.Thread(
-                    target=disperse_data,
-                    args=(b'hello world',)
-                )
+                thread = threading.Thread(target=disperse_data, args=(b"hello world",))
                 thread.start()
                 threads.append(thread)
 
@@ -449,7 +421,7 @@ class TestConcurrentOperations:
 
             # Verify all succeeded
             assert len(results) == 5
-            expected_key = b'test_blob_key_1234567890' + b'\x00' * 8
+            expected_key = b"test_blob_key_1234567890" + b"\x00" * 8
             for result in results:
                 assert not isinstance(result, Exception), f"Got error: {result}"
                 assert bytes(result) == expected_key
@@ -463,6 +435,7 @@ class TestRetryMechanisms:
 
     def test_retry_on_transient_failure(self, mock_signer):
         """Test retry on transient gRPC failures."""
+
         # Create servicer that fails first, then succeeds
         class RetryServicer(MockDisperserServicer):
             def __init__(self):
@@ -474,7 +447,7 @@ class TestRetryMechanisms:
                 if self.call_count == 1:
                     # First call fails
                     context.set_code(grpc.StatusCode.UNAVAILABLE)
-                    context.set_details('Temporary failure')
+                    context.set_details("Temporary failure")
                     return disperser_v2_pb2.GetPaymentStateReply()
                 else:
                     # Second call succeeds
@@ -484,16 +457,13 @@ class TestRetryMechanisms:
         servicer = RetryServicer()
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         disperser_v2_pb2_grpc.add_DisperserServicer_to_server(servicer, server)
-        port = server.add_insecure_port('[::]:0')
+        port = server.add_insecure_port("[::]:0")
         server.start()
 
         try:
             # Create client with retry
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=port,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=port, signer=mock_signer, use_secure_grpc=False
             )
 
             # Should retry and succeed
@@ -519,15 +489,16 @@ class TestStreamingOperations:
         disperser_v2_pb2_grpc.add_DisperserServicer_to_server(servicer, server)
 
         # Listen on a random available port
-        port = server.add_insecure_port('[::]:0')
+        port = server.add_insecure_port("[::]:0")
         server.start()
 
-        yield f'localhost:{port}'
+        yield f"localhost:{port}"
 
         server.stop(0)
 
     def test_streaming_blob_status(self, grpc_server, mock_signer):
         """Test streaming blob status updates."""
+
         # Create servicer with streaming response
         class StreamingServicer(MockDisperserServicer):
             def StreamBlobStatus(self, request, context):
@@ -536,15 +507,13 @@ class TestStreamingOperations:
                 statuses = [
                     disperser_v2_pb2.BlobStatus.QUEUED,
                     disperser_v2_pb2.BlobStatus.ENCODED,
-                    disperser_v2_pb2.BlobStatus.COMPLETE
+                    disperser_v2_pb2.BlobStatus.COMPLETE,
                 ]
 
                 for status in statuses:
                     yield disperser_v2_pb2.BlobStatusReply(
                         status=status,
-                        blob_header=common_v2_pb2.BlobHeader(
-                            blob_key=request.blob_key
-                        )
+                        blob_header=common_v2_pb2.BlobHeader(blob_key=request.blob_key),
                     )
                     time.sleep(0.1)  # Simulate processing time
 

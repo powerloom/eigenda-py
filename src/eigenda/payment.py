@@ -1,25 +1,26 @@
 """Payment calculation utilities for EigenDA on-demand payments."""
 
-from typing import Optional, Dict, List, Tuple
-from dataclasses import dataclass
 import copy
 import threading
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
+from eigenda.core import meterer
 from eigenda.core.types import (
-    ReservedPayment,
     PaymentQuorumConfig,
     PaymentQuorumProtocolConfig,
-    QuorumID,
+    PaymentType,
     PeriodRecord,
+    QuorumID,
     QuorumPeriodRecords,
-    PaymentType
+    ReservedPayment,
 )
-from eigenda.core import meterer
 
 
 @dataclass
 class PaymentConfig:
     """Configuration for on-demand payment calculations."""
+
     price_per_symbol: int = 447000000  # wei per symbol
     min_num_symbols: int = 4096
 
@@ -62,10 +63,7 @@ def get_blob_length_power_of_2(data_len: int) -> int:
     return power
 
 
-def calculate_payment_increment(
-    data_len: int,
-    config: Optional[PaymentConfig] = None
-) -> int:
+def calculate_payment_increment(data_len: int, config: Optional[PaymentConfig] = None) -> int:
     """
     Calculate the payment increment for a blob of given size.
 
@@ -126,9 +124,7 @@ class SimpleAccountant:
         new_payment = self.cumulative_payment + increment
 
         # Convert to bytes
-        payment_bytes = new_payment.to_bytes(
-            (new_payment.bit_length() + 7) // 8, 'big'
-        )
+        payment_bytes = new_payment.to_bytes((new_payment.bit_length() + 7) // 8, "big")
 
         return payment_bytes, increment
 
@@ -136,14 +132,14 @@ class SimpleAccountant:
 class ReservationAccountant:
     """
     Advanced accountant for handling both reservation and on-demand payments.
-    
+
     This implementation supports:
     - Per-quorum reservations with period tracking
     - Automatic fallback from reservation to on-demand
     - Thread-safe operations
     - Rollback capability for failed operations
     """
-    
+
     def __init__(
         self,
         account_id: str,
@@ -151,11 +147,11 @@ class ReservationAccountant:
         quorum_configs: Dict[QuorumID, PaymentQuorumProtocolConfig],
         payment_configs: Dict[QuorumID, PaymentQuorumConfig],
         on_demand_quorums: List[QuorumID],
-        payment_config: Optional[PaymentConfig] = None
+        payment_config: Optional[PaymentConfig] = None,
     ):
         """
         Initialize the reservation accountant.
-        
+
         Args:
             account_id: Account identifier
             reservations: Map of quorum ID to reservation
@@ -170,35 +166,32 @@ class ReservationAccountant:
         self.payment_configs = payment_configs
         self.on_demand_quorums = on_demand_quorums
         self.payment_config = payment_config or PaymentConfig()
-        
+
         # Period records per quorum
         self.period_records: QuorumPeriodRecords = {}
-        
+
         # On-demand payment tracking
         self.cumulative_payment = 0
-        
+
         # Thread safety
         self._lock = threading.Lock()
-    
+
     def set_cumulative_payment(self, amount: int) -> None:
         """Update the cumulative payment amount."""
         with self._lock:
             self.cumulative_payment = amount
-    
+
     def account_blob(
-        self,
-        data_len: int,
-        quorum_numbers: List[QuorumID],
-        timestamp_ns: int
+        self, data_len: int, quorum_numbers: List[QuorumID], timestamp_ns: int
     ) -> Tuple[bytes, PaymentType, int]:
         """
         Account for a blob using reservation or on-demand payment.
-        
+
         Args:
             data_len: Length of the encoded blob data
             quorum_numbers: List of quorum IDs
             timestamp_ns: Timestamp in nanoseconds
-            
+
         Returns:
             Tuple of (payment_bytes, payment_type, increment)
         """
@@ -207,81 +200,76 @@ class ReservationAccountant:
             can_use_reservation, reservation_error = self._try_reservation(
                 data_len, quorum_numbers, timestamp_ns
             )
-            
+
             if can_use_reservation:
-                return b'', PaymentType.RESERVATION, 0
-            
+                return b"", PaymentType.RESERVATION, 0
+
             # Fall back to on-demand
             return self._try_on_demand(data_len, quorum_numbers)
-    
+
     def _try_reservation(
-        self,
-        data_len: int,
-        quorum_numbers: List[QuorumID],
-        timestamp_ns: int
+        self, data_len: int, quorum_numbers: List[QuorumID], timestamp_ns: int
     ) -> Tuple[bool, Optional[str]]:
         """
         Try to use reservation for payment.
-        
+
         Returns:
             Tuple of (success, error_message)
         """
         # Calculate symbols needed
         num_symbols = get_blob_length_power_of_2(data_len)
-        
+
         # Create snapshot for rollback
         snapshot = copy.deepcopy(self.period_records)
-        
+
         try:
             # Check each quorum
             for quorum_id in quorum_numbers:
                 if quorum_id not in self.reservations:
                     return False, f"no reservation for quorum {quorum_id}"
-                
+
                 reservation = self.reservations[quorum_id]
                 config = self.quorum_configs.get(quorum_id)
-                
+
                 if not config:
                     return False, f"no protocol config for quorum {quorum_id}"
-                
+
                 # Get or create period records for this quorum
                 if quorum_id not in self.period_records:
                     self.period_records[quorum_id] = []
-                
+
                 # Validate and update period
                 is_valid, error_msg, period_record = meterer.validate_reservation_period(
                     reservation,
                     self.period_records[quorum_id],
                     timestamp_ns,
                     config.reservation_rate_limit_window,
-                    meterer.symbols_charged(num_symbols, config.min_num_symbols)
+                    meterer.symbols_charged(num_symbols, config.min_num_symbols),
                 )
-                
+
                 if not is_valid:
                     return False, error_msg
-                
+
                 # Update period records
                 self.period_records[quorum_id] = meterer.update_period_record(
                     self.period_records[quorum_id],
                     period_record.index,
-                    meterer.symbols_charged(num_symbols, config.min_num_symbols)
+                    meterer.symbols_charged(num_symbols, config.min_num_symbols),
                 )
-            
+
             return True, None
-            
+
         except Exception as e:
             # Rollback on error
             self.period_records = snapshot
             return False, str(e)
-    
+
     def _try_on_demand(
-        self,
-        data_len: int,
-        quorum_numbers: List[QuorumID]
+        self, data_len: int, quorum_numbers: List[QuorumID]
     ) -> Tuple[bytes, PaymentType, int]:
         """
         Use on-demand payment.
-        
+
         Returns:
             Tuple of (payment_bytes, payment_type, increment)
         """
@@ -289,23 +277,21 @@ class ReservationAccountant:
         for quorum_id in quorum_numbers:
             if quorum_id not in self.on_demand_quorums:
                 raise ValueError(f"quorum {quorum_id} does not support on-demand payment")
-        
+
         # Calculate payment increment
         increment = calculate_payment_increment(data_len, self.payment_config)
-        
+
         # Update cumulative payment
         new_payment = self.cumulative_payment + increment
-        
+
         # Convert to bytes
-        payment_bytes = new_payment.to_bytes(
-            (new_payment.bit_length() + 7) // 8, 'big'
-        )
-        
+        payment_bytes = new_payment.to_bytes((new_payment.bit_length() + 7) // 8, "big")
+
         # Update state
         self.cumulative_payment = new_payment
-        
+
         return payment_bytes, PaymentType.ON_DEMAND, increment
-    
+
     def get_period_records(self, quorum_id: QuorumID) -> List[PeriodRecord]:
         """Get period records for a specific quorum."""
         with self._lock:

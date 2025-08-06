@@ -1,19 +1,21 @@
 """EigenDA v2 Disperser Client implementation."""
 
-import time
-import grpc
-from typing import List, Tuple, Optional
-from dataclasses import dataclass
-import struct
 import hashlib
+import struct
+import time
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
-from eigenda.core.types import BlobKey, BlobStatus, BlobVersion, QuorumID
+import grpc
+
 from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.core.types import BlobKey, BlobStatus, BlobVersion, QuorumID
 
 
 @dataclass
 class DisperserClientConfig:
     """Configuration for the disperser client."""
+
     hostname: str
     port: int
     use_secure_grpc: bool = True
@@ -29,7 +31,7 @@ class DisperserClient:
         port: int,
         use_secure_grpc: bool,
         signer: LocalBlobRequestSigner,
-        config: Optional[DisperserClientConfig] = None
+        config: Optional[DisperserClientConfig] = None,
     ):
         """
         Initialize the disperser client.
@@ -46,9 +48,7 @@ class DisperserClient:
         self.use_secure_grpc = use_secure_grpc
         self.signer = signer
         self.config = config or DisperserClientConfig(
-            hostname=hostname,
-            port=port,
-            use_secure_grpc=use_secure_grpc
+            hostname=hostname, port=port, use_secure_grpc=use_secure_grpc
         )
 
         self._channel: Optional[grpc.Channel] = None
@@ -74,7 +74,7 @@ class DisperserClient:
         data: bytes,
         blob_version: BlobVersion,
         quorum_ids: List[QuorumID],
-        timeout: Optional[int] = None
+        timeout: Optional[int] = None,
     ) -> Tuple[BlobStatus, BlobKey]:
         """
         Disperse a blob to the EigenDA network.
@@ -144,10 +144,7 @@ class DisperserClient:
         self.close()
 
     def _calculate_blob_key(
-        self,
-        data: bytes,
-        blob_version: BlobVersion,
-        quorum_ids: List[QuorumID]
+        self, data: bytes, blob_version: BlobVersion, quorum_ids: List[QuorumID]
     ) -> BlobKey:
         """
         Calculate a mock blob key for demonstration.
@@ -157,7 +154,7 @@ class DisperserClient:
         """
         # Create a deterministic hash based on the inputs
         hasher = hashlib.sha3_256()
-        hasher.update(struct.pack('>H', blob_version))  # 2 bytes for version
+        hasher.update(struct.pack(">H", blob_version))  # 2 bytes for version
         hasher.update(data)
         hasher.update(bytes(quorum_ids))
         hasher.update(str(time.time()).encode())  # Add timestamp for uniqueness

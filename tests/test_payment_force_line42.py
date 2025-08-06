@@ -7,7 +7,7 @@ def test_force_line_42_coverage():
     import eigenda.payment as payment_module
 
     # Save the original division operation
-    original_floordiv = payment_module.__builtins__['int'].__floordiv__
+    original_floordiv = payment_module.__builtins__["int"].__floordiv__
 
     # Create a custom floor division that returns 0 for our test case
     def mock_floordiv(self, other):

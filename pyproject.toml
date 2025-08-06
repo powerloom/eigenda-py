@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "eigenda-py"
+name = "powerloom-eigenda"
 version = "0.1.0"
-description = "Python client for EigenDA v2 - decentralized data availability service"
+description = "Unofficial Python client for EigenDA v2 - a decentralized data availability (DA) service. This implementation is maintained by the Powerloom team."
 authors = ["Swaroop Hegde <email@swaroophegde.com>"]
 maintainers = ["Powerloom Team <hello@powerloom.io>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://powerloom.io/"
+homepage = "https://www.eigenda.xyz/"
 repository = "https://github.com/powerloom/eigenda-py"
 documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 keywords = ["eigenda", "ethereum", "data-availability", "blockchain", "web3", "powerloom"]
@@ -74,13 +74,9 @@ jupyter = ">=1.0.0"
 ipython = ">=8.0.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=0.17"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "semver"
 
 [tool.black]
 line-length = 100
@@ -147,6 +143,3 @@ disable = [
 [tool.pylint.format]
 max-line-length = 100
 
-[tool.setuptools-scm]
-version_scheme = "python-simplified-semver"
-local_scheme = "node-and-timestamp"

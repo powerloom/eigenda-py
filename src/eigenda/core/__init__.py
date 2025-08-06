@@ -1,12 +1,12 @@
 """Core types and data structures for EigenDA."""
 
 from eigenda.core.types import (
+    BlobHeader,
     BlobKey,
     BlobStatus,
     BlobVersion,
-    BlobHeader,
-    QuorumID,
     PaymentMetadata,
+    QuorumID,
 )
 
 __all__ = [

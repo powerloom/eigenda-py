@@ -1,11 +1,13 @@
 """Simple working tests for client_v2_full.py to achieve better coverage."""
 
-import pytest
-import grpc
 from unittest.mock import Mock, patch
-from eigenda.client_v2_full import DisperserClientV2Full, PaymentType
-from eigenda.core.types import BlobStatus, BlobKey
+
+import grpc
+import pytest
+
 from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2_full import DisperserClientV2Full, PaymentType
+from eigenda.core.types import BlobKey, BlobStatus
 from eigenda.payment import PaymentConfig
 
 
@@ -27,13 +29,13 @@ class TestDisperserClientV2FullSimple:
             port=443,
             use_secure_grpc=True,
             signer=mock_signer,
-            payment_config=PaymentConfig(price_per_symbol=447, min_num_symbols=4096)
+            payment_config=PaymentConfig(price_per_symbol=447, min_num_symbols=4096),
         )
         # Initialize accountant for tests
         from eigenda.payment import SimpleAccountant
+
         client.accountant = SimpleAccountant(
-            account_id=mock_signer.get_account_id(),
-            config=client.payment_config
+            account_id=mock_signer.get_account_id(), config=client.payment_config
         )
         return client
 
@@ -47,13 +49,13 @@ class TestDisperserClientV2FullSimple:
         client.accountant.cumulative_payment = 123456789
 
         # Ensure _last_blob_size is not set
-        if hasattr(client, '_last_blob_size'):
-            delattr(client, '_last_blob_size')
+        if hasattr(client, "_last_blob_size"):
+            delattr(client, "_last_blob_size")
 
         # Mock _check_payment_state to prevent it from running
-        with patch.object(client, '_check_payment_state'):
+        with patch.object(client, "_check_payment_state"):
             # Mock the protobuf classes
-            with patch('eigenda.client_v2_full.common_v2_pb2') as mock_pb2:
+            with patch("eigenda.client_v2_full.common_v2_pb2") as mock_pb2:
                 mock_blob_commitment = Mock()
                 mock_payment_header = Mock()
                 mock_blob_header = Mock()
@@ -63,19 +65,17 @@ class TestDisperserClientV2FullSimple:
 
                 # Call the method
                 client._create_blob_header(
-                    blob_version=0,
-                    blob_commitment=mock_blob_commitment,
-                    quorum_numbers=[0, 1]
+                    blob_version=0, blob_commitment=mock_blob_commitment, quorum_numbers=[0, 1]
                 )
 
                 # Verify payment_bytes was calculated from cumulative_payment (line 148-150)
                 call_args = mock_pb2.PaymentHeader.call_args
-                assert call_args[1]['cumulative_payment'] == (123456789).to_bytes(4, 'big')
+                assert call_args[1]["cumulative_payment"] == (123456789).to_bytes(4, "big")
 
     def test_get_blob_status_full_implementation(self, client):
         """Test get_blob_status that takes hex string (lines 228-248)."""
         # Mock the disperser_v2_pb2 module
-        with patch('eigenda.client_v2_full.disperser_v2_pb2') as mock_pb2:
+        with patch("eigenda.client_v2_full.disperser_v2_pb2") as mock_pb2:
             # Mock BlobStatusRequest
             mock_request = Mock()
             mock_pb2.BlobStatusRequest.return_value = mock_request
@@ -85,7 +85,7 @@ class TestDisperserClientV2FullSimple:
             mock_response.status = 3
 
             # Mock the stub
-            with patch.object(client, '_stub') as mock_stub:
+            with patch.object(client, "_stub") as mock_stub:
                 mock_stub.GetBlobStatus.return_value = mock_response
 
                 # Ensure connected
@@ -122,10 +122,10 @@ class TestDisperserClientV2FullSimple:
         mock_state = Mock()
         mock_state.reservation.start_timestamp = 1000000000  # Active reservation
         mock_state.reservation.end_timestamp = 2000000000
-        mock_state.cumulative_payment = b'\x00' * 32
+        mock_state.cumulative_payment = b"\x00" * 32
 
-        with patch.object(client, 'get_payment_state', return_value=mock_state):
-            with patch('time.time', return_value=1500000000):  # Within reservation
+        with patch.object(client, "get_payment_state", return_value=mock_state):
+            with patch("time.time", return_value=1500000000):  # Within reservation
                 client._check_payment_state()
 
                 assert client._payment_type == PaymentType.RESERVATION
@@ -136,11 +136,11 @@ class TestDisperserClientV2FullSimple:
 
         mock_state.reservation.start_timestamp = 1000000000
         mock_state.reservation.end_timestamp = 1500000000  # Expired
-        mock_state.cumulative_payment = b'\x01' + b'\x00' * 31  # Has payment
-        mock_state.onchain_cumulative_payment = b'\x01' + b'\x00' * 31  # Has onchain payment
+        mock_state.cumulative_payment = b"\x01" + b"\x00" * 31  # Has payment
+        mock_state.onchain_cumulative_payment = b"\x01" + b"\x00" * 31  # Has onchain payment
 
-        with patch.object(client, 'get_payment_state', return_value=mock_state):
-            with patch('time.time', return_value=1600000000):  # After expiration
+        with patch.object(client, "get_payment_state", return_value=mock_state):
+            with patch("time.time", return_value=1600000000):  # After expiration
                 client._check_payment_state()
 
                 assert client._payment_type == PaymentType.ON_DEMAND
@@ -152,10 +152,10 @@ class TestDisperserClientV2FullSimple:
 
         mock_state.reservation.start_timestamp = 0
         mock_state.reservation.end_timestamp = 0
-        mock_state.cumulative_payment = b'\x00' * 32
-        mock_state.onchain_cumulative_payment = b'\x00' * 32  # No onchain payment
+        mock_state.cumulative_payment = b"\x00" * 32
+        mock_state.onchain_cumulative_payment = b"\x00" * 32  # No onchain payment
 
-        with patch.object(client, 'get_payment_state', return_value=mock_state):
+        with patch.object(client, "get_payment_state", return_value=mock_state):
             client._check_payment_state()
 
             assert client._payment_type is None
@@ -167,7 +167,7 @@ class TestDisperserClientV2FullSimple:
         mock_error = grpc.RpcError()
         mock_error.code = Mock(return_value=grpc.StatusCode.UNAVAILABLE)
 
-        with patch.object(client, 'get_payment_state', side_effect=mock_error):
+        with patch.object(client, "get_payment_state", side_effect=mock_error):
             client._check_payment_state()
 
             assert client._payment_type is None
@@ -185,7 +185,7 @@ class TestDisperserClientV2FullSimple:
 
         # Second call succeeds
         expected_status = BlobStatus.QUEUED
-        expected_key = BlobKey(b'y' * 32)
+        expected_key = BlobKey(b"y" * 32)
 
         # Create a counter to track calls
         call_count = 0
@@ -199,17 +199,17 @@ class TestDisperserClientV2FullSimple:
                 return (expected_status, expected_key)
 
         # Mock parent's disperse_blob
-        with patch('eigenda.client_v2.DisperserClientV2.disperse_blob', side_effect=mock_disperse):
+        with patch("eigenda.client_v2.DisperserClientV2.disperse_blob", side_effect=mock_disperse):
             # Mock get_payment_state for the retry
             mock_state = Mock()
             mock_state.reservation.start_timestamp = 0
             mock_state.reservation.end_timestamp = 0
-            mock_state.cumulative_payment = b'\x01' + b'\x00' * 31
-            mock_state.onchain_cumulative_payment = b'\x01' + b'\x00' * 31  # Has onchain payment
+            mock_state.cumulative_payment = b"\x01" + b"\x00" * 31
+            mock_state.onchain_cumulative_payment = b"\x01" + b"\x00" * 31  # Has onchain payment
 
-            with patch.object(client, 'get_payment_state', return_value=mock_state):
-                with patch('builtins.print'):  # Suppress print statements
-                    status, blob_key = client.disperse_blob(b'test data', 0, [0, 1])
+            with patch.object(client, "get_payment_state", return_value=mock_state):
+                with patch("builtins.print"):  # Suppress print statements
+                    status, blob_key = client.disperse_blob(b"test data", 0, [0, 1])
 
                 assert status == expected_status
                 assert blob_key == expected_key

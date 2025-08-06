@@ -25,7 +25,7 @@ def encode_blob_data(data: bytes) -> bytes:
         Encoded data ready for dispersal (padded to 32-byte chunks)
     """
     if len(data) == 0:
-        return b''
+        return b""
 
     data_size = len(data)
     parse_size = BYTES_PER_FIELD_ELEMENT  # 31
@@ -46,7 +46,7 @@ def encode_blob_data(data: bytes) -> bytes:
 
         # Copy the chunk data
         chunk_data = data[start:end]
-        encoded[i * put_size + 1: i * put_size + 1 + len(chunk_data)] = chunk_data
+        encoded[i * put_size + 1 : i * put_size + 1 + len(chunk_data)] = chunk_data
 
     return bytes(encoded)
 
@@ -66,13 +66,13 @@ def decode_blob_data(encoded_data: bytes, original_length: int = None) -> bytes:
         Original raw data
     """
     if len(encoded_data) == 0:
-        return b''
+        return b""
 
     decoded = bytearray()
 
     # Process in 32-byte chunks
     for i in range(0, len(encoded_data), BYTES_PER_SYMBOL):
-        chunk = encoded_data[i:i + BYTES_PER_SYMBOL]
+        chunk = encoded_data[i : i + BYTES_PER_SYMBOL]
         if len(chunk) > 1:
             # Skip first byte (padding) and take up to 31 bytes
             decoded.extend(chunk[1:32])
@@ -101,7 +101,7 @@ def validate_field_element(data: bytes) -> bool:
         return False
 
     # Convert bytes to integer (big endian)
-    value = int.from_bytes(data, byteorder='big')
+    value = int.from_bytes(data, byteorder="big")
 
     # Check if within valid range
     return 0 <= value < BN254_MODULUS

@@ -9,22 +9,24 @@ This script can be used in two modes:
 Usage:
     # Check your own account (requires EIGENDA_PRIVATE_KEY)
     python check_payment_vault.py
-    
+
     # Check any address without private key
     python check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
-    
+
     # Check on specific network
     EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz python check_payment_vault.py
 """
 
+import argparse
 import os
 import sys
-import argparse
 import traceback
-from eigenda.config import get_network_config
+
 from dotenv import load_dotenv
 from eth_account import Account
 from web3 import Web3
+
+from eigenda.config import get_network_config
 
 # Minimal ABI for the functions we need
 PAYMENT_VAULT_ABI = [
@@ -33,7 +35,7 @@ PAYMENT_VAULT_ABI = [
         "name": "getOnDemandTotalDeposit",
         "outputs": [{"internalType": "uint80", "name": "", "type": "uint80"}],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
     },
     {
         "inputs": [{"internalType": "address", "name": "_account", "type": "address"}],
@@ -45,30 +47,30 @@ PAYMENT_VAULT_ABI = [
                     {"internalType": "uint64", "name": "startTimestamp", "type": "uint64"},
                     {"internalType": "uint64", "name": "endTimestamp", "type": "uint64"},
                     {"internalType": "bytes", "name": "quorumNumbers", "type": "bytes"},
-                    {"internalType": "bytes", "name": "quorumSplits", "type": "bytes"}
+                    {"internalType": "bytes", "name": "quorumSplits", "type": "bytes"},
                 ],
                 "internalType": "struct IPaymentVault.Reservation",
                 "name": "",
-                "type": "tuple"
+                "type": "tuple",
             }
         ],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
     },
     {
         "inputs": [],
         "name": "pricePerSymbol",
         "outputs": [{"internalType": "uint64", "name": "", "type": "uint64"}],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
     },
     {
         "inputs": [],
         "name": "minNumSymbols",
         "outputs": [{"internalType": "uint64", "name": "", "type": "uint64"}],
         "stateMutability": "view",
-        "type": "function"
-    }
+        "type": "function",
+    },
 ]
 
 
@@ -93,20 +95,25 @@ def check_deposit_balance(contract, account_address: str) -> int:
 def check_reservation(contract, account_address: str) -> None:
     """Check and display reservation details."""
     import time
+
     print("\nChecking reservation...")
     try:
         reservation = contract.functions.getReservation(account_address).call()
-        
+
         # Check if reservation exists (non-zero values)
         if reservation[0] == 0 and reservation[1] == 0 and reservation[2] == 0:
             print("No reservation found for this account.")
             return
-            
+
         print("Reservation found:")
         print(f"  Symbols per second: {reservation[0]:,}")
-        print(f"  Start timestamp: {reservation[1]} ({time.ctime(reservation[1]) if reservation[1] > 0 else 'Not set'})")
-        print(f"  End timestamp: {reservation[2]} ({time.ctime(reservation[2]) if reservation[2] > 0 else 'Not set'})")
-        
+        print(
+            f"  Start timestamp: {reservation[1]} ({time.ctime(reservation[1]) if reservation[1] > 0 else 'Not set'})"
+        )
+        print(
+            f"  End timestamp: {reservation[2]} ({time.ctime(reservation[2]) if reservation[2] > 0 else 'Not set'})"
+        )
+
         # Parse quorum numbers
         quorum_bytes = reservation[3]
         if quorum_bytes:
@@ -114,16 +121,18 @@ def check_reservation(contract, account_address: str) -> None:
             print(f"  Quorum numbers: {quorum_numbers}")
         else:
             print(f"  Quorum numbers: [] (empty)")
-            
+
         print(f"  Quorum splits: {reservation[4].hex()}")
-        
+
         # Check if currently active
         current_time = int(time.time())
         if reservation[1] > 0 and reservation[2] > 0:
             if reservation[1] <= current_time <= reservation[2]:
                 print("  Status: ✅ ACTIVE")
                 remaining = reservation[2] - current_time
-                print(f"  Time remaining: {remaining // 3600} hours, {(remaining % 3600) // 60} minutes")
+                print(
+                    f"  Time remaining: {remaining // 3600} hours, {(remaining % 3600) // 60} minutes"
+                )
             elif current_time < reservation[1]:
                 print("  Status: ⏳ NOT YET ACTIVE")
                 print(f"  Starts in: {(reservation[1] - current_time) // 3600} hours")
@@ -162,13 +171,13 @@ def setup_connection(network_config, target_address=None):
         if not Web3.is_address(target_address):
             print(f"Error: Invalid Ethereum address: {target_address}")
             return None, None
-        
+
         # Convert to checksum address
         account_address = Web3.to_checksum_address(target_address)
         print(f"Checking address: {account_address}")
     else:
         # Get private key and derive account
-        private_key = os.environ.get('EIGENDA_PRIVATE_KEY')
+        private_key = os.environ.get("EIGENDA_PRIVATE_KEY")
         if not private_key:
             print("Error: EIGENDA_PRIVATE_KEY not set")
             print("Either set EIGENDA_PRIVATE_KEY or use --address flag")
@@ -177,7 +186,7 @@ def setup_connection(network_config, target_address=None):
         account = Account.from_key(private_key)
         account_address = account.address
         print(f"Account (from private key): {account_address}")
-    
+
     print(f"Network: {network_config.network_name}\n")
 
     # Get appropriate RPC URL and connect
@@ -195,7 +204,7 @@ def setup_connection(network_config, target_address=None):
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(
-        description='Check PaymentVault contract state for an account',
+        description="Check PaymentVault contract state for an account",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -207,16 +216,17 @@ Examples:
   
   # Check on specific network
   EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz python check_payment_vault.py
-        """
+        """,
     )
     parser.add_argument(
-        '--address', '-a',
+        "--address",
+        "-a",
         type=str,
-        help='Ethereum address to check (e.g., 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0)'
+        help="Ethereum address to check (e.g., 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0)",
     )
-    
+
     args = parser.parse_args()
-    
+
     print("=== PaymentVault Contract Check ===\n")
 
     # Load environment

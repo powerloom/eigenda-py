@@ -9,37 +9,35 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    31,
-    0,
-    '',
-    'encoder/v2/encoder_v2.proto'
+    _runtime_version.Domain.PUBLIC, 6, 31, 0, "", "encoder/v2/encoder_v2.proto"
 )
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-
-
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x65ncoder/v2/encoder_v2.proto\x12\nencoder.v2\"m\n\x11\x45ncodeBlobRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x33\n\x0f\x65ncoding_params\x18\x02 \x01(\x0b\x32\x1a.encoder.v2.EncodingParams\x12\x11\n\tblob_size\x18\x03 \x01(\x04\":\n\x0e\x45ncodingParams\x12\x14\n\x0c\x63hunk_length\x18\x01 \x01(\x04\x12\x12\n\nnum_chunks\x18\x02 \x01(\x04\"K\n\x0c\x46ragmentInfo\x12\x1e\n\x16total_chunk_size_bytes\x18\x01 \x01(\r\x12\x1b\n\x13\x66ragment_size_bytes\x18\x02 \x01(\r\"B\n\x0f\x45ncodeBlobReply\x12/\n\rfragment_info\x18\x01 \x01(\x0b\x32\x18.encoder.v2.FragmentInfo2U\n\x07\x45ncoder\x12J\n\nEncodeBlob\x12\x1d.encoder.v2.EncodeBlobRequest\x1a\x1b.encoder.v2.EncodeBlobReply\"\x00\x42\x32Z0github.com/Layr-Labs/eigenda/api/grpc/encoder/v2b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x1b\x65ncoder/v2/encoder_v2.proto\x12\nencoder.v2"m\n\x11\x45ncodeBlobRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\x12\x33\n\x0f\x65ncoding_params\x18\x02 \x01(\x0b\x32\x1a.encoder.v2.EncodingParams\x12\x11\n\tblob_size\x18\x03 \x01(\x04":\n\x0e\x45ncodingParams\x12\x14\n\x0c\x63hunk_length\x18\x01 \x01(\x04\x12\x12\n\nnum_chunks\x18\x02 \x01(\x04"K\n\x0c\x46ragmentInfo\x12\x1e\n\x16total_chunk_size_bytes\x18\x01 \x01(\r\x12\x1b\n\x13\x66ragment_size_bytes\x18\x02 \x01(\r"B\n\x0f\x45ncodeBlobReply\x12/\n\rfragment_info\x18\x01 \x01(\x0b\x32\x18.encoder.v2.FragmentInfo2U\n\x07\x45ncoder\x12J\n\nEncodeBlob\x12\x1d.encoder.v2.EncodeBlobRequest\x1a\x1b.encoder.v2.EncodeBlobReply"\x00\x42\x32Z0github.com/Layr-Labs/eigenda/api/grpc/encoder/v2b\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'encoder.v2.encoder_v2_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "encoder.v2.encoder_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-  _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z0github.com/Layr-Labs/eigenda/api/grpc/encoder/v2'
-  _globals['_ENCODEBLOBREQUEST']._serialized_start=43
-  _globals['_ENCODEBLOBREQUEST']._serialized_end=152
-  _globals['_ENCODINGPARAMS']._serialized_start=154
-  _globals['_ENCODINGPARAMS']._serialized_end=212
-  _globals['_FRAGMENTINFO']._serialized_start=214
-  _globals['_FRAGMENTINFO']._serialized_end=289
-  _globals['_ENCODEBLOBREPLY']._serialized_start=291
-  _globals['_ENCODEBLOBREPLY']._serialized_end=357
-  _globals['_ENCODER']._serialized_start=359
-  _globals['_ENCODER']._serialized_end=444
+    _globals["DESCRIPTOR"]._loaded_options = None
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z0github.com/Layr-Labs/eigenda/api/grpc/encoder/v2"
+    )
+    _globals["_ENCODEBLOBREQUEST"]._serialized_start = 43
+    _globals["_ENCODEBLOBREQUEST"]._serialized_end = 152
+    _globals["_ENCODINGPARAMS"]._serialized_start = 154
+    _globals["_ENCODINGPARAMS"]._serialized_end = 212
+    _globals["_FRAGMENTINFO"]._serialized_start = 214
+    _globals["_FRAGMENTINFO"]._serialized_end = 289
+    _globals["_ENCODEBLOBREPLY"]._serialized_start = 291
+    _globals["_ENCODEBLOBREPLY"]._serialized_end = 357
+    _globals["_ENCODER"]._serialized_start = 359
+    _globals["_ENCODER"]._serialized_end = 444
 # @@protoc_insertion_point(module_scope)
