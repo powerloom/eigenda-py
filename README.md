@@ -54,7 +54,7 @@ The `eigenda` package includes:
 pip install eigenda
 
 # Or install from TestPyPI for pre-release versions
-pip install -i https://test.pypi.org/simple/ eigenda
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple eigenda
 ```
 
 ### From Source (For Development)
