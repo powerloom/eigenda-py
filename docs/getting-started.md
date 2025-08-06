@@ -131,5 +131,5 @@ except Exception as e:
 - Explorer: `https://blobs-v2-testnet-sepolia.eigenda.xyz`
 
 ### Mainnet
-- Disperser: `disperser-mainnet.eigenda.xyz:443`
-- Explorer: `https://blobs-v2-mainnet.eigenda.xyz`
+- Disperser: `disperser.eigenda.xyz:443`
+- Explorer: `https://blobs-v2.eigenda.xyz`
