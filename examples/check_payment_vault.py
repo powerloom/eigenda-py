@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
-"""Check PaymentVault contract state for the account."""
+"""
+Check PaymentVault contract state for an account.
+
+This script can be used in two modes:
+1. With private key (from EIGENDA_PRIVATE_KEY environment variable)
+2. With any address using --address flag (read-only, no private key needed)
+
+Usage:
+    # Check your own account (requires EIGENDA_PRIVATE_KEY)
+    python check_payment_vault.py
+    
+    # Check any address without private key
+    python check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+    
+    # Check on specific network
+    EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz python check_payment_vault.py
+"""
 
 import os
+import sys
+import argparse
 import traceback
 from eigenda.config import get_network_config
 from dotenv import load_dotenv
@@ -74,17 +92,46 @@ def check_deposit_balance(contract, account_address: str) -> int:
 
 def check_reservation(contract, account_address: str) -> None:
     """Check and display reservation details."""
+    import time
     print("\nChecking reservation...")
     try:
         reservation = contract.functions.getReservation(account_address).call()
+        
+        # Check if reservation exists (non-zero values)
+        if reservation[0] == 0 and reservation[1] == 0 and reservation[2] == 0:
+            print("No reservation found for this account.")
+            return
+            
         print("Reservation found:")
-        print(f"  Symbols per second: {reservation[0]}")
-        print(f"  Start timestamp: {reservation[1]}")
-        print(f"  End timestamp: {reservation[2]}")
-        print(f"  Quorum numbers: {reservation[3].hex()}")
+        print(f"  Symbols per second: {reservation[0]:,}")
+        print(f"  Start timestamp: {reservation[1]} ({time.ctime(reservation[1]) if reservation[1] > 0 else 'Not set'})")
+        print(f"  End timestamp: {reservation[2]} ({time.ctime(reservation[2]) if reservation[2] > 0 else 'Not set'})")
+        
+        # Parse quorum numbers
+        quorum_bytes = reservation[3]
+        if quorum_bytes:
+            quorum_numbers = list(quorum_bytes)
+            print(f"  Quorum numbers: {quorum_numbers}")
+        else:
+            print(f"  Quorum numbers: [] (empty)")
+            
         print(f"  Quorum splits: {reservation[4].hex()}")
+        
+        # Check if currently active
+        current_time = int(time.time())
+        if reservation[1] > 0 and reservation[2] > 0:
+            if reservation[1] <= current_time <= reservation[2]:
+                print("  Status: ✅ ACTIVE")
+                remaining = reservation[2] - current_time
+                print(f"  Time remaining: {remaining // 3600} hours, {(remaining % 3600) // 60} minutes")
+            elif current_time < reservation[1]:
+                print("  Status: ⏳ NOT YET ACTIVE")
+                print(f"  Starts in: {(reservation[1] - current_time) // 3600} hours")
+            else:
+                print("  Status: ❌ EXPIRED")
+                print(f"  Expired: {(current_time - reservation[2]) // 3600} hours ago")
     except Exception as e:
-        print(f"No active reservation (or error): {e}")
+        print(f"Error checking reservation: {e}")
 
 
 def display_pricing_info(contract, deposit: int) -> None:
@@ -107,16 +154,30 @@ def display_pricing_info(contract, deposit: int) -> None:
         print(f"\nWith current deposit, can disperse: {num_blobs} minimal blobs")
 
 
-def setup_connection(network_config):
-    """Setup Web3 connection and get account."""
-    # Get private key and derive account
-    private_key = os.environ.get('EIGENDA_PRIVATE_KEY')
-    if not private_key:
-        print("Error: EIGENDA_PRIVATE_KEY not set")
-        return None, None
+def setup_connection(network_config, target_address=None):
+    """Setup Web3 connection and get account address."""
+    # If target address provided, use it directly
+    if target_address:
+        # Validate the address format
+        if not Web3.is_address(target_address):
+            print(f"Error: Invalid Ethereum address: {target_address}")
+            return None, None
+        
+        # Convert to checksum address
+        account_address = Web3.to_checksum_address(target_address)
+        print(f"Checking address: {account_address}")
+    else:
+        # Get private key and derive account
+        private_key = os.environ.get('EIGENDA_PRIVATE_KEY')
+        if not private_key:
+            print("Error: EIGENDA_PRIVATE_KEY not set")
+            print("Either set EIGENDA_PRIVATE_KEY or use --address flag")
+            return None, None
 
-    account = Account.from_key(private_key)
-    print(f"Account: {account.address}")
+        account = Account.from_key(private_key)
+        account_address = account.address
+        print(f"Account (from private key): {account_address}")
+    
     print(f"Network: {network_config.network_name}\n")
 
     # Get appropriate RPC URL and connect
@@ -128,10 +189,34 @@ def setup_connection(network_config):
         return None, None
 
     print(f"Connected to {network_config.network_name}, block number: {w3.eth.block_number}")
-    return w3, account
+    return w3, account_address
 
 
 def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Check PaymentVault contract state for an account',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Check using private key from environment
+  python check_payment_vault.py
+  
+  # Check specific address (read-only, no private key needed)
+  python check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+  
+  # Check on specific network
+  EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz python check_payment_vault.py
+        """
+    )
+    parser.add_argument(
+        '--address', '-a',
+        type=str,
+        help='Ethereum address to check (e.g., 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0)'
+    )
+    
+    args = parser.parse_args()
+    
     print("=== PaymentVault Contract Check ===\n")
 
     # Load environment
@@ -141,8 +226,8 @@ def main():
     network_config = get_network_config()
 
     # Setup connection
-    w3, account = setup_connection(network_config)
-    if not w3 or not account:
+    w3, account_address = setup_connection(network_config, args.address)
+    if not w3 or not account_address:
         return
 
     # Get payment vault address from config
@@ -159,10 +244,10 @@ def main():
 
     try:
         # Check on-demand deposit
-        deposit = check_deposit_balance(contract, account.address)
+        deposit = check_deposit_balance(contract, account_address)
 
         # Check reservation
-        check_reservation(contract, account.address)
+        check_reservation(contract, account_address)
 
         # Display pricing info
         display_pricing_info(contract, deposit)

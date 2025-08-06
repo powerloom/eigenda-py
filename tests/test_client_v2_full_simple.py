@@ -22,19 +22,28 @@ class TestDisperserClientV2FullSimple:
     @pytest.fixture
     def client(self, mock_signer):
         """Create a test client."""
-        return DisperserClientV2Full(
+        client = DisperserClientV2Full(
             hostname="test.disperser.com",
             port=443,
             use_secure_grpc=True,
             signer=mock_signer,
             payment_config=PaymentConfig(price_per_symbol=447, min_num_symbols=4096)
         )
+        # Initialize accountant for tests
+        from eigenda.payment import SimpleAccountant
+        client.accountant = SimpleAccountant(
+            account_id=mock_signer.get_account_id(),
+            config=client.payment_config
+        )
+        return client
 
     def test_create_blob_header_line_148(self, client):
         """Test _create_blob_header line 148 - fallback to current cumulative payment."""
         # Set up the payment type as ON_DEMAND but without _last_blob_size
         client._payment_type = PaymentType.ON_DEMAND
         client._has_reservation = False
+        # Accountant is already initialized in fixture
+        assert client.accountant is not None
         client.accountant.cumulative_payment = 123456789
 
         # Ensure _last_blob_size is not set

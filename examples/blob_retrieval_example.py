@@ -11,8 +11,12 @@ these values when you disperse a blob if you want to retrieve it later.
 """
 
 import os
+from dotenv import load_dotenv
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.retriever import BlobRetriever
+
+# Load environment variables
+load_dotenv()
 
 # For demonstration purposes, we'll show the structure needed
 # In practice, you would get these from a previous dispersal

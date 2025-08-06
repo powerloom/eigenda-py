@@ -66,9 +66,9 @@ class TestNetworkConfig:
         """Test getting network config with no environment variable."""
         config = get_network_config()
 
-        # Should default to Holesky
-        assert config.network_name == "Holesky Testnet"
-        assert config.disperser_host == "disperser-testnet-holesky.eigenda.xyz"
+        # Should default to Sepolia
+        assert config.network_name == "Sepolia Testnet"
+        assert config.disperser_host == "disperser-testnet-sepolia.eigenda.xyz"
 
     @patch.dict(os.environ, {"EIGENDA_DISPERSER_HOST": "disperser-testnet-sepolia.eigenda.xyz"})
     def test_get_network_config_sepolia(self):
@@ -102,10 +102,10 @@ class TestNetworkConfig:
         """Test getting config with custom host."""
         config = get_network_config()
 
-        # Should use Holesky as base but with custom host
-        assert config.network_name == "Holesky Testnet"  # Defaults to Holesky
+        # Should use Sepolia as base but with custom host
+        assert config.network_name == "Sepolia Testnet"  # Defaults to Sepolia
         assert config.disperser_host == "custom.eigenda.xyz"  # But uses custom host
-        assert config.payment_vault_address == "0x4a7Fff191BCDa5806f1Bc8689afc1417c08C61AB"
+        assert config.payment_vault_address == "0x2E1BDB221E7D6bD9B7b2365208d41A5FD70b24Ed"
 
     @patch.dict(os.environ, {
         "EIGENDA_DISPERSER_HOST": "disperser-testnet-sepolia.eigenda.xyz",
@@ -146,18 +146,18 @@ class TestNetworkConfig:
         """Test getting explorer URL for blob."""
         blob_key = "a" * 64
 
-        # Test with Holesky
+        # Test with Sepolia (default)
         with patch.dict(os.environ, {}, clear=True):
             url = get_explorer_url(blob_key)
-            assert url == f"https://blobs-v2-testnet-holesky.eigenda.xyz/blobs/{blob_key}"
+            assert url == f"https://blobs-v2-testnet-sepolia.eigenda.xyz/blobs/{blob_key}"
 
-        # Test with Sepolia
+        # Test with Holesky
         with patch.dict(
             os.environ,
-            {"EIGENDA_DISPERSER_HOST": "disperser-testnet-sepolia.eigenda.xyz"}
+            {"EIGENDA_DISPERSER_HOST": "disperser-testnet-holesky.eigenda.xyz"}
         ):
             url = get_explorer_url(blob_key)
-            assert url == f"https://blobs-v2-testnet-sepolia.eigenda.xyz/blobs/{blob_key}"
+            assert url == f"https://blobs-v2-testnet-holesky.eigenda.xyz/blobs/{blob_key}"
 
         # Test with mainnet
         with patch.dict(os.environ, {"EIGENDA_DISPERSER_HOST": "disperser.eigenda.xyz"}):

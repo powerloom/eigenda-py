@@ -42,7 +42,7 @@ signer = LocalBlobRequestSigner("your_private_key_here")
 
 # Create client
 client = DisperserClient(
-    hostname="disperser-testnet-holesky.eigenda.xyz",
+    hostname="disperser-testnet-sepolia.eigenda.xyz",
     port=443,
     use_secure_grpc=True,
     signer=signer
@@ -72,7 +72,7 @@ The client supports Python's context manager protocol:
 
 ```python
 with DisperserClient(
-    hostname="disperser-testnet-holesky.eigenda.xyz",
+    hostname="disperser-testnet-sepolia.eigenda.xyz",
     port=443,
     use_secure_grpc=True,
     signer=signer
@@ -126,9 +126,9 @@ except Exception as e:
 
 ## Network Endpoints
 
-### Testnet (Holesky)
-- Disperser: `disperser-testnet-holesky.eigenda.xyz:443`
-- Explorer: `https://blobs-v2-testnet-holesky.eigenda.xyz`
+### Testnet (Sepolia)
+- Disperser: `disperser-testnet-sepolia.eigenda.xyz:443`
+- Explorer: `https://blobs-v2-testnet-sepolia.eigenda.xyz`
 
 ### Mainnet
 - Disperser: `disperser-mainnet.eigenda.xyz:443`

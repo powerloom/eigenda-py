@@ -115,8 +115,15 @@ def main():
         port=network_config.disperser_port,
         use_secure_grpc=True,
         signer=signer,
-        payment_config=payment_config
+        payment_config=payment_config,
+        use_advanced_reservations=True  # Check for advanced reservations
     )
+    
+    # Check payment method
+    print("\nChecking payment method...")
+    payment_info = disperser.get_payment_info()
+    print(f"Payment type: {payment_info['payment_type']}")
+    print(f"Has reservation: {payment_info['has_reservation']}")
 
     try:
         # Prepare test data

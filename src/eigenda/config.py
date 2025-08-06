@@ -54,7 +54,7 @@ def get_network_config() -> NetworkConfig:
     Get network configuration from environment or defaults.
 
     Checks EIGENDA_DISPERSER_HOST to determine the network.
-    Falls back to Holesky testnet if not specified.
+    Falls back to Sepolia testnet if not specified.
     """
     disperser_host_env = os.environ.get("EIGENDA_DISPERSER_HOST", "")
     disperser_host = disperser_host_env.lower()
@@ -67,8 +67,8 @@ def get_network_config() -> NetworkConfig:
     elif "disperser.eigenda.xyz" == disperser_host:
         base_config = NETWORK_CONFIGS["mainnet"]
     else:
-        # Default to Holesky if not recognized
-        base_config = NETWORK_CONFIGS["holesky"]
+        # Default to Sepolia if not recognized
+        base_config = NETWORK_CONFIGS["sepolia"]
 
     # Create a new config with overrides
     config = NetworkConfig(

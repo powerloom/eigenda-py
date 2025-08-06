@@ -8,12 +8,16 @@ to be able to retrieve the blob later.
 import time
 import json
 import os
+from dotenv import load_dotenv
 from eigenda.core.types import BlobStatus, BlobKey
 from eigenda.config import get_network_config
 from eigenda.payment import PaymentConfig
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
 from typing import Tuple, Any
+
+# Load environment variables
+load_dotenv()
 
 
 class DisperserWithRetrieval(DisperserClientV2Full):

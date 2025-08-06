@@ -86,15 +86,27 @@ python examples/minimal_client.py
 
 ## Configuration
 
+### Environment Variables
+
+All configuration is done through environment variables. See [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) for complete reference.
+
+**Required:**
+- `EIGENDA_PRIVATE_KEY` - Your Ethereum private key (without 0x prefix)
+
+**Optional (with defaults):**
+- `EIGENDA_DISPERSER_HOST` - Default: `disperser-testnet-sepolia.eigenda.xyz`
+- `EIGENDA_DISPERSER_PORT` - Default: `443`
+- `EIGENDA_USE_SECURE_GRPC` - Default: `true`
+
 ### Network Selection
 
 The client automatically detects the network based on the `EIGENDA_DISPERSER_HOST` environment variable:
 
 ```bash
-# Sepolia testnet
+# Sepolia testnet (default)
 EIGENDA_DISPERSER_HOST=disperser-testnet-sepolia.eigenda.xyz
 
-# Holesky testnet (default)
+# Holesky testnet
 EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz
 
 # Mainnet
@@ -225,6 +237,50 @@ print(f"Status: {status.name}")
 ```
 
 See `examples/check_blob_status.py` for monitoring status until completion, or `examples/check_existing_blob_status.py` to check a specific blob key.
+
+### Advanced Reservations (Per-Quorum Support)
+
+The Python client now supports advanced per-quorum reservations, bringing it to feature parity with the Go client. This allows for more granular control over bandwidth allocation and payment tracking:
+
+```python
+from eigenda.client_v2_full import DisperserClientV2Full
+
+# Enable advanced reservations
+client = DisperserClientV2Full(
+    hostname="disperser.eigenda.xyz",
+    port=443,
+    use_secure_grpc=True,
+    signer=signer,
+    payment_config=PaymentConfig(),
+    use_advanced_reservations=True  # Enable per-quorum support
+)
+
+# The client will automatically:
+# 1. Use GetPaymentStateForAllQuorums to get per-quorum reservation info
+# 2. Track period records for each quorum separately
+# 3. Validate reservations with nanosecond precision
+# 4. Support bin-based usage tracking with overflow handling
+# 5. Fall back to on-demand per quorum if needed
+
+# Check advanced payment state
+payment_state = client.get_payment_state_for_all_quorums()
+if payment_state:
+    for quorum_id, reservation in payment_state.quorum_reservations.items():
+        print(f"Quorum {quorum_id}: {reservation.symbols_per_second} symbols/sec")
+```
+
+Key features of advanced reservations:
+- **Per-quorum tracking**: Different reservations for different quorums
+- **Period records**: Usage tracked in time-based bins
+- **Nanosecond precision**: Matches Go client timing accuracy
+- **Automatic fallback**: Seamlessly switches to on-demand when needed
+- **Thread-safe**: Concurrent blob dispersals are handled correctly
+
+Examples demonstrating reservation features:
+- `examples/advanced_reservations.py` - Reservation-only dispersal (no fallback)
+- `examples/test_both_payments.py` - Automatic payment method selection
+- `examples/check_payment_vault.py` - Check on-chain reservation status
+- `examples/debug_payment_state.py` - Debug payment configuration
 
 ### Blob Retrieval
 
@@ -469,6 +525,39 @@ poetry run python scripts/fix_grpc_imports.py
 ```
 
 ## Recent Updates
+
+### August 6th 2025
+- **Default Network Changed to Sepolia**: All examples and configuration now default to Sepolia testnet
+- **Standardized Environment Variables**: Consistent usage across all examples
+  - `EIGENDA_PRIVATE_KEY` - Your private key  
+  - `EIGENDA_DISPERSER_HOST` - Default: `disperser-testnet-sepolia.eigenda.xyz`
+  - `EIGENDA_DISPERSER_PORT` - Default: `443`
+  - `EIGENDA_USE_SECURE_GRPC` - Default: `true`
+- **Documentation Updates**:
+  - Created comprehensive `docs/ENVIRONMENT_VARIABLES.md`
+  - Updated all examples to use `dotenv` for loading environment variables
+  - Fixed incorrect hostnames in test files
+- **Test Fixes**: Updated test fixtures to properly initialize accountant objects (all 352 tests passing)
+- **Enhanced check_payment_vault.py**: Added `--address` flag to check any address without private key
+- **Backward Compatible**: Holesky still supported via explicit configuration
+
+### July 15th 2025
+- **Advanced Reservation Support** (Feature Parity with Go Client):
+  - Added per-quorum reservation tracking with `ReservationAccountant`
+  - Implemented nanosecond timestamp precision throughout
+  - Added period record tracking with bin-based usage management
+  - Created comprehensive validation functions matching Go implementation
+  - Added `GetPaymentStateForAllQuorums` support for per-quorum state
+  - Implemented automatic fallback from reservation to on-demand per quorum
+  - Added thread-safe operations with rollback capability
+  - Created 22 comprehensive tests for reservation functionality
+  - Added `examples/advanced_reservations.py` demonstrating new features
+- **Updated Examples for Reservation Support**:
+  - Enhanced `check_payment_vault.py` to show reservation status and time remaining
+  - Updated `test_both_payments.py` to check for advanced reservations
+  - Added reservation checking to `full_example.py`
+  - All examples now use `use_advanced_reservations=True` flag
+  - Examples properly handle both simple and per-quorum reservations
 
 ### July 10th 2025
 - **Fixed BlobStatus enum mismatch**: Updated to match v2 protobuf values (QUEUED, ENCODED, etc.)
