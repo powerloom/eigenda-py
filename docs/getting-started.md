@@ -11,8 +11,8 @@ pip install powerloom-eigenda
 Or install from source using Poetry:
 
 ```bash
-git clone https://github.com/powerloom/eigenda-py
-cd eigenday-py
+git clone https://github.com/powerloom/eigenda-py powerloom-eigenda
+cd powerloom-eigenda
 poetry install
 ```
 
