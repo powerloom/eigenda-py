@@ -5,17 +5,19 @@ import os
 import sys
 import time
 import traceback
-from eigenda.config import get_network_config, get_explorer_url
-from eigenda import (
-    DisperserClientV2Full,
-    BlobRetriever,
-    LocalBlobRequestSigner,
-    encode_blob_data,
-    decode_blob_data,
-    BlobStatus
-)
-from eigenda.payment import PaymentConfig
+
 from dotenv import load_dotenv
+
+from eigenda import (
+    BlobRetriever,
+    BlobStatus,
+    DisperserClientV2Full,
+    LocalBlobRequestSigner,
+    decode_blob_data,
+    encode_blob_data,
+)
+from eigenda.config import get_explorer_url, get_network_config
+from eigenda.payment import PaymentConfig
 
 
 def setup_signer():
@@ -36,7 +38,7 @@ def setup_signer():
 
 def disperse_blob(disperser, original_data):
     """Disperse a blob to EigenDA."""
-    raw_data = original_data.encode('utf-8')
+    raw_data = original_data.encode("utf-8")
     encoded_data = encode_blob_data(raw_data)
 
     print(f"Original data: {original_data}")
@@ -44,11 +46,7 @@ def disperse_blob(disperser, original_data):
     print(f"Encoded size: {len(encoded_data)} bytes")
 
     print("\nDispersing blob...")
-    status, blob_key = disperser.disperse_blob(
-        data=encoded_data,
-        blob_version=0,
-        quorum_ids=[0, 1]
-    )
+    status, blob_key = disperser.disperse_blob(data=encoded_data, blob_version=0, quorum_ids=[0, 1])
 
     print("\n✅ Blob dispersed successfully!")
     print(f"Status: {status.name}")
@@ -85,7 +83,6 @@ def wait_for_finalization(disperser, blob_key, max_attempts=30):
     return False
 
 
-
 def main():
     """Run a complete dispersal and retrieval example."""
     print("=== EigenDA V2 Complete Example ===\n")
@@ -107,18 +104,18 @@ def main():
     # Create payment config from network config
     payment_config = PaymentConfig(
         price_per_symbol=network_config.price_per_symbol,
-        min_num_symbols=network_config.min_num_symbols
+        min_num_symbols=network_config.min_num_symbols,
     )
-    
+
     disperser = DisperserClientV2Full(
         hostname=network_config.disperser_host,
         port=network_config.disperser_port,
         use_secure_grpc=True,
         signer=signer,
         payment_config=payment_config,
-        use_advanced_reservations=True  # Check for advanced reservations
+        use_advanced_reservations=True,  # Check for advanced reservations
     )
-    
+
     # Check payment method
     print("\nChecking payment method...")
     payment_info = disperser.get_payment_info()
@@ -128,8 +125,7 @@ def main():
     try:
         # Prepare test data
         original_data = (
-            f"Hello from Python EigenDA client! "
-            f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Hello from Python EigenDA client! " f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
         )
 
         # Disperse the blob
@@ -157,10 +153,11 @@ def main():
     print("\nFor a working retrieval example, see:")
     print("  - examples/blob_retrieval_example.py")
     print("  - examples/dispersal_with_retrieval_support.py")
-    
+
     # Example of what retrieval would look like:
     print("\nRetrieval code pattern:")
-    print("""
+    print(
+        """
     # retriever = BlobRetriever(hostname="retriever.eigenda.xyz", ...)
     # encoded_data = retriever.retrieve_blob(
     #     blob_header=blob_header,        # Full header from dispersal
@@ -168,7 +165,8 @@ def main():
     #     quorum_id=0                     # Which quorum to retrieve from
     # )
     # original_data = decode_blob_data(encoded_data)
-    """)
+    """
+    )
 
     print("\n=== Example Complete ===")
 

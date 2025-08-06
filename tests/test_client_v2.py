@@ -1,7 +1,9 @@
 """Tests for the v2 disperser client."""
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 from eigenda import DisperserClientV2, LocalBlobRequestSigner
 
 
@@ -21,19 +23,13 @@ class TestDisperserClientV2:
     def client(self, mock_signer):
         """Create a test client."""
         return DisperserClientV2(
-            hostname="test.disperser.com",
-            port=443,
-            use_secure_grpc=True,
-            signer=mock_signer
+            hostname="test.disperser.com", port=443, use_secure_grpc=True, signer=mock_signer
         )
 
     def test_client_creation(self, mock_signer):
         """Test creating a client."""
         client = DisperserClientV2(
-            hostname="test.disperser.com",
-            port=443,
-            use_secure_grpc=True,
-            signer=mock_signer
+            hostname="test.disperser.com", port=443, use_secure_grpc=True, signer=mock_signer
         )
 
         assert client.hostname == "test.disperser.com"
@@ -64,7 +60,7 @@ class TestDisperserClientV2:
         with pytest.raises(ValueError, match="Data exceeds maximum size"):
             client.disperse_blob(large_data, 0, [0, 1])
 
-    @patch('eigenda.client_v2.grpc.secure_channel')
+    @patch("eigenda.client_v2.grpc.secure_channel")
     def test_secure_connection(self, mock_channel, client):
         """Test establishing secure gRPC connection."""
         mock_channel.return_value = Mock()
@@ -76,14 +72,11 @@ class TestDisperserClientV2:
         args, kwargs = mock_channel.call_args
         assert args[0] == "test.disperser.com:443"
 
-    @patch('eigenda.client_v2.grpc.insecure_channel')
+    @patch("eigenda.client_v2.grpc.insecure_channel")
     def test_insecure_connection(self, mock_channel, mock_signer):
         """Test establishing insecure gRPC connection."""
         client = DisperserClientV2(
-            hostname="localhost",
-            port=50051,
-            use_secure_grpc=False,
-            signer=mock_signer
+            hostname="localhost", port=50051, use_secure_grpc=False, signer=mock_signer
         )
 
         mock_channel.return_value = Mock()

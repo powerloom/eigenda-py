@@ -11,7 +11,9 @@ these values when you disperse a blob if you want to retrieve it later.
 """
 
 import os
+
 from dotenv import load_dotenv
+
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.retriever import BlobRetriever
 
@@ -40,7 +42,7 @@ def retrieve_blob_example():
         hostname="retriever.eigenda.xyz",  # Replace with actual retriever endpoint
         port=443,
         use_secure_grpc=True,
-        signer=signer
+        signer=signer,
     )
 
     # To retrieve a blob, you need:
@@ -91,11 +93,7 @@ def retrieve_with_context_manager():
     """Example using context manager for automatic cleanup."""
 
     # Using context manager ensures the connection is closed
-    with BlobRetriever(
-        hostname="retriever.eigenda.xyz",
-        port=443,
-        use_secure_grpc=True
-    ):
+    with BlobRetriever(hostname="retriever.eigenda.xyz", port=443, use_secure_grpc=True):
         print("Retriever connected and ready")
         # Perform retrieval operations here
         # ...

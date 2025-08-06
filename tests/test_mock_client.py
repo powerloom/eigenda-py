@@ -1,12 +1,13 @@
 """Tests for the mock DisperserClient to achieve 100% coverage."""
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
+from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client import DisperserClient as MockDisperserClient
 from eigenda.client import DisperserClientConfig
-from eigenda.core.types import BlobStatus, BlobKey
-from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.core.types import BlobKey, BlobStatus
 
 
 class TestMockDisperserClient:
@@ -17,28 +18,22 @@ class TestMockDisperserClient:
         """Create a mock signer."""
         signer = Mock(spec=LocalBlobRequestSigner)
         signer.account = Mock()
-        signer.account.address = '0x1234567890123456789012345678901234567890'
+        signer.account.address = "0x1234567890123456789012345678901234567890"
         return signer
 
     @pytest.fixture
     def client(self, mock_signer):
         """Create a mock client instance."""
         return MockDisperserClient(
-            hostname='localhost',
-            port=50051,
-            use_secure_grpc=False,
-            signer=mock_signer
+            hostname="localhost", port=50051, use_secure_grpc=False, signer=mock_signer
         )
 
     def test_client_creation_with_signer(self, mock_signer):
         """Test client creation with signer."""
         client = MockDisperserClient(
-            hostname='localhost',
-            port=50051,
-            use_secure_grpc=True,
-            signer=mock_signer
+            hostname="localhost", port=50051, use_secure_grpc=True, signer=mock_signer
         )
-        assert client.hostname == 'localhost'
+        assert client.hostname == "localhost"
         assert client.port == 50051
         assert client.use_secure_grpc is True
         assert client.signer is mock_signer
@@ -52,10 +47,7 @@ class TestMockDisperserClient:
 
         # Call disperse_blob
         status, blob_key = client.disperse_blob(
-            data=data,
-            blob_version=blob_version,
-            quorum_ids=quorum_ids,
-            timeout=30
+            data=data, blob_version=blob_version, quorum_ids=quorum_ids, timeout=30
         )
 
         # Verify results
@@ -71,41 +63,21 @@ class TestMockDisperserClient:
     def test_disperse_blob_empty_data(self, client):
         """Test dispersing empty data."""
         with pytest.raises(ValueError, match="Data cannot be empty"):
-            client.disperse_blob(
-                data=b'',
-                blob_version=0,
-                quorum_ids=[0]
-            )
+            client.disperse_blob(data=b"", blob_version=0, quorum_ids=[0])
 
     def test_disperse_blob_different_inputs(self, client):
         """Test that different inputs produce different blob keys."""
         # First blob
-        status1, key1 = client.disperse_blob(
-            data=b'data1',
-            blob_version=0,
-            quorum_ids=[0]
-        )
+        status1, key1 = client.disperse_blob(data=b"data1", blob_version=0, quorum_ids=[0])
 
         # Second blob with different data
-        status2, key2 = client.disperse_blob(
-            data=b'data2',
-            blob_version=0,
-            quorum_ids=[0]
-        )
+        status2, key2 = client.disperse_blob(data=b"data2", blob_version=0, quorum_ids=[0])
 
         # Third blob with different version
-        status3, key3 = client.disperse_blob(
-            data=b'data1',
-            blob_version=1,
-            quorum_ids=[0]
-        )
+        status3, key3 = client.disperse_blob(data=b"data1", blob_version=1, quorum_ids=[0])
 
         # Fourth blob with different quorums
-        status4, key4 = client.disperse_blob(
-            data=b'data1',
-            blob_version=0,
-            quorum_ids=[0, 1]
-        )
+        status4, key4 = client.disperse_blob(data=b"data1", blob_version=0, quorum_ids=[0, 1])
 
         # All should be successful
         assert all(s == BlobStatus.QUEUED for s in [status1, status2, status3, status4])
@@ -117,11 +89,7 @@ class TestMockDisperserClient:
     def test_get_blob_status(self, client):
         """Test get_blob_status method."""
         # First disperse a blob
-        _, blob_key = client.disperse_blob(
-            data=b'test data',
-            blob_version=0,
-            quorum_ids=[0]
-        )
+        _, blob_key = client.disperse_blob(data=b"test data", blob_version=0, quorum_ids=[0])
 
         # Get status
         status = client.get_blob_status(blob_key)
@@ -132,8 +100,8 @@ class TestMockDisperserClient:
     def test_get_blob_status_with_different_keys(self, client):
         """Test get_blob_status with different keys."""
         # Create different blob keys
-        key1 = BlobKey(b'a' * 32)
-        key2 = BlobKey(b'b' * 32)
+        key1 = BlobKey(b"a" * 32)
+        key2 = BlobKey(b"b" * 32)
 
         # Both should return COMPLETE
         assert client.get_blob_status(key1) == BlobStatus.COMPLETE
@@ -153,16 +121,11 @@ class TestMockDisperserClient:
         blob_key = None
 
         with MockDisperserClient(
-            hostname='localhost',
-            port=50051,
-            use_secure_grpc=False,
-            signer=mock_signer
+            hostname="localhost", port=50051, use_secure_grpc=False, signer=mock_signer
         ) as client:
             # Use client inside context
             status, blob_key = client.disperse_blob(
-                data=b'context test',
-                blob_version=0,
-                quorum_ids=[0]
+                data=b"context test", blob_version=0, quorum_ids=[0]
             )
             assert status == BlobStatus.QUEUED
             assert isinstance(blob_key, BlobKey)
@@ -175,13 +138,10 @@ class TestMockDisperserClient:
         """Test context manager handles exceptions properly."""
         with pytest.raises(ValueError):
             with MockDisperserClient(
-                hostname='localhost',
-                port=50051,
-                use_secure_grpc=False,
-                signer=mock_signer
+                hostname="localhost", port=50051, use_secure_grpc=False, signer=mock_signer
             ) as client:
                 # Do something
-                status, _ = client.disperse_blob(b'test', 0, [0])
+                status, _ = client.disperse_blob(b"test", 0, [0])
                 assert status == BlobStatus.QUEUED
 
                 # Raise exception
@@ -193,9 +153,9 @@ class TestMockDisperserClient:
         """Test the private _calculate_blob_key method."""
         # Test with various inputs
         test_cases = [
-            (b'hello', 0, [0]),
-            (b'world', 1, [1]),
-            (b'x' * 1000, 42, [0, 1, 2, 3]),
+            (b"hello", 0, [0]),
+            (b"world", 1, [1]),
+            (b"x" * 1000, 42, [0, 1, 2, 3]),
         ]
 
         for data, version, quorums in test_cases:
@@ -214,25 +174,22 @@ class TestMockDisperserClient:
     def test_disperse_blob_data_size_limits(self, client):
         """Test data size validation."""
         # Test max size (16 MiB)
-        max_data = b'x' * (16 * 1024 * 1024)
+        max_data = b"x" * (16 * 1024 * 1024)
         status, blob_key = client.disperse_blob(max_data, 0, [0])
         assert status == BlobStatus.QUEUED
 
         # Test exceeding max size
-        too_large_data = b'x' * (16 * 1024 * 1024 + 1)
+        too_large_data = b"x" * (16 * 1024 * 1024 + 1)
         with pytest.raises(ValueError, match="Data exceeds maximum size"):
             client.disperse_blob(too_large_data, 0, [0])
 
     def test_large_data_handling(self, client):
         """Test handling of large data blobs."""
         # 10MB of data
-        large_data = b'x' * (10 * 1024 * 1024)
+        large_data = b"x" * (10 * 1024 * 1024)
 
         status, blob_key = client.disperse_blob(
-            data=large_data,
-            blob_version=0,
-            quorum_ids=[0],
-            timeout=60
+            data=large_data, blob_version=0, quorum_ids=[0], timeout=60
         )
 
         assert status == BlobStatus.QUEUED
@@ -243,28 +200,22 @@ class TestMockDisperserClient:
         # Various timeout values
         for timeout in [None, 10, 30, 100]:
             status, blob_key = client.disperse_blob(
-                data=b'timeout test',
-                blob_version=0,
-                quorum_ids=[0],
-                timeout=timeout
+                data=b"timeout test", blob_version=0, quorum_ids=[0], timeout=timeout
             )
             assert status == BlobStatus.QUEUED
 
     def test_client_with_config(self, mock_signer):
         """Test client creation with explicit config."""
         config = DisperserClientConfig(
-            hostname='test.host',
-            port=443,
-            use_secure_grpc=True,
-            timeout=60
+            hostname="test.host", port=443, use_secure_grpc=True, timeout=60
         )
 
         client = MockDisperserClient(
-            hostname='localhost',
+            hostname="localhost",
             port=50051,
             use_secure_grpc=False,
             signer=mock_signer,
-            config=config
+            config=config,
         )
 
         # Client should use the provided config
@@ -286,22 +237,19 @@ class TestMockDisperserClient:
     def test_secure_grpc_connection(self, mock_signer):
         """Test secure gRPC connection."""
         client = MockDisperserClient(
-            hostname='secure.host',
-            port=443,
-            use_secure_grpc=True,
-            signer=mock_signer
+            hostname="secure.host", port=443, use_secure_grpc=True, signer=mock_signer
         )
 
         # Should create secure channel
-        with patch('grpc.secure_channel') as mock_secure:
-            with patch('grpc.ssl_channel_credentials') as mock_creds:
+        with patch("grpc.secure_channel") as mock_secure:
+            with patch("grpc.ssl_channel_credentials") as mock_creds:
                 client._connect()
                 mock_creds.assert_called_once()
-                mock_secure.assert_called_once_with('secure.host:443', mock_creds.return_value)
+                mock_secure.assert_called_once_with("secure.host:443", mock_creds.return_value)
 
     def test_insecure_grpc_connection(self, client):
         """Test insecure gRPC connection."""
         # Should create insecure channel
-        with patch('grpc.insecure_channel') as mock_insecure:
+        with patch("grpc.insecure_channel") as mock_insecure:
             client._connect()
-            mock_insecure.assert_called_once_with('localhost:50051')
+            mock_insecure.assert_called_once_with("localhost:50051")

@@ -5,16 +5,18 @@ The key insight is that we need to save the blob header from dispersal
 to be able to retrieve the blob later.
 """
 
-import time
 import json
 import os
+import time
+from typing import Any, Tuple
+
 from dotenv import load_dotenv
-from eigenda.core.types import BlobStatus, BlobKey
-from eigenda.config import get_network_config
-from eigenda.payment import PaymentConfig
+
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
-from typing import Tuple, Any
+from eigenda.config import get_network_config
+from eigenda.core.types import BlobKey, BlobStatus
+from eigenda.payment import PaymentConfig
 
 # Load environment variables
 load_dotenv()
@@ -31,11 +33,7 @@ class DisperserWithRetrieval(DisperserClientV2Full):
         self._last_reference_block = None
 
     def disperse_blob_with_header(
-        self,
-        data: bytes,
-        blob_version: int = 0,
-        quorum_ids: list = None,
-        timeout: int = None
+        self, data: bytes, blob_version: int = 0, quorum_ids: list = None, timeout: int = None
     ) -> Tuple[BlobStatus, BlobKey, Any, int]:
         """
         Disperse a blob and return the header needed for retrieval.
@@ -77,24 +75,22 @@ def save_blob_metadata(
 ):
     """Save blob metadata for later retrieval."""
     metadata = {
-        'blob_key': blob_key.hex(),
-        'reference_block': reference_block,
-        'quorum_id': quorum_id,
-        'timestamp': int(time.time()),
+        "blob_key": blob_key.hex(),
+        "reference_block": reference_block,
+        "quorum_id": quorum_id,
+        "timestamp": int(time.time()),
         # Note: blob_header is a protobuf object, would need serialization in practice
-        'blob_header_info': {
-            'version': blob_header.version if hasattr(blob_header, 'version') else 0,
-            'quorum_numbers': (
-                list(blob_header.quorum_numbers)
-                if hasattr(blob_header, 'quorum_numbers')
-                else [0]
-            )
-        }
+        "blob_header_info": {
+            "version": blob_header.version if hasattr(blob_header, "version") else 0,
+            "quorum_numbers": (
+                list(blob_header.quorum_numbers) if hasattr(blob_header, "quorum_numbers") else [0]
+            ),
+        },
     }
 
     # Save to file (in practice, use a database)
     filename = f"blob_metadata_{blob_key.hex()[:8]}.json"
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         json.dump(metadata, f, indent=2)
 
     print(f"Saved blob metadata to {filename}")
@@ -126,8 +122,8 @@ def main():
         signer=signer,
         payment_config=PaymentConfig(
             price_per_symbol=network_config.price_per_symbol,
-            min_num_symbols=network_config.min_num_symbols
-        )
+            min_num_symbols=network_config.min_num_symbols,
+        ),
     )
 
     # Prepare test data
@@ -137,8 +133,7 @@ def main():
     try:
         # Disperse with header capture
         status, blob_key, blob_header, reference_block = client.disperse_blob_with_header(
-            test_data,
-            quorum_ids=[0]  # Using quorum 0
+            test_data, quorum_ids=[0]  # Using quorum 0
         )
 
         if status == BlobStatus.PROCESSING:

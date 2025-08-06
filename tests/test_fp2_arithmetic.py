@@ -181,7 +181,7 @@ class TestTonelliShanksFp:
             (49, 7),
             (64, 8),
             (81, 9),
-            (100, 10)
+            (100, 10),
         ]
 
         for square, expected_root in perfect_squares:

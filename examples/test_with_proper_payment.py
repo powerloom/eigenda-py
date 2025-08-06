@@ -7,11 +7,12 @@ import traceback
 from datetime import datetime
 
 from dotenv import load_dotenv
-from eigenda.config import get_network_config, get_explorer_url
-from eigenda.grpc.common.v2 import common_v2_pb2
-from eigenda.codec.blob_codec import encode_blob_data
+
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2 import DisperserClientV2
+from eigenda.codec.blob_codec import encode_blob_data
+from eigenda.config import get_explorer_url, get_network_config
+from eigenda.grpc.common.v2 import common_v2_pb2
 
 # Constants from the PaymentVault contract (will be set in main)
 PRICE_PER_SYMBOL = None
@@ -75,7 +76,7 @@ def main():
     MIN_NUM_SYMBOLS = network_config.min_num_symbols
 
     # Get private key
-    private_key = os.environ.get('EIGENDA_PRIVATE_KEY')
+    private_key = os.environ.get("EIGENDA_PRIVATE_KEY")
     if not private_key:
         print("Error: EIGENDA_PRIVATE_KEY environment variable not set")
         return
@@ -90,7 +91,7 @@ def main():
         hostname=network_config.disperser_host,
         port=network_config.disperser_port,
         use_secure_grpc=True,
-        signer=signer
+        signer=signer,
     )
 
     try:
@@ -99,17 +100,20 @@ def main():
         payment_state = client.get_payment_state()
 
         # Check for on-demand payment existence
-        if not hasattr(payment_state, 'onchain_cumulative_payment') or not payment_state.onchain_cumulative_payment:
+        if (
+            not hasattr(payment_state, "onchain_cumulative_payment")
+            or not payment_state.onchain_cumulative_payment
+        ):
             print("\n❌ Error: No on-demand payment deposit found for this account.")
             print("Please deposit funds into the PaymentVault contract for on-demand payments.")
             print(f"  - Network: {network_config.network_name}")
             print(f"  - PaymentVault: {network_config.payment_vault_address}")
             return
-        
+
         print("✅ Payment state retrieved")
 
         # Get current cumulative payment
-        current_payment = int.from_bytes(payment_state.cumulative_payment, 'big')
+        current_payment = int.from_bytes(payment_state.cumulative_payment, "big")
         print(f"Current cumulative payment: {current_payment} wei")
 
         # Prepare test data
@@ -126,7 +130,7 @@ def main():
         print("\nCalculating payment:")
         increment = calculate_payment_increment(len(encoded_data))
         new_payment = current_payment + increment
-        new_payment_bytes = new_payment.to_bytes((new_payment.bit_length() + 7) // 8, 'big')
+        new_payment_bytes = new_payment.to_bytes((new_payment.bit_length() + 7) // 8, "big")
 
         print("\nPayment summary:")
         print(f"  Current: {current_payment} wei")
@@ -142,16 +146,14 @@ def main():
 
             # Use our calculated payment
             payment_header = common_v2_pb2.PaymentHeader(
-                account_id=account_id,
-                timestamp=timestamp_ns,
-                cumulative_payment=new_payment_bytes
+                account_id=account_id, timestamp=timestamp_ns, cumulative_payment=new_payment_bytes
             )
 
             blob_header = common_v2_pb2.BlobHeader(
                 version=blob_version,
                 commitment=blob_commitment,
                 quorum_numbers=quorum_numbers,
-                payment_header=payment_header
+                payment_header=payment_header,
             )
 
             return blob_header
@@ -162,10 +164,7 @@ def main():
         # Disperse blob
         print("\nDispersing blob...")
         status, blob_key = client.disperse_blob(
-            data=encoded_data,
-            blob_version=0,
-            quorum_ids=[0, 1],
-            timeout=30
+            data=encoded_data, blob_version=0, quorum_ids=[0, 1], timeout=30
         )
 
         print("\n✅ Success!")

@@ -2,7 +2,8 @@
 
 try:
     # Try to get version from poetry-dynamic-versioning
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
+
     try:
         __version__ = version("eigenda")
     except PackageNotFoundError:
@@ -12,9 +13,11 @@ except ImportError:
     # Python < 3.8
     try:
         import pkg_resources
+
         __version__ = pkg_resources.get_distribution("eigenda").version
     except (ImportError, pkg_resources.DistributionNotFound):
         __version__ = "0.1.0"
+
 
 # Parse version info
 def _parse_version_info(v):
@@ -32,5 +35,6 @@ def _parse_version_info(v):
         except (ValueError, IndexError):
             return (0, 1, 0)
     return (0, 1, 0)
+
 
 __version_info__ = _parse_version_info(__version__)

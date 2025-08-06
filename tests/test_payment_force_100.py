@@ -13,7 +13,8 @@ def test_force_line_42():
     original_func = payment.get_blob_length_power_of_2
 
     # Define a test function that forces symbols = 0
-    exec('''
+    exec(
+        '''
 def get_blob_length_power_of_2(data_len):
     """
     Calculate the next power of 2 for blob length based on data size.
@@ -36,10 +37,12 @@ def get_blob_length_power_of_2(data_len):
         power *= 2
 
     return power
-''', module_globals)
+''',
+        module_globals,
+    )
 
     # Now test with our special value
-    result = module_globals['get_blob_length_power_of_2'](12345)
+    result = module_globals["get_blob_length_power_of_2"](12345)
     assert result == 1  # Should hit line 42
 
     # Restore original

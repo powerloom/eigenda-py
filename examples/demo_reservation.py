@@ -31,7 +31,7 @@ def demonstrate_reservation_payment():
         "startTimestamp": current_time - 3600,  # Started 1 hour ago
         "endTimestamp": current_time + 86400 * 29,  # Ends in 29 days
         "quorumNumbers": bytes([0, 1]),  # Can use quorums 0 and 1
-        "quorumSplits": bytes([50, 50])  # 50% bandwidth each
+        "quorumSplits": bytes([50, 50]),  # 50% bandwidth each
     }
 
     print("\nExample active reservation:")

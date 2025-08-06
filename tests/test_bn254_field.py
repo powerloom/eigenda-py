@@ -1,8 +1,6 @@
 """Tests for BN254 field operations."""
 
-from eigenda.utils.bn254_field import (
-    P, compute_y_from_x, tonelli_shanks
-)
+from eigenda.utils.bn254_field import P, compute_y_from_x, tonelli_shanks
 
 
 class TestBN254FieldConstants:
@@ -106,7 +104,7 @@ class TestTonelliShanks:
             (49, 7),
             (64, 8),
             (81, 9),
-            (100, 10)
+            (100, 10),
         ]
 
         for square, expected_root in perfect_squares:

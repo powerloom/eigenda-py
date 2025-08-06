@@ -1,9 +1,12 @@
 """Achieve 100% coverage for payment.py including the unreachable line 42."""
 
 import pytest
+
 from eigenda.payment import (
-    PaymentConfig, get_blob_length_power_of_2,
-    calculate_payment_increment, SimpleAccountant
+    PaymentConfig,
+    SimpleAccountant,
+    calculate_payment_increment,
+    get_blob_length_power_of_2,
 )
 
 
@@ -88,18 +91,18 @@ class TestPayment100Coverage:
 
         # Various sizes to test the power of 2 logic
         test_cases = [
-            (1, 1),      # (1 + 30) // 31 = 1
-            (31, 1),     # (31 + 30) // 31 = 1
-            (32, 2),     # (32 + 30) // 31 = 2
-            (62, 2),     # (62 + 30) // 31 = 2
-            (63, 4),     # (63 + 30) // 31 = 3, round to 4
-            (93, 4),     # (93 + 30) // 31 = 3.96, round to 4
-            (94, 4),     # (94 + 30) // 31 = 4
-            (124, 4),    # (124 + 30) // 31 = 4.96
-            (125, 8),    # (125 + 30) // 31 = 5, round to 8
-            (217, 8),    # (217 + 30) // 31 = 7, round to 8
-            (248, 8),    # (248 + 30) // 31 = 8
-            (249, 16),   # (249 + 30) // 31 = 9, round to 16
+            (1, 1),  # (1 + 30) // 31 = 1
+            (31, 1),  # (31 + 30) // 31 = 1
+            (32, 2),  # (32 + 30) // 31 = 2
+            (62, 2),  # (62 + 30) // 31 = 2
+            (63, 4),  # (63 + 30) // 31 = 3, round to 4
+            (93, 4),  # (93 + 30) // 31 = 3.96, round to 4
+            (94, 4),  # (94 + 30) // 31 = 4
+            (124, 4),  # (124 + 30) // 31 = 4.96
+            (125, 8),  # (125 + 30) // 31 = 5, round to 8
+            (217, 8),  # (217 + 30) // 31 = 7, round to 8
+            (248, 8),  # (248 + 30) // 31 = 8
+            (249, 16),  # (249 + 30) // 31 = 9, round to 16
         ]
 
         for data_len, expected in test_cases:
@@ -149,7 +152,7 @@ class TestPayment100Coverage:
         expected_total = 500 + expected_increment
 
         # Verify bytes encoding
-        decoded = int.from_bytes(payment_bytes, 'big')
+        decoded = int.from_bytes(payment_bytes, "big")
         assert decoded == expected_total
 
         # Cumulative payment is not updated internally

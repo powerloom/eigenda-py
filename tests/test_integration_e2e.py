@@ -6,13 +6,13 @@ from unittest.mock import Mock, patch
 import pytest
 
 from eigenda.client_v2_full import DisperserClientV2Full
-from eigenda.codec.blob_codec import encode_blob_data, decode_blob_data
-from eigenda.payment import calculate_payment_increment, PaymentConfig
-from eigenda.utils.serialization import calculate_blob_key
-from eigenda.grpc.disperser.v2 import disperser_v2_pb2
-from eigenda.grpc.common.v2 import common_v2_pb2
-from eigenda.grpc.common import common_pb2
+from eigenda.codec.blob_codec import decode_blob_data, encode_blob_data
 from eigenda.config import get_network_config
+from eigenda.grpc.common import common_pb2
+from eigenda.grpc.common.v2 import common_v2_pb2
+from eigenda.grpc.disperser.v2 import disperser_v2_pb2
+from eigenda.payment import PaymentConfig, calculate_payment_increment
+from eigenda.utils.serialization import calculate_blob_key
 
 
 @pytest.fixture
@@ -20,14 +20,12 @@ def mock_signer():
     """Create mock signer."""
     signer = Mock()
     signer.account = Mock()
-    signer.account.address = '0x1234567890123456789012345678901234567890'
-    signer.get_account_id = Mock(return_value='0x1234567890123456789012345678901234567890')
-    signer.sign_blob_request = Mock(return_value=b'\x00' * 65)
-    signer.sign_payment_state_request = Mock(return_value=b'\x00' * 65)
+    signer.account.address = "0x1234567890123456789012345678901234567890"
+    signer.get_account_id = Mock(return_value="0x1234567890123456789012345678901234567890")
+    signer.sign_blob_request = Mock(return_value=b"\x00" * 65)
+    signer.sign_payment_state_request = Mock(return_value=b"\x00" * 65)
     # Mock signature with proper format
-    signer.unsafe_sign_hash = Mock(
-        return_value=Mock(signature=b'\x00' * 64 + b'\x01')  # r + s + v
-    )
+    signer.unsafe_sign_hash = Mock(return_value=Mock(signature=b"\x00" * 64 + b"\x01"))  # r + s + v
     return signer
 
 
@@ -44,16 +42,16 @@ class TestEndToEndFlow:
                 start_timestamp=1000000000,
                 end_timestamp=2000000000,
                 quorum_numbers=bytes([0, 1]),
-                quorum_splits=[50, 50]
+                quorum_splits=[50, 50],
             ),
-            cumulative_payment=b'\x00' * 32,
-            onchain_cumulative_payment=b'\x00' * 32
+            cumulative_payment=b"\x00" * 32,
+            onchain_cumulative_payment=b"\x00" * 32,
         )
 
         # Disperse blob response
         disperse_response = disperser_v2_pb2.DisperseBlobReply(
             result=disperser_v2_pb2.BlobStatus.QUEUED,
-            blob_key=b'e2e_test_blob_key_12345' + b'\x00' * 9  # Pad to 32 bytes
+            blob_key=b"e2e_test_blob_key_12345" + b"\x00" * 9,  # Pad to 32 bytes
         )
 
         # Blob status response
@@ -61,17 +59,16 @@ class TestEndToEndFlow:
             status=disperser_v2_pb2.BlobStatus.COMPLETE,
             signed_batch=disperser_v2_pb2.SignedBatch(
                 header=common_v2_pb2.BatchHeader(
-                    batch_root=b'\x01' * 32,
-                    reference_block_number=12345678
+                    batch_root=b"\x01" * 32, reference_block_number=12345678
                 ),
                 attestation=disperser_v2_pb2.Attestation(
                     non_signer_pubkeys=[],
-                    apk_g2=b'\x01' * 128,
-                    quorum_apks=[b'\x02' * 64, b'\x03' * 64],
-                    sigma=b'\x04' * 64,
+                    apk_g2=b"\x01" * 128,
+                    quorum_apks=[b"\x02" * 64, b"\x03" * 64],
+                    sigma=b"\x04" * 64,
                     quorum_numbers=[0, 1],
-                    quorum_signed_percentages=b'\x64\x64'  # 100% for both quorums
-                )
+                    quorum_signed_percentages=b"\x64\x64",  # 100% for both quorums
+                ),
             ),
             blob_inclusion_info=disperser_v2_pb2.BlobInclusionInfo(
                 blob_certificate=common_v2_pb2.BlobCertificate(
@@ -79,37 +76,37 @@ class TestEndToEndFlow:
                         version=1,
                         quorum_numbers=[0, 1],
                         commitment=common_pb2.BlobCommitment(
-                            commitment=b'\x01' * 64,
-                            length_commitment=b'\x02' * 48,
-                            length_proof=b'\x03' * 48,
-                            length=1024
+                            commitment=b"\x01" * 64,
+                            length_commitment=b"\x02" * 48,
+                            length_proof=b"\x03" * 48,
+                            length=1024,
                         ),
                         payment_header=common_v2_pb2.PaymentHeader(
-                            account_id='0x1234567890123456789012345678901234567890',
+                            account_id="0x1234567890123456789012345678901234567890",
                             timestamp=1000000000,
-                            cumulative_payment=b'\x00' * 32
-                        )
+                            cumulative_payment=b"\x00" * 32,
+                        ),
                     ),
-                    signature=b'\x00' * 65
+                    signature=b"\x00" * 65,
                 ),
                 blob_index=0,
-                inclusion_proof=b'\x00' * 32
-            )
+                inclusion_proof=b"\x00" * 32,
+            ),
         )
 
         return {
-            'payment_state': payment_state,
-            'disperse': disperse_response,
-            'status': blob_status
+            "payment_state": payment_state,
+            "disperse": disperse_response,
+            "status": blob_status,
         }
 
     def test_complete_dispersal_flow(self, mock_signer, mock_grpc_responses):
         """Test complete blob dispersal flow."""
         with (
-            patch('grpc.insecure_channel'),
+            patch("grpc.insecure_channel"),
             patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
-            ) as mock_stub_class
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+            ) as mock_stub_class,
         ):
 
             # Configure mock stub
@@ -117,30 +114,27 @@ class TestEndToEndFlow:
             mock_stub_class.return_value = mock_stub
 
             # Set up RPC responses
-            mock_stub.GetPaymentState.return_value = mock_grpc_responses['payment_state']
-            mock_stub.DisperseBlob.return_value = mock_grpc_responses['disperse']
-            mock_stub.GetBlobStatus.return_value = mock_grpc_responses['status']
+            mock_stub.GetPaymentState.return_value = mock_grpc_responses["payment_state"]
+            mock_stub.DisperseBlob.return_value = mock_grpc_responses["disperse"]
+            mock_stub.GetBlobStatus.return_value = mock_grpc_responses["status"]
             # Add GetBlobCommitment response
             mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(
                 blob_commitment=common_pb2.BlobCommitment(
-                    commitment=b'\x01' * 64,
-                    length_commitment=b'\x02' * 48,
-                    length_proof=b'\x03' * 48,
-                    length=1024
+                    commitment=b"\x01" * 64,
+                    length_commitment=b"\x02" * 48,
+                    length_proof=b"\x03" * 48,
+                    length=1024,
                 )
             )
 
             # Create client
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             try:
                 # Test data
-                original_data = b'Hello, EigenDA! This is a test blob for end-to-end testing.'
+                original_data = b"Hello, EigenDA! This is a test blob for end-to-end testing."
 
                 # Step 1: Encode data
                 encoded_data = encode_blob_data(original_data)
@@ -148,15 +142,16 @@ class TestEndToEndFlow:
 
                 # Step 2: Disperse blob
                 from eigenda.core.types import BlobStatus
+
                 status, blob_key = client.disperse_blob(original_data)
                 assert status == BlobStatus.QUEUED
-                expected_key = b'e2e_test_blob_key_12345' + b'\x00' * 9
+                expected_key = b"e2e_test_blob_key_12345" + b"\x00" * 9
                 assert bytes(blob_key) == expected_key
 
                 # Verify dispersal request
                 disperse_call = mock_stub.DisperseBlob.call_args[0][0]
                 assert disperse_call.blob == original_data
-                assert hasattr(disperse_call, 'blob_header')
+                assert hasattr(disperse_call, "blob_header")
 
                 # Step 3: Check status
                 status = client.get_blob_status(blob_key.hex())
@@ -180,10 +175,10 @@ class TestEndToEndFlow:
     def test_payment_calculation_flow(self, mock_signer):
         """Test payment calculation in the flow."""
         with (
-            patch('grpc.insecure_channel'),
+            patch("grpc.insecure_channel"),
             patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
-            ) as mock_stub_class
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+            ) as mock_stub_class,
         ):
 
             mock_stub = Mock()
@@ -191,16 +186,16 @@ class TestEndToEndFlow:
 
             # Mock responses
             mock_stub.GetPaymentState.return_value = disperser_v2_pb2.GetPaymentStateReply(
-                cumulative_payment=b'\x00' * 31 + b'\x10',  # 16 in last byte
-                onchain_cumulative_payment=b'\x00' * 31 + b'\x10'
+                cumulative_payment=b"\x00" * 31 + b"\x10",  # 16 in last byte
+                onchain_cumulative_payment=b"\x00" * 31 + b"\x10",
             )
             # Add GetBlobCommitment response
             mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(
                 blob_commitment=common_pb2.BlobCommitment(
-                    commitment=b'\x01' * 64,
-                    length_commitment=b'\x02' * 48,
-                    length_proof=b'\x03' * 48,
-                    length=10000
+                    commitment=b"\x01" * 64,
+                    length_commitment=b"\x02" * 48,
+                    length_proof=b"\x03" * 48,
+                    length=10000,
                 )
             )
 
@@ -212,22 +207,19 @@ class TestEndToEndFlow:
                 dispersal_request = request
                 return disperser_v2_pb2.DisperseBlobReply(
                     result=disperser_v2_pb2.BlobStatus.QUEUED,
-                    blob_key=b'payment_test_key' + b'\x00' * 16  # Pad to 32 bytes
+                    blob_key=b"payment_test_key" + b"\x00" * 16,  # Pad to 32 bytes
                 )
 
             mock_stub.DisperseBlob.side_effect = capture_request
 
             # Create client
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             try:
                 # Large data requiring payment
-                data = b'x' * 10000  # 10KB
+                data = b"x" * 10000  # 10KB
 
                 # Disperse
                 status, blob_key = client.disperse_blob(data)
@@ -238,16 +230,12 @@ class TestEndToEndFlow:
 
                 # Should have non-zero cumulative payment
                 cumulative_payment = int.from_bytes(
-                    payment_header.cumulative_payment,
-                    byteorder='big'
+                    payment_header.cumulative_payment, byteorder="big"
                 )
                 assert cumulative_payment > 16  # Greater than initial state
 
                 # Verify payment calculation
-                config = PaymentConfig(
-                    price_per_symbol=447000000,
-                    min_num_symbols=4096
-                )
+                config = PaymentConfig(price_per_symbol=447000000, min_num_symbols=4096)
                 expected_increment = calculate_payment_increment(len(data), config)
                 expected_cumulative = 16 + expected_increment
 
@@ -260,30 +248,28 @@ class TestEndToEndFlow:
         """Test network configuration integration."""
         # Test Sepolia
         with patch.dict(
-            os.environ,
-            {'EIGENDA_DISPERSER_HOST': 'disperser-testnet-sepolia.eigenda.xyz'}
+            os.environ, {"EIGENDA_DISPERSER_HOST": "disperser-testnet-sepolia.eigenda.xyz"}
         ):
             config = get_network_config()
-            assert config.network_name == 'Sepolia Testnet'
-            assert config.disperser_host == 'disperser-testnet-sepolia.eigenda.xyz'
-            assert config.payment_vault_address == '0x2E1BDB221E7D6bD9B7b2365208d41A5FD70b24Ed'
+            assert config.network_name == "Sepolia Testnet"
+            assert config.disperser_host == "disperser-testnet-sepolia.eigenda.xyz"
+            assert config.payment_vault_address == "0x2E1BDB221E7D6bD9B7b2365208d41A5FD70b24Ed"
 
         # Test Holesky
         with patch.dict(
-            os.environ,
-            {'EIGENDA_DISPERSER_HOST': 'disperser-testnet-holesky.eigenda.xyz'}
+            os.environ, {"EIGENDA_DISPERSER_HOST": "disperser-testnet-holesky.eigenda.xyz"}
         ):
             config = get_network_config()
-            assert config.network_name == 'Holesky Testnet'
-            assert config.disperser_host == 'disperser-testnet-holesky.eigenda.xyz'
-            assert config.payment_vault_address == '0x4a7Fff191BCDa5806f1Bc8689afc1417c08C61AB'
+            assert config.network_name == "Holesky Testnet"
+            assert config.disperser_host == "disperser-testnet-holesky.eigenda.xyz"
+            assert config.payment_vault_address == "0x4a7Fff191BCDa5806f1Bc8689afc1417c08C61AB"
 
         # Test Mainnet
-        with patch.dict(os.environ, {'EIGENDA_DISPERSER_HOST': 'disperser.eigenda.xyz'}):
+        with patch.dict(os.environ, {"EIGENDA_DISPERSER_HOST": "disperser.eigenda.xyz"}):
             config = get_network_config()
-            assert config.network_name == 'Ethereum Mainnet'
-            assert config.disperser_host == 'disperser.eigenda.xyz'
-            assert config.payment_vault_address == '0xb2e7ef419a2A399472ae22ef5cFcCb8bE97A4B05'
+            assert config.network_name == "Ethereum Mainnet"
+            assert config.disperser_host == "disperser.eigenda.xyz"
+            assert config.payment_vault_address == "0xb2e7ef419a2A399472ae22ef5cFcCb8bE97A4B05"
 
     def test_blob_key_calculation(self, mock_signer):
         """Test blob key calculation matches server."""
@@ -292,16 +278,16 @@ class TestEndToEndFlow:
             version=1,
             quorum_numbers=[0, 1],
             commitment=common_pb2.BlobCommitment(
-                commitment=b'\x01' * 64,
-                length_commitment=b'\x02' * 48,
-                length_proof=b'\x03' * 48,
-                length=1024
+                commitment=b"\x01" * 64,
+                length_commitment=b"\x02" * 48,
+                length_proof=b"\x03" * 48,
+                length=1024,
             ),
             payment_header=common_v2_pb2.PaymentHeader(
-                account_id='0x1234567890123456789012345678901234567890',
+                account_id="0x1234567890123456789012345678901234567890",
                 timestamp=1000000000,
-                cumulative_payment=b'\x00' * 32
-            )
+                cumulative_payment=b"\x00" * 32,
+            ),
         )
 
         # Calculate blob key
@@ -317,14 +303,14 @@ class TestEndToEndFlow:
     def test_encoding_decoding_roundtrip(self):
         """Test encoding and decoding roundtrip."""
         test_cases = [
-            b'',  # Empty
-            b'a',  # Single byte
-            b'hello',  # Small
-            b'x' * 31,  # Exactly 31 bytes
-            b'x' * 32,  # 32 bytes
-            b'x' * 1000,  # Large
-            b'\x00' * 100,  # All zeros
-            b'\xff' * 100,  # All ones
+            b"",  # Empty
+            b"a",  # Single byte
+            b"hello",  # Small
+            b"x" * 31,  # Exactly 31 bytes
+            b"x" * 32,  # 32 bytes
+            b"x" * 1000,  # Large
+            b"\x00" * 100,  # All zeros
+            b"\xff" * 100,  # All ones
             bytes(range(256)),  # All bytes
         ]
 
@@ -341,10 +327,10 @@ class TestEndToEndFlow:
     def test_signature_verification_flow(self, mock_signer):
         """Test signature verification in the flow."""
         with (
-            patch('grpc.insecure_channel'),
+            patch("grpc.insecure_channel"),
             patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
-            ) as mock_stub_class
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+            ) as mock_stub_class,
         ):
 
             mock_stub = Mock()
@@ -352,14 +338,13 @@ class TestEndToEndFlow:
 
             # Set up responses
             mock_stub.GetPaymentState.return_value = disperser_v2_pb2.GetPaymentStateReply(
-                cumulative_payment=b'\x00' * 32,
-                onchain_cumulative_payment=b'\x00' * 32
+                cumulative_payment=b"\x00" * 32, onchain_cumulative_payment=b"\x00" * 32
             )
             # Add GetBlobCommitment response
             commitment_reply = disperser_v2_pb2.BlobCommitmentReply()
-            commitment_reply.blob_commitment.commitment = b'\x01' * 64
-            commitment_reply.blob_commitment.length_commitment = b'\x02' * 48
-            commitment_reply.blob_commitment.length_proof = b'\x03' * 48
+            commitment_reply.blob_commitment.commitment = b"\x01" * 64
+            commitment_reply.blob_commitment.length_commitment = b"\x02" * 48
+            commitment_reply.blob_commitment.length_proof = b"\x03" * 48
             commitment_reply.blob_commitment.length = 9  # for 'test data'
             mock_stub.GetBlobCommitment.return_value = commitment_reply
 
@@ -372,22 +357,19 @@ class TestEndToEndFlow:
                 captured_signature = request.signature
                 return disperser_v2_pb2.DisperseBlobReply(
                     result=disperser_v2_pb2.BlobStatus.QUEUED,
-                    blob_key=b'sig_test_key' + b'\x00' * 20  # Pad to 32 bytes
+                    blob_key=b"sig_test_key" + b"\x00" * 20,  # Pad to 32 bytes
                 )
 
             mock_stub.DisperseBlob.side_effect = capture_disperse
 
             # Create client
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             try:
                 # Disperse blob
-                status, blob_key = client.disperse_blob(b'test data')
+                status, blob_key = client.disperse_blob(b"test data")
 
                 # Verify signature format
                 assert captured_signature is not None
@@ -405,12 +387,12 @@ class TestErrorScenarios:
 
     def test_network_error_handling(self, mock_signer):
         """Test handling of network errors."""
-        with patch('grpc.insecure_channel') as mock_channel:
+        with patch("grpc.insecure_channel") as mock_channel:
             # Mock channel that raises on RPC
             mock_channel.return_value = Mock()
 
             with patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class:
                 mock_stub = Mock()
                 mock_stub_class.return_value = mock_stub
@@ -419,10 +401,7 @@ class TestErrorScenarios:
                 mock_stub.GetPaymentState.side_effect = Exception("Network error")
 
                 client = DisperserClientV2Full(
-                    hostname='localhost',
-                    port=50051,
-                    signer=mock_signer,
-                    use_secure_grpc=False
+                    hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
                 )
 
                 try:
@@ -437,20 +416,18 @@ class TestErrorScenarios:
 
     def test_invalid_data_handling(self, mock_signer):
         """Test handling of invalid data."""
-        with patch('grpc.insecure_channel'), \
-                patch('eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'):
+        with patch("grpc.insecure_channel"), patch(
+            "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+        ):
 
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             try:
                 # Test empty data
                 with pytest.raises(ValueError) as exc_info:
-                    client.disperse_blob(b'')
+                    client.disperse_blob(b"")
                 assert "empty" in str(exc_info.value).lower()
 
                 # Test None data
@@ -465,10 +442,10 @@ class TestErrorScenarios:
         import time
 
         with (
-            patch('grpc.insecure_channel'),
+            patch("grpc.insecure_channel"),
             patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
-            ) as mock_stub_class
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+            ) as mock_stub_class,
         ):
 
             mock_stub = Mock()
@@ -482,10 +459,7 @@ class TestErrorScenarios:
             mock_stub.GetPaymentState.side_effect = slow_response
 
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             # In real implementation, this would timeout
@@ -499,10 +473,10 @@ class TestPerformanceIntegration:
     def test_large_blob_handling(self, mock_signer):
         """Test handling of large blobs."""
         with (
-            patch('grpc.insecure_channel'),
+            patch("grpc.insecure_channel"),
             patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
-            ) as mock_stub_class
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+            ) as mock_stub_class,
         ):
 
             mock_stub = Mock()
@@ -510,38 +484,34 @@ class TestPerformanceIntegration:
 
             # Set up responses
             mock_stub.GetPaymentState.return_value = disperser_v2_pb2.GetPaymentStateReply(
-                cumulative_payment=b'\x00' * 32,
-                onchain_cumulative_payment=b'\x00' * 32
+                cumulative_payment=b"\x00" * 32, onchain_cumulative_payment=b"\x00" * 32
             )
             # Add GetBlobCommitment response
             mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(
                 blob_commitment=common_pb2.BlobCommitment(
-                    commitment=b'\x01' * 64,
-                    length_commitment=b'\x02' * 48,
-                    length_proof=b'\x03' * 48,
-                    length=1024*1024  # 1MB
+                    commitment=b"\x01" * 64,
+                    length_commitment=b"\x02" * 48,
+                    length_proof=b"\x03" * 48,
+                    length=1024 * 1024,  # 1MB
                 )
             )
 
             mock_stub.DisperseBlob.return_value = disperser_v2_pb2.DisperseBlobReply(
                 result=disperser_v2_pb2.BlobStatus.QUEUED,
-                blob_key=b'large_blob_key' + b'\x00' * 18  # Pad to 32 bytes
+                blob_key=b"large_blob_key" + b"\x00" * 18,  # Pad to 32 bytes
             )
 
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             try:
                 # Test with 1MB blob
-                large_data = b'x' * (1024 * 1024)
+                large_data = b"x" * (1024 * 1024)
 
                 # Should handle without issues
                 status, blob_key = client.disperse_blob(large_data)
-                expected_key = b'large_blob_key' + b'\x00' * 18
+                expected_key = b"large_blob_key" + b"\x00" * 18
                 assert bytes(blob_key) == expected_key
 
                 # Verify request
@@ -554,10 +524,10 @@ class TestPerformanceIntegration:
     def test_batch_operations(self, mock_signer):
         """Test batch blob operations."""
         with (
-            patch('grpc.insecure_channel'),
+            patch("grpc.insecure_channel"),
             patch(
-                'eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub'
-            ) as mock_stub_class
+                "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
+            ) as mock_stub_class,
         ):
 
             mock_stub = Mock()
@@ -565,8 +535,7 @@ class TestPerformanceIntegration:
 
             # Set up responses
             mock_stub.GetPaymentState.return_value = disperser_v2_pb2.GetPaymentStateReply(
-                cumulative_payment=b'\x00' * 32,
-                onchain_cumulative_payment=b'\x00' * 32
+                cumulative_payment=b"\x00" * 32, onchain_cumulative_payment=b"\x00" * 32
             )
 
             blob_counter = 0
@@ -575,11 +544,10 @@ class TestPerformanceIntegration:
                 nonlocal blob_counter
                 blob_counter += 1
                 # Pad blob key to 32 bytes
-                key_bytes = f'batch_blob_{blob_counter}'.encode()
-                padded_key = key_bytes + b'\x00' * (32 - len(key_bytes))
+                key_bytes = f"batch_blob_{blob_counter}".encode()
+                padded_key = key_bytes + b"\x00" * (32 - len(key_bytes))
                 return disperser_v2_pb2.DisperseBlobReply(
-                    result=disperser_v2_pb2.BlobStatus.QUEUED,
-                    blob_key=padded_key
+                    result=disperser_v2_pb2.BlobStatus.QUEUED, blob_key=padded_key
                 )
 
             mock_stub.DisperseBlob.side_effect = create_blob_response
@@ -587,25 +555,22 @@ class TestPerformanceIntegration:
             # Add GetBlobCommitment response
             mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(
                 blob_commitment=common_pb2.BlobCommitment(
-                    commitment=b'\x01' * 64,
-                    length_commitment=b'\x02' * 48,
-                    length_proof=b'\x03' * 48,
-                    length=100  # Small blob size
+                    commitment=b"\x01" * 64,
+                    length_commitment=b"\x02" * 48,
+                    length_proof=b"\x03" * 48,
+                    length=100,  # Small blob size
                 )
             )
 
             client = DisperserClientV2Full(
-                hostname='localhost',
-                port=50051,
-                signer=mock_signer,
-                use_secure_grpc=False
+                hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
 
             try:
                 # Disperse multiple blobs
                 blob_keys = []
                 for i in range(10):
-                    data = f'blob_{i}'.encode()
+                    data = f"blob_{i}".encode()
                     status, blob_key = client.disperse_blob(data)
                     blob_keys.append(blob_key)
 
@@ -613,8 +578,8 @@ class TestPerformanceIntegration:
                 assert len(blob_keys) == 10
                 for i, key in enumerate(blob_keys):
                     # Key should be padded blob key bytes
-                    key_bytes = f'batch_blob_{i+1}'.encode()
-                    padded_key = key_bytes + b'\x00' * (32 - len(key_bytes))
+                    key_bytes = f"batch_blob_{i+1}".encode()
+                    padded_key = key_bytes + b"\x00" * (32 - len(key_bytes))
                     assert bytes(key) == padded_key
 
             finally:

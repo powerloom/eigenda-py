@@ -1,11 +1,12 @@
 """Gnark-crypto compatible point decompression for BN254."""
 
 from typing import Tuple
-from .bn254_field import compute_y_from_x, P
+
+from .bn254_field import P, compute_y_from_x
 
 # Compression flags from gnark-crypto
 COMPRESSED_SMALLEST = 0b10 << 6  # 0x80
-COMPRESSED_LARGEST = 0b11 << 6   # 0xC0
+COMPRESSED_LARGEST = 0b11 << 6  # 0xC0
 COMPRESSED_INFINITY = 0b01 << 6  # 0x40
 MASK = COMPRESSED_INFINITY | COMPRESSED_SMALLEST | COMPRESSED_LARGEST
 
@@ -38,7 +39,7 @@ def decompress_g1_point_gnark(compressed: bytes) -> Tuple[int, int]:
     # Remove the compression flag to get x coordinate
     x_bytes = bytearray(compressed)
     x_bytes[0] &= ~MASK
-    x = int.from_bytes(x_bytes, byteorder='big')
+    x = int.from_bytes(x_bytes, byteorder="big")
 
     # Compute y from x
     y, exists = compute_y_from_x(x)
@@ -77,11 +78,13 @@ def decompress_g2_point_gnark(compressed: bytes) -> Tuple[list[int], list[int]]:
     try:
         # Try full decompression first
         from .g2_decompression import decompress_g2_point_full
+
         (x0, x1), (y0, y1) = decompress_g2_point_full(compressed)
         return ([x0, x1], [y0, y1])
     except Exception as e:
         # If full decompression fails, use simple version with placeholder Y
         print(f"G2 decompression failed: {e}, using placeholder Y values")
         from .g2_decompression import decompress_g2_point_simple
+
         (x0, x1), (y0, y1) = decompress_g2_point_simple(compressed)
         return ([x0, x1], [y0, y1])

@@ -30,7 +30,7 @@ def test_line_42_direct_execution():
     assert result == 1
 
     # Also create a version using exec to ensure coverage
-    code = '''
+    code = """
 def get_blob_length_power_of_2_test(data_len):
     if data_len == 0:
         return 0
@@ -48,12 +48,12 @@ def get_blob_length_power_of_2_test(data_len):
         power *= 2
 
     return power
-'''
+"""
 
     # Execute the code
     namespace = {}
     exec(code, namespace)
-    test_func = namespace['get_blob_length_power_of_2_test']
+    test_func = namespace["get_blob_length_power_of_2_test"]
 
     # Test it
     assert test_func(1) == 1  # Should hit line 42

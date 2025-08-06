@@ -1,12 +1,17 @@
 """Tests to achieve 100% coverage for gnark_decompression.py"""
 
-import pytest
 from unittest.mock import patch
-from eigenda.utils.gnark_decompression import (
-    decompress_g1_point_gnark, decompress_g2_point_gnark,
-    COMPRESSED_INFINITY, COMPRESSED_SMALLEST, COMPRESSED_LARGEST
-)
+
+import pytest
+
 from eigenda.utils.bn254_field import P
+from eigenda.utils.gnark_decompression import (
+    COMPRESSED_INFINITY,
+    COMPRESSED_LARGEST,
+    COMPRESSED_SMALLEST,
+    decompress_g1_point_gnark,
+    decompress_g2_point_gnark,
+)
 
 
 class TestGnarkDecompressionCoverage:
@@ -34,10 +39,10 @@ class TestGnarkDecompressionCoverage:
         compressed[0] = COMPRESSED_SMALLEST
         # Set x to a value that's not on the curve
         # P - 1 typically won't have a valid y
-        x_bytes = (P - 1).to_bytes(32, 'big')
+        x_bytes = (P - 1).to_bytes(32, "big")
         compressed[1:] = x_bytes[1:]
 
-        with patch('eigenda.utils.gnark_decompression.compute_y_from_x') as mock_compute:
+        with patch("eigenda.utils.gnark_decompression.compute_y_from_x") as mock_compute:
             mock_compute.return_value = (0, False)  # No valid y exists
 
             with pytest.raises(ValueError, match="No valid point exists for x="):
@@ -49,11 +54,11 @@ class TestGnarkDecompressionCoverage:
         compressed[0] = COMPRESSED_LARGEST
         # Set a valid x coordinate
         x = 1
-        x_bytes = x.to_bytes(32, 'big')
+        x_bytes = x.to_bytes(32, "big")
         compressed[1:] = x_bytes[1:]
         compressed[0] |= COMPRESSED_LARGEST
 
-        with patch('eigenda.utils.gnark_decompression.compute_y_from_x') as mock_compute:
+        with patch("eigenda.utils.gnark_decompression.compute_y_from_x") as mock_compute:
             # Return a y that's less than P//2 (not larger)
             small_y = P // 4
             mock_compute.return_value = (small_y, True)
@@ -68,10 +73,10 @@ class TestGnarkDecompressionCoverage:
         compressed[0] = COMPRESSED_SMALLEST
         # Set a valid x coordinate
         x = 1
-        x_bytes = x.to_bytes(32, 'big')
+        x_bytes = x.to_bytes(32, "big")
         compressed[1:] = x_bytes[1:]
 
-        with patch('eigenda.utils.gnark_decompression.compute_y_from_x') as mock_compute:
+        with patch("eigenda.utils.gnark_decompression.compute_y_from_x") as mock_compute:
             # Return a y that's greater than P//2 (larger)
             large_y = P // 2 + 100
             mock_compute.return_value = (large_y, True)
@@ -86,7 +91,7 @@ class TestGnarkDecompressionCoverage:
         # Set an invalid flag (not one of the defined compression flags)
         compressed[0] = 0x20  # Some invalid flag
 
-        with patch('eigenda.utils.gnark_decompression.compute_y_from_x') as mock_compute:
+        with patch("eigenda.utils.gnark_decompression.compute_y_from_x") as mock_compute:
             mock_compute.return_value = (100, True)
 
             with pytest.raises(ValueError, match="Invalid compression flag: 0x0"):
@@ -94,9 +99,9 @@ class TestGnarkDecompressionCoverage:
 
     def test_g2_successful_decompression_line_81(self):
         """Test line 81 - successful G2 decompression"""
-        compressed = b'test' * 16  # 64 bytes
+        compressed = b"test" * 16  # 64 bytes
 
-        with patch('eigenda.utils.g2_decompression.decompress_g2_point_full') as mock_decompress:
+        with patch("eigenda.utils.g2_decompression.decompress_g2_point_full") as mock_decompress:
             # Mock successful decompression
             mock_decompress.return_value = ((1, 2), (3, 4))
 

@@ -1,9 +1,10 @@
 """Blob request signing implementation."""
 
+import hashlib
+
+from Crypto.Hash import keccak
 from eth_account import Account
 from eth_typing import Address
-import hashlib
-from Crypto.Hash import keccak
 
 from eigenda.utils.serialization import calculate_blob_key
 
@@ -19,8 +20,8 @@ class LocalBlobRequestSigner:
             private_key_hex: Hex-encoded private key (with or without 0x prefix)
         """
         # Ensure private key has 0x prefix for eth_account
-        if not private_key_hex.startswith('0x'):
-            private_key_hex = '0x' + private_key_hex
+        if not private_key_hex.startswith("0x"):
+            private_key_hex = "0x" + private_key_hex
 
         self.account = Account.from_key(private_key_hex)
         self.private_key = self.account.key
@@ -36,7 +37,7 @@ class LocalBlobRequestSigner:
             The signature bytes
         """
         # Handle different header types
-        if hasattr(header, 'blob_key'):
+        if hasattr(header, "blob_key"):
             # It's our BlobHeader type
             blob_key = header.blob_key()
             key_bytes = blob_key._bytes
@@ -135,11 +136,11 @@ class LocalBlobRequestSigner:
         # Hash the account ID with length prefix
         account_bytes = bytes.fromhex(account_id[2:])  # Remove 0x prefix
         # Add length prefix (4 bytes, big-endian uint32)
-        hasher.update(len(account_bytes).to_bytes(4, 'big'))
+        hasher.update(len(account_bytes).to_bytes(4, "big"))
         hasher.update(account_bytes)
 
         # Hash the timestamp (8 bytes, big-endian uint64)
-        hasher.update(timestamp.to_bytes(8, 'big'))
+        hasher.update(timestamp.to_bytes(8, "big"))
 
         keccak_hash = hasher.digest()
 

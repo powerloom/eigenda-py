@@ -1,8 +1,9 @@
 """Blob retrieval functionality for EigenDA."""
 
-import grpc
-from typing import Optional, Any
 from dataclasses import dataclass
+from typing import Any, Optional
+
+import grpc
 
 from eigenda.auth.signer import LocalBlobRequestSigner
 
@@ -13,6 +14,7 @@ from eigenda.grpc.retriever.v2 import retriever_v2_pb2, retriever_v2_pb2_grpc
 @dataclass
 class RetrieverConfig:
     """Configuration for the retriever client."""
+
     hostname: str
     port: int
     use_secure_grpc: bool = True
@@ -28,7 +30,7 @@ class BlobRetriever:
         port: int,
         use_secure_grpc: bool,
         signer: Optional[LocalBlobRequestSigner] = None,
-        config: Optional[RetrieverConfig] = None
+        config: Optional[RetrieverConfig] = None,
     ):
         """
         Initialize the retriever client.
@@ -45,9 +47,7 @@ class BlobRetriever:
         self.use_secure_grpc = use_secure_grpc
         self.signer = signer
         self.config = config or RetrieverConfig(
-            hostname=hostname,
-            port=port,
-            use_secure_grpc=use_secure_grpc
+            hostname=hostname, port=port, use_secure_grpc=use_secure_grpc
         )
 
         self._channel: Optional[grpc.Channel] = None
@@ -63,8 +63,8 @@ class BlobRetriever:
 
         # Set up channel options
         options = [
-            ('grpc.max_receive_message_length', 32 * 1024 * 1024),  # 32MB for retrieved data
-            ('grpc.max_send_message_length', 1 * 1024 * 1024),      # 1MB for requests
+            ("grpc.max_receive_message_length", 32 * 1024 * 1024),  # 32MB for retrieved data
+            ("grpc.max_send_message_length", 1 * 1024 * 1024),  # 1MB for requests
         ]
 
         if self.use_secure_grpc:
@@ -93,14 +93,12 @@ class BlobRetriever:
         request = retriever_v2_pb2.BlobRequest(
             blob_header=blob_header,
             reference_block_number=reference_block_number,
-            quorum_id=quorum_id
+            quorum_id=quorum_id,
         )
 
         try:
             response = self._stub.RetrieveBlob(
-                request,
-                timeout=self.config.timeout,
-                metadata=self._get_metadata()
+                request, timeout=self.config.timeout, metadata=self._get_metadata()
             )
 
             # The response contains the encoded blob data
@@ -127,11 +125,11 @@ class BlobRetriever:
 
     def _get_metadata(self) -> list:
         """Get metadata for gRPC calls."""
-        metadata = [('user-agent', 'eigenda-python-retriever/0.1.0')]
+        metadata = [("user-agent", "eigenda-python-retriever/0.1.0")]
 
         # Add authentication if signer is provided
         if self.signer:
             account_id = self.signer.get_account_id()
-            metadata.append(('account-id', account_id))
+            metadata.append(("account-id", account_id))
 
         return metadata

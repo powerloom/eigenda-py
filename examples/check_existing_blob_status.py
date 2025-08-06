@@ -9,10 +9,11 @@ which you might have from a previous dispersal.
 import os
 import sys
 
-from eigenda.client_v2 import DisperserClientV2
-from eigenda.core.types import BlobStatus, BlobKey
-from eigenda.auth.signer import LocalBlobRequestSigner
 from dotenv import load_dotenv
+
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2 import DisperserClientV2
+from eigenda.core.types import BlobKey, BlobStatus
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +22,7 @@ load_dotenv()
 def check_existing_blob_status(blob_key_hex: str):
     """
     Check the status of an existing blob.
-    
+
     Args:
         blob_key_hex: The blob key as a hex string (with or without 0x prefix)
     """
@@ -43,10 +44,7 @@ def check_existing_blob_status(blob_key_hex: str):
 
     # Create client (using basic v2 client, not the Full version)
     client = DisperserClientV2(
-        hostname=disperser_host,
-        port=disperser_port,
-        use_secure_grpc=use_secure_grpc,
-        signer=signer
+        hostname=disperser_host, port=disperser_port, use_secure_grpc=use_secure_grpc, signer=signer
     )
 
     # Parse blob key
@@ -60,9 +58,9 @@ def check_existing_blob_status(blob_key_hex: str):
     # Check status
     try:
         status = client.get_blob_status(blob_key)
-        
+
         print(f"\nBlob Status: {status.name} ({status.value})")
-        
+
         # Provide interpretation
         if status == BlobStatus.UNKNOWN:
             print("⚠️  Status: Unknown - The blob status could not be determined")
@@ -77,7 +75,7 @@ def check_existing_blob_status(blob_key_hex: str):
             print("✅ Status: Complete - The blob has been successfully dispersed!")
         elif status == BlobStatus.FAILED:
             print("❌ Status: Failed - The blob dispersal failed")
-        
+
     except Exception as e:
         print(f"Error checking blob status: {e}")
 
@@ -90,9 +88,11 @@ def main():
         print("  Holesky: 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109")
         print("  Sepolia: 95ae8a8aa08fec0354f439eef31b351da97972916f0bb1c8b4ff8e50a82dc080")
         print("\nExample usage:")
-        print("  python check_existing_blob_status.py 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109")
+        print(
+            "  python check_existing_blob_status.py 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109"
+        )
         return
-    
+
     blob_key_hex = sys.argv[1]
     check_existing_blob_status(blob_key_hex)
 

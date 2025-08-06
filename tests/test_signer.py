@@ -1,8 +1,10 @@
 """Tests for blob request signing."""
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from eth_account import Account
+
 from eigenda.auth.signer import LocalBlobRequestSigner
 
 
@@ -28,8 +30,7 @@ class TestLocalBlobRequestSigner:
 
         # Without 0x prefix
         key_no_prefix = (
-            test_private_key[2:] if test_private_key.startswith('0x')
-            else test_private_key
+            test_private_key[2:] if test_private_key.startswith("0x") else test_private_key
         )
         signer2 = LocalBlobRequestSigner(key_no_prefix)
         assert signer2.private_key is not None
@@ -41,7 +42,7 @@ class TestLocalBlobRequestSigner:
         """Test getting account ID."""
         account_id = signer.get_account_id()
         assert isinstance(account_id, str)
-        assert account_id.startswith('0x')
+        assert account_id.startswith("0x")
         assert len(account_id) == 42  # Ethereum address length
 
     def test_sign_payment_state_request(self, signer):
@@ -61,7 +62,7 @@ class TestLocalBlobRequestSigner:
         # Create a mock BlobHeader with blob_key method
         header = Mock()
         mock_blob_key = Mock()
-        mock_blob_key._bytes = b'x' * 32  # 32 byte key
+        mock_blob_key._bytes = b"x" * 32  # 32 byte key
         header.blob_key.return_value = mock_blob_key
 
         signature = signer.sign_blob_request(header)
@@ -80,8 +81,8 @@ class TestLocalBlobRequestSigner:
         del proto_header.blob_key  # Ensure it doesn't have blob_key attribute
 
         # Mock the calculate_blob_key function
-        with patch('eigenda.auth.signer.calculate_blob_key') as mock_calc:
-            mock_calc.return_value = b'y' * 32  # 32 byte key
+        with patch("eigenda.auth.signer.calculate_blob_key") as mock_calc:
+            mock_calc.return_value = b"y" * 32  # 32 byte key
 
             signature = signer.sign_blob_request(proto_header)
 
@@ -93,7 +94,7 @@ class TestLocalBlobRequestSigner:
         """Test v value adjustment edge cases."""
         header = Mock()
         mock_blob_key = Mock()
-        mock_blob_key._bytes = b'z' * 32
+        mock_blob_key._bytes = b"z" * 32
         header.blob_key.return_value = mock_blob_key
 
         # Mock the account's unsafe_sign_hash to control v value
@@ -101,24 +102,24 @@ class TestLocalBlobRequestSigner:
 
         # Test with v=27 (should be adjusted to 0)
         mock_signature = Mock()
-        mock_signature.signature = b'r' * 32 + b's' * 32 + bytes([27])
+        mock_signature.signature = b"r" * 32 + b"s" * 32 + bytes([27])
         signer.account.unsafe_sign_hash = Mock(return_value=mock_signature)
 
         signature = signer.sign_blob_request(header)
         assert signature[64] == 0
 
         # Test with v=28 (should be adjusted to 1)
-        mock_signature.signature = b'r' * 32 + b's' * 32 + bytes([28])
+        mock_signature.signature = b"r" * 32 + b"s" * 32 + bytes([28])
         signature = signer.sign_blob_request(header)
         assert signature[64] == 1
 
         # Test with v=0 (should remain 0)
-        mock_signature.signature = b'r' * 32 + b's' * 32 + bytes([0])
+        mock_signature.signature = b"r" * 32 + b"s" * 32 + bytes([0])
         signature = signer.sign_blob_request(header)
         assert signature[64] == 0
 
         # Test with v=1 (should remain 1)
-        mock_signature.signature = b'r' * 32 + b's' * 32 + bytes([1])
+        mock_signature.signature = b"r" * 32 + b"s" * 32 + bytes([1])
         signature = signer.sign_blob_request(header)
         assert signature[64] == 1
 
@@ -144,14 +145,14 @@ class TestLocalBlobRequestSigner:
 
         # Test with v=27
         mock_signature = Mock()
-        mock_signature.signature = b'a' * 32 + b'b' * 32 + bytes([27])
+        mock_signature.signature = b"a" * 32 + b"b" * 32 + bytes([27])
         signer.account.unsafe_sign_hash = Mock(return_value=mock_signature)
 
         signature = signer.sign_payment_state_request(timestamp)
         assert signature[64] == 0
 
         # Test with v=28
-        mock_signature.signature = b'a' * 32 + b'b' * 32 + bytes([28])
+        mock_signature.signature = b"a" * 32 + b"b" * 32 + bytes([28])
         signature = signer.sign_payment_state_request(timestamp)
         assert signature[64] == 1
 

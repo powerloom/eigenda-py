@@ -1,13 +1,14 @@
 """Specific tests to cover lines 72 and 77 in g2_decompression.py"""
 
 from unittest.mock import patch
+
+from eigenda.utils.fp2_arithmetic import Fp2
 from eigenda.utils.g2_decompression import (
-    decompress_g2_point_full,
     COMPRESSED_LARGEST,
     COMPRESSED_SMALLEST,
-    P
+    P,
+    decompress_g2_point_full,
 )
-from eigenda.utils.fp2_arithmetic import Fp2
 
 
 class TestG2DecompressionCoverage:
@@ -26,7 +27,7 @@ class TestG2DecompressionCoverage:
         # Mock sqrt_fp2 to return y with a1=0 and a0 > P//2
         mock_y = Fp2(P // 2 + 1, 0)  # y.a1 = 0, y.a0 > P//2
 
-        with patch('eigenda.utils.g2_decompression.sqrt_fp2') as mock_sqrt:
+        with patch("eigenda.utils.g2_decompression.sqrt_fp2") as mock_sqrt:
             mock_sqrt.return_value = (mock_y, True)
 
             # This should trigger line 72
@@ -49,7 +50,7 @@ class TestG2DecompressionCoverage:
         # This ensures y_is_larger = False
         mock_y = Fp2(100, 100)  # Both components well below P//2
 
-        with patch('eigenda.utils.g2_decompression.sqrt_fp2') as mock_sqrt:
+        with patch("eigenda.utils.g2_decompression.sqrt_fp2") as mock_sqrt:
             mock_sqrt.return_value = (mock_y, True)
 
             # This should trigger line 77
@@ -71,7 +72,7 @@ class TestG2DecompressionCoverage:
         # y with a1=0, a0 > P//2
         mock_y1 = Fp2(P - 1000, 0)  # a0 is large (> P//2), a1 = 0
 
-        with patch('eigenda.utils.g2_decompression.sqrt_fp2') as mock_sqrt:
+        with patch("eigenda.utils.g2_decompression.sqrt_fp2") as mock_sqrt:
             mock_sqrt.return_value = (mock_y1, True)
             (x1, y1) = decompress_g2_point_full(bytes(compressed1))
             # y_is_larger = True, COMPRESSED_SMALLEST -> negate y
@@ -86,7 +87,7 @@ class TestG2DecompressionCoverage:
         # y with both components small (< P//2)
         mock_y2 = Fp2(1000, 2000)  # Both well below P//2
 
-        with patch('eigenda.utils.g2_decompression.sqrt_fp2') as mock_sqrt:
+        with patch("eigenda.utils.g2_decompression.sqrt_fp2") as mock_sqrt:
             mock_sqrt.return_value = (mock_y2, True)
             (x2, y2) = decompress_g2_point_full(bytes(compressed2))
             # y_is_larger = False, COMPRESSED_LARGEST -> negate y

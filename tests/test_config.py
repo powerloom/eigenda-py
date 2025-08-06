@@ -1,14 +1,16 @@
 """Tests for network configuration."""
 
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from eigenda.config import (
-    NetworkConfig,
     NETWORK_CONFIGS,
-    get_network_config,
+    NetworkConfig,
     get_disperser_endpoint,
-    get_explorer_url
+    get_explorer_url,
+    get_network_config,
 )
 
 
@@ -24,7 +26,7 @@ class TestNetworkConfig:
             network_name="Test Network",
             payment_vault_address="0x1234567890123456789012345678901234567890",
             price_per_symbol=1000000,
-            min_num_symbols=100
+            min_num_symbols=100,
         )
 
         assert config.disperser_host == "test.eigenda.xyz"
@@ -107,10 +109,13 @@ class TestNetworkConfig:
         assert config.disperser_host == "custom.eigenda.xyz"  # But uses custom host
         assert config.payment_vault_address == "0x2E1BDB221E7D6bD9B7b2365208d41A5FD70b24Ed"
 
-    @patch.dict(os.environ, {
-        "EIGENDA_DISPERSER_HOST": "disperser-testnet-sepolia.eigenda.xyz",
-        "EIGENDA_DISPERSER_PORT": "8443"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "EIGENDA_DISPERSER_HOST": "disperser-testnet-sepolia.eigenda.xyz",
+            "EIGENDA_DISPERSER_PORT": "8443",
+        },
+    )
     def test_get_network_config_with_port(self):
         """Test getting config with custom port."""
         config = get_network_config()
@@ -134,10 +139,10 @@ class TestNetworkConfig:
             assert host == "test.eigenda.xyz"
             assert port == 443
 
-        with patch.dict(os.environ, {
-            "EIGENDA_DISPERSER_HOST": "test.eigenda.xyz",
-            "EIGENDA_DISPERSER_PORT": "8080"
-        }):
+        with patch.dict(
+            os.environ,
+            {"EIGENDA_DISPERSER_HOST": "test.eigenda.xyz", "EIGENDA_DISPERSER_PORT": "8080"},
+        ):
             host, port = get_disperser_endpoint()
             assert host == "test.eigenda.xyz"
             assert port == 8080
@@ -153,8 +158,7 @@ class TestNetworkConfig:
 
         # Test with Holesky
         with patch.dict(
-            os.environ,
-            {"EIGENDA_DISPERSER_HOST": "disperser-testnet-holesky.eigenda.xyz"}
+            os.environ, {"EIGENDA_DISPERSER_HOST": "disperser-testnet-holesky.eigenda.xyz"}
         ):
             url = get_explorer_url(blob_key)
             assert url == f"https://blobs-v2-testnet-holesky.eigenda.xyz/blobs/{blob_key}"

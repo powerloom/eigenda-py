@@ -5,19 +5,20 @@ import os
 from datetime import datetime
 
 from dotenv import load_dotenv
-from eigenda.config import get_network_config, get_explorer_url
-from eigenda.payment import PaymentConfig
-from eigenda.codec.blob_codec import encode_blob_data
+from eth_account import Account
+
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
-from eth_account import Account
+from eigenda.codec.blob_codec import encode_blob_data
+from eigenda.config import get_explorer_url, get_network_config
+from eigenda.payment import PaymentConfig
 
 
 def test_account(private_key: str, description: str):
     """Test an account to see what payment method it uses."""
     print(f"\n{'='*60}")
     print(f"Testing: {description}")
-    print('='*60)
+    print("=" * 60)
 
     # Get network configuration
     network_config = get_network_config()
@@ -35,37 +36,41 @@ def test_account(private_key: str, description: str):
         signer=signer,
         payment_config=PaymentConfig(
             price_per_symbol=network_config.price_per_symbol,
-            min_num_symbols=network_config.min_num_symbols
+            min_num_symbols=network_config.min_num_symbols,
         ),
-        use_advanced_reservations=True  # Enable advanced reservation support
+        use_advanced_reservations=True,  # Enable advanced reservation support
     )
 
     try:
         # Check for advanced reservations first
         print("\nChecking payment configuration...")
         has_advanced_reservation = False
-        
+
         try:
             advanced_state = client.get_payment_state_for_all_quorums()
-            if advanced_state and hasattr(advanced_state, 'quorum_reservations') and advanced_state.quorum_reservations:
+            if (
+                advanced_state
+                and hasattr(advanced_state, "quorum_reservations")
+                and advanced_state.quorum_reservations
+            ):
                 print("✅ Advanced per-quorum reservations found!")
                 for quorum_id, res in advanced_state.quorum_reservations.items():
                     print(f"  Quorum {quorum_id}: {res.symbols_per_second} symbols/sec")
                 has_advanced_reservation = True
         except:
             pass
-        
+
         # Get payment info (will use simple check if advanced not available)
         payment_info = client.get_payment_info()
-        
+
         if has_advanced_reservation:
             print(f"Payment type: advanced_reservation")
         else:
             print(f"Payment type: {payment_info['payment_type']}")
-            
+
         print(f"Has reservation: {payment_info['has_reservation']}")
 
-        if payment_info['payment_type'] == 'on_demand':
+        if payment_info["payment_type"] == "on_demand":
             print(f"Current cumulative payment: {payment_info['current_cumulative_payment']} wei")
             print(f"Price per symbol: {payment_info['price_per_symbol']} wei")
             print(f"Min symbols: {payment_info['min_symbols']}")
@@ -81,10 +86,7 @@ def test_account(private_key: str, description: str):
 
         # Disperse blob
         status, blob_key = client.disperse_blob(
-            data=encoded_data,
-            blob_version=0,
-            quorum_ids=[0, 1],
-            timeout=30
+            data=encoded_data, blob_version=0, quorum_ids=[0, 1], timeout=30
         )
 
         print("\n✅ Success!")
@@ -105,13 +107,13 @@ def main():
     load_dotenv()
 
     # Test with the main account (has on-demand deposit)
-    main_key = os.environ.get('EIGENDA_PRIVATE_KEY')
+    main_key = os.environ.get("EIGENDA_PRIVATE_KEY")
     if main_key:
         test_account(main_key, "Main account (with on-demand deposit)")
 
     # Test with a different account if available
     # You can set EIGENDA_PRIVATE_KEY_2 in .env for an account with reservation
-    alt_key = os.environ.get('EIGENDA_PRIVATE_KEY_2')
+    alt_key = os.environ.get("EIGENDA_PRIVATE_KEY_2")
     if alt_key:
         test_account(alt_key, "Alternative account (might have reservation)")
     else:
