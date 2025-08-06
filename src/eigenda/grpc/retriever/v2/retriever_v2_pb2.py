@@ -29,9 +29,9 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "retriever.v2.retriever_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
     _globals["DESCRIPTOR"]._loaded_options = None
-    _globals[
-        "DESCRIPTOR"
-    ]._serialized_options = b"Z2github.com/Layr-Labs/eigenda/api/grpc/retriever/v2"
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z2github.com/Layr-Labs/eigenda/api/grpc/retriever/v2"
+    )
     _globals["_BLOBREQUEST"]._serialized_start = 76
     _globals["_BLOBREQUEST"]._serialized_end = 184
     _globals["_BLOBREPLY"]._serialized_start = 186

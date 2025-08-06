@@ -1,5 +1,5 @@
 [flake8]
-max-line-length = 127
+max-line-length = 100
 max-complexity = 10
 exclude =
     .git,
@@ -17,12 +17,10 @@ exclude =
     src/eigenda/grpc/
 
 extend-ignore =
-    # W293: blank line contains whitespace
-    W293,
-    # W291: trailing whitespace
-    W291,
-    # W292: no newline at end of file
-    W292
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # W503: line break before binary operator (conflicts with black)
+    W503
 
 per-file-ignores =
     # Allow imports after path setup in examples

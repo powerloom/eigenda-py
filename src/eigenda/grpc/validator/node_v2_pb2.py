@@ -29,9 +29,9 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "validator.node_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
     _globals["DESCRIPTOR"]._loaded_options = None
-    _globals[
-        "DESCRIPTOR"
-    ]._serialized_options = b"Z/github.com/Layr-Labs/eigenda/api/grpc/validator"
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z/github.com/Layr-Labs/eigenda/api/grpc/validator"
+    )
     _globals["_CHUNKENCODINGFORMAT"]._serialized_start = 492
     _globals["_CHUNKENCODINGFORMAT"]._serialized_end = 537
     _globals["_STORECHUNKSREQUEST"]._serialized_start = 65

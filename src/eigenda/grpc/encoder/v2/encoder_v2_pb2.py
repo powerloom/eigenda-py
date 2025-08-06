@@ -27,9 +27,9 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "encoder.v2.encoder_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
     _globals["DESCRIPTOR"]._loaded_options = None
-    _globals[
-        "DESCRIPTOR"
-    ]._serialized_options = b"Z0github.com/Layr-Labs/eigenda/api/grpc/encoder/v2"
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z0github.com/Layr-Labs/eigenda/api/grpc/encoder/v2"
+    )
     _globals["_ENCODEBLOBREQUEST"]._serialized_start = 43
     _globals["_ENCODEBLOBREQUEST"]._serialized_end = 152
     _globals["_ENCODINGPARAMS"]._serialized_start = 154

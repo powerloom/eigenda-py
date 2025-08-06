@@ -30,9 +30,9 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "disperser.v2.disperser_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
     _globals["DESCRIPTOR"]._loaded_options = None
-    _globals[
-        "DESCRIPTOR"
-    ]._serialized_options = b"Z2github.com/Layr-Labs/eigenda/api/grpc/disperser/v2"
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z2github.com/Layr-Labs/eigenda/api/grpc/disperser/v2"
+    )
     _globals["_BLOBSTATUS"]._serialized_start = 1675
     _globals["_BLOBSTATUS"]._serialized_end = 1777
     _globals["_DISPERSEBLOBREQUEST"]._serialized_start = 97
