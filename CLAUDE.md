@@ -4,7 +4,7 @@ This document contains important implementation details and context for the Eige
 
 ## Project Overview
 
-The Python client provides full Python support for EigenDA v2, with feature parity to the reference implementations in Go and Rust. The package is published to PyPI as `eigenda`.
+The Python client provides full Python support for EigenDA v2, with feature parity to the reference implementations in Go and Rust. The package is published to PyPI as `powerloom-eigenda`.
 
 ## Project Structure
 
@@ -249,10 +249,10 @@ Note: The .env file defaults to Holesky testnet. To use Sepolia, uncomment the E
 
 ## PyPI Publishing
 
-The package is published to PyPI as `eigenda` and can be installed with:
+The package is published to PyPI as `powerloom-eigenda` and can be installed with:
 
 ```bash
-pip install eigenda
+pip install powerloom-eigenda
 ```
 
 ### Publishing Workflow
@@ -265,7 +265,7 @@ The project uses GitHub Actions for automated publishing:
 
 ### Package Configuration
 
-- **Package name**: `eigenda` (changed from `eigenda-py`)
+- **Package name**: `powerloom-eigenda`
 - **Version management**: Manual versioning in pyproject.toml
   - Dev versions for TestPyPI: `0.1.0.dev<timestamp><PR_number>`
   - Production versions from git tags
@@ -385,7 +385,7 @@ The Python client is now ready for publication to PyPI as the `eigenda` package:
    - PyPI for stable releases (version tags)
    - Uses trusted publishing (OIDC) for secure deployment
 3. **Dynamic Versioning**: Configured `poetry-dynamic-versioning` for automatic version calculation from git tags
-4. **Installation**: Users can now install with `pip install eigenda`
+4. **Installation**: Users can now install with `pip install powerloom-eigenda`
 
 ### Default Network Changed to Sepolia (August 6th 2025)
 The Python client now uses **Sepolia testnet as the default** instead of Holesky:

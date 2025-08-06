@@ -1,7 +1,7 @@
-# EigenDA Python Client
+# EigenDA Python Client by Powerloom
 
-[![PyPI version](https://badge.fury.io/py/eigenda.svg)](https://badge.fury.io/py/eigenda)
-[![Python](https://img.shields.io/pypi/pyversions/eigenda.svg)](https://pypi.org/project/eigenda/)
+[![PyPI version](https://badge.fury.io/py/powerloom-eigenda.svg)](https://badge.fury.io/py/powerloom-eigenda)
+[![Python](https://img.shields.io/pypi/pyversions/powerloom-eigenda.svg)](https://pypi.org/project/powerloom-eigenda/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml)
 
@@ -51,10 +51,10 @@ The `eigenda` package includes:
 
 ```bash
 # Install from PyPI
-pip install eigenda
+pip install powerloom-eigenda
 
 # Or install from TestPyPI for pre-release versions
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple eigenda
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple powerloom-eigenda
 ```
 
 ### From Source (For Development)

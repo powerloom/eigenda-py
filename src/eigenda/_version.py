@@ -1,11 +1,11 @@
-"""Version information for eigenda."""
+"""Version information for powerloom-eigenda."""
 
 try:
     # Try to get version from installed package
     from importlib.metadata import PackageNotFoundError, version
 
     try:
-        __version__ = version("eigenda")
+        __version__ = version("powerloom-eigenda")
     except PackageNotFoundError:
         # Package is not installed, use fallback
         __version__ = "0.1.0"
@@ -14,7 +14,7 @@ except ImportError:
     try:
         import pkg_resources
 
-        __version__ = pkg_resources.get_distribution("eigenda").version
+        __version__ = pkg_resources.get_distribution("powerloom-eigenda").version
     except (ImportError, pkg_resources.DistributionNotFound):
         __version__ = "0.1.0"
 

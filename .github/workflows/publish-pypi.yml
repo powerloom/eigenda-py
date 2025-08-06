@@ -148,7 +148,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/eigenda
+      url: https://test.pypi.org/p/powerloom-eigenda
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
@@ -183,7 +183,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/p/eigenda
+      url: https://pypi.org/p/powerloom-eigenda
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
