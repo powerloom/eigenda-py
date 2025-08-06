@@ -169,6 +169,7 @@ jobs:
         repository-url: https://test.pypi.org/legacy/
         skip-existing: true  # Skip if version already exists
         verbose: true
+        attestations: false  # Disable attestations to avoid Rekor server issues
 
   publish-to-pypi:
     name: Publish to PyPI
