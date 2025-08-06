@@ -20,7 +20,6 @@ _sym_db = _symbol_database.Default()
 
 from eigenda.grpc.common import common_pb2 as common_dot_common__pb2
 
-
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
     b'\n\x19\x63ommon/v2/common_v2.proto\x12\tcommon.v2\x1a\x13\x63ommon/common.proto"\x93\x01\n\nBlobHeader\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x16\n\x0equorum_numbers\x18\x02 \x03(\r\x12*\n\ncommitment\x18\x03 \x01(\x0b\x32\x16.common.BlobCommitment\x12\x30\n\x0epayment_header\x18\x04 \x01(\x0b\x32\x18.common.v2.PaymentHeader"d\n\x0f\x42lobCertificate\x12*\n\x0b\x62lob_header\x18\x01 \x01(\x0b\x32\x15.common.v2.BlobHeader\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x12\n\nrelay_keys\x18\x03 \x03(\r"A\n\x0b\x42\x61tchHeader\x12\x12\n\nbatch_root\x18\x01 \x01(\x0c\x12\x1e\n\x16reference_block_number\x18\x02 \x01(\x04"f\n\x05\x42\x61tch\x12&\n\x06header\x18\x01 \x01(\x0b\x32\x16.common.v2.BatchHeader\x12\x35\n\x11\x62lob_certificates\x18\x02 \x03(\x0b\x32\x1a.common.v2.BlobCertificate"R\n\rPaymentHeader\x12\x12\n\naccount_id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x1a\n\x12\x63umulative_payment\x18\x03 \x01(\x0c\x42\x31Z/github.com/Layr-Labs/eigenda/api/grpc/common/v2b\x06proto3'
 )

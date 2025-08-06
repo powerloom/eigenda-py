@@ -12,6 +12,7 @@ This example demonstrates:
 import os
 import time
 from datetime import datetime
+
 from dotenv import load_dotenv
 
 from eigenda.auth.signer import LocalBlobRequestSigner
