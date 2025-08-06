@@ -25,7 +25,7 @@ from eigenda.payment import PaymentConfig, SimpleAccountant, calculate_payment_i
 class DisperserClientV2Full(DisperserClientV2):
     """
     Extended DisperserClient with automatic payment handling.
-    
+
     This client automatically handles both reservation-based and on-demand payments.
     It intelligently chooses the payment method based on availability:
     1. Tries to use reservation first (if available)
@@ -84,7 +84,7 @@ class DisperserClientV2Full(DisperserClientV2):
             print("  ⚠️  No payment state received")
             self._payment_type = None
             return
-        
+
         # Update payment config from global params if available
         if hasattr(self._payment_state, "payment_global_params"):
             params = self._payment_state.payment_global_params
@@ -97,19 +97,21 @@ class DisperserClientV2Full(DisperserClientV2):
             "reservation"
         ):
             reservation = self._payment_state.reservation
-            
+
             # Check if reservation is active
             current_time = int(time.time())
             if reservation.start_timestamp <= current_time <= reservation.end_timestamp:
                 self._has_reservation = True
                 self._payment_type = PaymentType.RESERVATION
-                
+
                 # Create simple accountant for reservation
                 self.accountant = SimpleAccountant(
                     self.signer.get_account_id(), self.payment_config
                 )
-                
-                print(f"  ✓ Active reservation found (expires in {reservation.end_timestamp - current_time}s)")
+
+                print(
+                    f"  ✓ Active reservation found (expires in {reservation.end_timestamp - current_time}s)"
+                )
                 return
 
         # Check for on-demand payment
@@ -247,7 +249,11 @@ class DisperserClientV2Full(DisperserClientV2):
         # Get blob commitment
         commitment_reply = self.get_blob_commitment(encoded_data)
         # Extract the actual commitment from the reply
-        commitment = commitment_reply.blob_commitment if hasattr(commitment_reply, 'blob_commitment') else commitment_reply
+        commitment = (
+            commitment_reply.blob_commitment
+            if hasattr(commitment_reply, "blob_commitment")
+            else commitment_reply
+        )
 
         # Create blob header with payment
         blob_header = self._create_blob_header(blob_version, commitment, quorum_numbers)
@@ -317,25 +323,25 @@ class DisperserClientV2Full(DisperserClientV2):
             if e.code() == grpc.StatusCode.UNIMPLEMENTED:
                 return None
             raise
-    
+
     def get_payment_info(self) -> dict:
         """
         Get current payment information for the account.
-        
+
         Returns:
             Dictionary containing payment information:
             - payment_type: "reservation", "on_demand", or None
             - has_reservation: bool
             - reservation_details: dict with reservation info (if active)
             - current_cumulative_payment: int (wei)
-            - onchain_balance: int (wei) 
+            - onchain_balance: int (wei)
             - price_per_symbol: int (wei)
             - min_symbols: int
         """
         # Check payment state if not cached
         if self._payment_state is None:
             self._check_payment_state()
-        
+
         info = {
             "payment_type": self._payment_type.value if self._payment_type else None,
             "has_reservation": self._has_reservation,
@@ -345,7 +351,7 @@ class DisperserClientV2Full(DisperserClientV2):
             "price_per_symbol": self.payment_config.price_per_symbol,
             "min_symbols": self.payment_config.min_num_symbols,
         }
-        
+
         if self._payment_state:
             # Add reservation details if present
             if self._has_reservation and hasattr(self._payment_state, "reservation"):
@@ -359,16 +365,16 @@ class DisperserClientV2Full(DisperserClientV2):
                     "quorum_numbers": list(reservation.quorum_numbers),
                     "quorum_splits": list(reservation.quorum_splits),
                 }
-            
+
             # Add payment amounts
             if hasattr(self._payment_state, "cumulative_payment"):
                 info["current_cumulative_payment"] = int.from_bytes(
                     self._payment_state.cumulative_payment, "big"
                 )
-            
+
             if hasattr(self._payment_state, "onchain_cumulative_payment"):
                 info["onchain_balance"] = int.from_bytes(
                     self._payment_state.onchain_cumulative_payment, "big"
                 )
-        
+
         return info

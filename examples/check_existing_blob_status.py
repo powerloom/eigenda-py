@@ -58,7 +58,7 @@ def check_existing_blob_status(blob_key_hex: str):
     # Check status
     try:
         response = client.get_blob_status(blob_key)
-        
+
         # Convert protobuf status to our enum
         status = BlobStatus(response.status)
 

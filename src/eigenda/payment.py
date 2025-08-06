@@ -115,5 +115,3 @@ class SimpleAccountant:
         payment_bytes = new_payment.to_bytes((new_payment.bit_length() + 7) // 8, "big")
 
         return payment_bytes, increment
-
-

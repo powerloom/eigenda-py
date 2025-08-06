@@ -150,7 +150,9 @@ class TestEndToEndFlow:
 
                 # Verify dispersal request
                 disperse_call = mock_stub.DisperseBlob.call_args[0][0]
-                assert disperse_call.blob == encoded_data  # DisperserClientV2Full sends encoded data
+                assert (
+                    disperse_call.blob == encoded_data
+                )  # DisperserClientV2Full sends encoded data
                 assert hasattr(disperse_call, "blob_header")
 
                 # Step 3: Check status
@@ -191,7 +193,7 @@ class TestEndToEndFlow:
                 payment_global_params=disperser_v2_pb2.PaymentGlobalParams(
                     price_per_symbol=447000000,
                     min_num_symbols=4096,
-                )
+                ),
             )
             # Add GetBlobCommitment response
             mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(

@@ -152,11 +152,11 @@ class DisperserClientV2:
             The BlobStatusReply containing status and inclusion info
         """
         self._connect()
-        
+
         # Handle both BlobKey objects and hex strings
         if isinstance(blob_key, str):
             blob_key = BlobKey.from_hex(blob_key)
-        
+
         request = disperser_v2_pb2.BlobStatusRequest(blob_key=bytes(blob_key))
 
         try:

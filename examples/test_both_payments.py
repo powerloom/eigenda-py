@@ -42,7 +42,7 @@ def test_account(private_key: str, description: str):
     try:
         # Check payment configuration
         print("\nChecking payment configuration...")
-        
+
         # Get payment info
         payment_info = client.get_payment_info()
         print(f"Payment type: {payment_info['payment_type']}")
@@ -56,7 +56,9 @@ def test_account(private_key: str, description: str):
             print(f"Quorum splits: {details['quorum_splits']}%")
         elif payment_info["payment_type"] == "on_demand":
             print(f"Current cumulative payment: {payment_info['current_cumulative_payment']} wei")
-            print(f"Onchain balance: {payment_info['onchain_balance']} wei ({payment_info['onchain_balance']/1e18:.4f} ETH)")
+            print(
+                f"Onchain balance: {payment_info['onchain_balance']} wei ({payment_info['onchain_balance']/1e18:.4f} ETH)"
+            )
             print(f"Price per symbol: {payment_info['price_per_symbol']} wei")
             print(f"Min symbols: {payment_info['min_symbols']}")
 

@@ -5,23 +5,24 @@ import warnings
 
 from eigenda.grpc.node import node_pb2 as node_dot_node__pb2
 
-GRPC_GENERATED_VERSION = '1.74.0'
+GRPC_GENERATED_VERSION = "1.74.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
 try:
     from grpc._utilities import first_version_is_lower
+
     _version_not_supported = first_version_is_lower(GRPC_VERSION, GRPC_GENERATED_VERSION)
 except ImportError:
     _version_not_supported = True
 
 if _version_not_supported:
     raise RuntimeError(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in node/node_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
+        f"The grpc package installed is at version {GRPC_VERSION},"
+        + f" but the generated code in node/node_pb2_grpc.py depends on"
+        + f" grpcio>={GRPC_GENERATED_VERSION}."
+        + f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
+        + f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}."
     )
 
 
@@ -38,25 +39,29 @@ class DispersalStub(object):
             channel: A grpc.Channel.
         """
         self.StoreChunks = channel.unary_unary(
-                '/node.Dispersal/StoreChunks',
-                request_serializer=node_dot_node__pb2.StoreChunksRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.StoreChunksReply.FromString,
-                _registered_method=True)
+            "/node.Dispersal/StoreChunks",
+            request_serializer=node_dot_node__pb2.StoreChunksRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.StoreChunksReply.FromString,
+            _registered_method=True,
+        )
         self.StoreBlobs = channel.unary_unary(
-                '/node.Dispersal/StoreBlobs',
-                request_serializer=node_dot_node__pb2.StoreBlobsRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.StoreBlobsReply.FromString,
-                _registered_method=True)
+            "/node.Dispersal/StoreBlobs",
+            request_serializer=node_dot_node__pb2.StoreBlobsRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.StoreBlobsReply.FromString,
+            _registered_method=True,
+        )
         self.AttestBatch = channel.unary_unary(
-                '/node.Dispersal/AttestBatch',
-                request_serializer=node_dot_node__pb2.AttestBatchRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.AttestBatchReply.FromString,
-                _registered_method=True)
+            "/node.Dispersal/AttestBatch",
+            request_serializer=node_dot_node__pb2.AttestBatchRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.AttestBatchReply.FromString,
+            _registered_method=True,
+        )
         self.NodeInfo = channel.unary_unary(
-                '/node.Dispersal/NodeInfo',
-                request_serializer=node_dot_node__pb2.NodeInfoRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.NodeInfoReply.FromString,
-                _registered_method=True)
+            "/node.Dispersal/NodeInfo",
+            request_serializer=node_dot_node__pb2.NodeInfoRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.NodeInfoReply.FromString,
+            _registered_method=True,
+        )
 
 
 class DispersalServicer(object):
@@ -74,8 +79,8 @@ class DispersalServicer(object):
         end to attest to the data in this request it has processed.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def StoreBlobs(self, request, context):
         """StoreBlobs is similar to StoreChunks, but it stores the blobs using a different storage schema
@@ -84,8 +89,8 @@ class DispersalServicer(object):
         DEPRECATED: StoreBlobs method is not used
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def AttestBatch(self, request, context):
         """AttestBatch is used to aggregate the batches stored by StoreBlobs method to a bigger batch.
@@ -93,47 +98,45 @@ class DispersalServicer(object):
         DEPRECATED: AttestBatch method is not used
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def NodeInfo(self, request, context):
-        """Retrieve node info metadata
-        """
+        """Retrieve node info metadata"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_DispersalServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'StoreChunks': grpc.unary_unary_rpc_method_handler(
-                    servicer.StoreChunks,
-                    request_deserializer=node_dot_node__pb2.StoreChunksRequest.FromString,
-                    response_serializer=node_dot_node__pb2.StoreChunksReply.SerializeToString,
-            ),
-            'StoreBlobs': grpc.unary_unary_rpc_method_handler(
-                    servicer.StoreBlobs,
-                    request_deserializer=node_dot_node__pb2.StoreBlobsRequest.FromString,
-                    response_serializer=node_dot_node__pb2.StoreBlobsReply.SerializeToString,
-            ),
-            'AttestBatch': grpc.unary_unary_rpc_method_handler(
-                    servicer.AttestBatch,
-                    request_deserializer=node_dot_node__pb2.AttestBatchRequest.FromString,
-                    response_serializer=node_dot_node__pb2.AttestBatchReply.SerializeToString,
-            ),
-            'NodeInfo': grpc.unary_unary_rpc_method_handler(
-                    servicer.NodeInfo,
-                    request_deserializer=node_dot_node__pb2.NodeInfoRequest.FromString,
-                    response_serializer=node_dot_node__pb2.NodeInfoReply.SerializeToString,
-            ),
+        "StoreChunks": grpc.unary_unary_rpc_method_handler(
+            servicer.StoreChunks,
+            request_deserializer=node_dot_node__pb2.StoreChunksRequest.FromString,
+            response_serializer=node_dot_node__pb2.StoreChunksReply.SerializeToString,
+        ),
+        "StoreBlobs": grpc.unary_unary_rpc_method_handler(
+            servicer.StoreBlobs,
+            request_deserializer=node_dot_node__pb2.StoreBlobsRequest.FromString,
+            response_serializer=node_dot_node__pb2.StoreBlobsReply.SerializeToString,
+        ),
+        "AttestBatch": grpc.unary_unary_rpc_method_handler(
+            servicer.AttestBatch,
+            request_deserializer=node_dot_node__pb2.AttestBatchRequest.FromString,
+            response_serializer=node_dot_node__pb2.AttestBatchReply.SerializeToString,
+        ),
+        "NodeInfo": grpc.unary_unary_rpc_method_handler(
+            servicer.NodeInfo,
+            request_deserializer=node_dot_node__pb2.NodeInfoRequest.FromString,
+            response_serializer=node_dot_node__pb2.NodeInfoReply.SerializeToString,
+        ),
     }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'node.Dispersal', rpc_method_handlers)
+    generic_handler = grpc.method_handlers_generic_handler("node.Dispersal", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('node.Dispersal', rpc_method_handlers)
+    server.add_registered_method_handlers("node.Dispersal", rpc_method_handlers)
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class Dispersal(object):
     """The EigenDA Node implements two services, Dispersal and Retrieval, as defined below,
     for better security and separation of concerns.
@@ -141,20 +144,22 @@ class Dispersal(object):
     """
 
     @staticmethod
-    def StoreChunks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def StoreChunks(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Dispersal/StoreChunks',
+            "/node.Dispersal/StoreChunks",
             node_dot_node__pb2.StoreChunksRequest.SerializeToString,
             node_dot_node__pb2.StoreChunksReply.FromString,
             options,
@@ -165,23 +170,26 @@ class Dispersal(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def StoreBlobs(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def StoreBlobs(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Dispersal/StoreBlobs',
+            "/node.Dispersal/StoreBlobs",
             node_dot_node__pb2.StoreBlobsRequest.SerializeToString,
             node_dot_node__pb2.StoreBlobsReply.FromString,
             options,
@@ -192,23 +200,26 @@ class Dispersal(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def AttestBatch(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def AttestBatch(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Dispersal/AttestBatch',
+            "/node.Dispersal/AttestBatch",
             node_dot_node__pb2.AttestBatchRequest.SerializeToString,
             node_dot_node__pb2.AttestBatchReply.FromString,
             options,
@@ -219,23 +230,26 @@ class Dispersal(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def NodeInfo(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def NodeInfo(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Dispersal/NodeInfo',
+            "/node.Dispersal/NodeInfo",
             node_dot_node__pb2.NodeInfoRequest.SerializeToString,
             node_dot_node__pb2.NodeInfoReply.FromString,
             options,
@@ -246,7 +260,8 @@ class Dispersal(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
 
 class RetrievalStub(object):
@@ -259,90 +274,91 @@ class RetrievalStub(object):
             channel: A grpc.Channel.
         """
         self.RetrieveChunks = channel.unary_unary(
-                '/node.Retrieval/RetrieveChunks',
-                request_serializer=node_dot_node__pb2.RetrieveChunksRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.RetrieveChunksReply.FromString,
-                _registered_method=True)
+            "/node.Retrieval/RetrieveChunks",
+            request_serializer=node_dot_node__pb2.RetrieveChunksRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.RetrieveChunksReply.FromString,
+            _registered_method=True,
+        )
         self.GetBlobHeader = channel.unary_unary(
-                '/node.Retrieval/GetBlobHeader',
-                request_serializer=node_dot_node__pb2.GetBlobHeaderRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.GetBlobHeaderReply.FromString,
-                _registered_method=True)
+            "/node.Retrieval/GetBlobHeader",
+            request_serializer=node_dot_node__pb2.GetBlobHeaderRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.GetBlobHeaderReply.FromString,
+            _registered_method=True,
+        )
         self.NodeInfo = channel.unary_unary(
-                '/node.Retrieval/NodeInfo',
-                request_serializer=node_dot_node__pb2.NodeInfoRequest.SerializeToString,
-                response_deserializer=node_dot_node__pb2.NodeInfoReply.FromString,
-                _registered_method=True)
+            "/node.Retrieval/NodeInfo",
+            request_serializer=node_dot_node__pb2.NodeInfoRequest.SerializeToString,
+            response_deserializer=node_dot_node__pb2.NodeInfoReply.FromString,
+            _registered_method=True,
+        )
 
 
 class RetrievalServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def RetrieveChunks(self, request, context):
-        """RetrieveChunks retrieves the chunks for a blob custodied at the Node.
-        """
+        """RetrieveChunks retrieves the chunks for a blob custodied at the Node."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def GetBlobHeader(self, request, context):
-        """GetBlobHeader is similar to RetrieveChunks, this just returns the header of the blob.
-        """
+        """GetBlobHeader is similar to RetrieveChunks, this just returns the header of the blob."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def NodeInfo(self, request, context):
-        """Retrieve node info metadata
-        """
+        """Retrieve node info metadata"""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_RetrievalServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'RetrieveChunks': grpc.unary_unary_rpc_method_handler(
-                    servicer.RetrieveChunks,
-                    request_deserializer=node_dot_node__pb2.RetrieveChunksRequest.FromString,
-                    response_serializer=node_dot_node__pb2.RetrieveChunksReply.SerializeToString,
-            ),
-            'GetBlobHeader': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetBlobHeader,
-                    request_deserializer=node_dot_node__pb2.GetBlobHeaderRequest.FromString,
-                    response_serializer=node_dot_node__pb2.GetBlobHeaderReply.SerializeToString,
-            ),
-            'NodeInfo': grpc.unary_unary_rpc_method_handler(
-                    servicer.NodeInfo,
-                    request_deserializer=node_dot_node__pb2.NodeInfoRequest.FromString,
-                    response_serializer=node_dot_node__pb2.NodeInfoReply.SerializeToString,
-            ),
+        "RetrieveChunks": grpc.unary_unary_rpc_method_handler(
+            servicer.RetrieveChunks,
+            request_deserializer=node_dot_node__pb2.RetrieveChunksRequest.FromString,
+            response_serializer=node_dot_node__pb2.RetrieveChunksReply.SerializeToString,
+        ),
+        "GetBlobHeader": grpc.unary_unary_rpc_method_handler(
+            servicer.GetBlobHeader,
+            request_deserializer=node_dot_node__pb2.GetBlobHeaderRequest.FromString,
+            response_serializer=node_dot_node__pb2.GetBlobHeaderReply.SerializeToString,
+        ),
+        "NodeInfo": grpc.unary_unary_rpc_method_handler(
+            servicer.NodeInfo,
+            request_deserializer=node_dot_node__pb2.NodeInfoRequest.FromString,
+            response_serializer=node_dot_node__pb2.NodeInfoReply.SerializeToString,
+        ),
     }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'node.Retrieval', rpc_method_handlers)
+    generic_handler = grpc.method_handlers_generic_handler("node.Retrieval", rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('node.Retrieval', rpc_method_handlers)
+    server.add_registered_method_handlers("node.Retrieval", rpc_method_handlers)
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class Retrieval(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def RetrieveChunks(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def RetrieveChunks(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Retrieval/RetrieveChunks',
+            "/node.Retrieval/RetrieveChunks",
             node_dot_node__pb2.RetrieveChunksRequest.SerializeToString,
             node_dot_node__pb2.RetrieveChunksReply.FromString,
             options,
@@ -353,23 +369,26 @@ class Retrieval(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def GetBlobHeader(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def GetBlobHeader(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Retrieval/GetBlobHeader',
+            "/node.Retrieval/GetBlobHeader",
             node_dot_node__pb2.GetBlobHeaderRequest.SerializeToString,
             node_dot_node__pb2.GetBlobHeaderReply.FromString,
             options,
@@ -380,23 +399,26 @@ class Retrieval(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def NodeInfo(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def NodeInfo(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/node.Retrieval/NodeInfo',
+            "/node.Retrieval/NodeInfo",
             node_dot_node__pb2.NodeInfoRequest.SerializeToString,
             node_dot_node__pb2.NodeInfoReply.FromString,
             options,
@@ -407,4 +429,5 @@ class Retrieval(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )

@@ -9,13 +9,9 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    31,
-    1,
-    '',
-    'disperser/v2/disperser_v2.proto'
+    _runtime_version.Domain.PUBLIC, 6, 31, 1, "", "disperser/v2/disperser_v2.proto"
 )
 # @@protoc_insertion_point(imports)
 
@@ -26,44 +22,48 @@ from eigenda.grpc.common import common_pb2 as common_dot_common__pb2
 from eigenda.grpc.common.v2 import common_v2_pb2 as common_dot_v2_dot_common__v2__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x64isperser/v2/disperser_v2.proto\x12\x0c\x64isperser.v2\x1a\x13\x63ommon/common.proto\x1a\x19\x63ommon/v2/common_v2.proto\"b\n\x13\x44isperseBlobRequest\x12\x0c\n\x04\x62lob\x18\x01 \x01(\x0c\x12*\n\x0b\x62lob_header\x18\x02 \x01(\x0b\x32\x15.common.v2.BlobHeader\x12\x11\n\tsignature\x18\x03 \x01(\x0c\"O\n\x11\x44isperseBlobReply\x12(\n\x06result\x18\x01 \x01(\x0e\x32\x18.disperser.v2.BlobStatus\x12\x10\n\x08\x62lob_key\x18\x02 \x01(\x0c\"%\n\x11\x42lobStatusRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c\"\xaa\x01\n\x0f\x42lobStatusReply\x12(\n\x06status\x18\x01 \x01(\x0e\x32\x18.disperser.v2.BlobStatus\x12/\n\x0csigned_batch\x18\x02 \x01(\x0b\x32\x19.disperser.v2.SignedBatch\x12<\n\x13\x62lob_inclusion_info\x18\x03 \x01(\x0b\x32\x1f.disperser.v2.BlobInclusionInfo\"%\n\x15\x42lobCommitmentRequest\x12\x0c\n\x04\x62lob\x18\x01 \x01(\x0c\"F\n\x13\x42lobCommitmentReply\x12/\n\x0f\x62lob_commitment\x18\x01 \x01(\x0b\x32\x16.common.BlobCommitment\"R\n\x16GetPaymentStateRequest\x12\x12\n\naccount_id\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x11\n\ttimestamp\x18\x03 \x01(\x04\"\xfc\x01\n\x14GetPaymentStateReply\x12@\n\x15payment_global_params\x18\x01 \x01(\x0b\x32!.disperser.v2.PaymentGlobalParams\x12\x32\n\x0eperiod_records\x18\x02 \x03(\x0b\x32\x1a.disperser.v2.PeriodRecord\x12.\n\x0breservation\x18\x03 \x01(\x0b\x32\x19.disperser.v2.Reservation\x12\x1a\n\x12\x63umulative_payment\x18\x04 \x01(\x0c\x12\"\n\x1aonchain_cumulative_payment\x18\x05 \x01(\x0c\"e\n\x0bSignedBatch\x12&\n\x06header\x18\x01 \x01(\x0b\x32\x16.common.v2.BatchHeader\x12.\n\x0b\x61ttestation\x18\x02 \x01(\x0b\x32\x19.disperser.v2.Attestation\"v\n\x11\x42lobInclusionInfo\x12\x34\n\x10\x62lob_certificate\x18\x01 \x01(\x0b\x32\x1a.common.v2.BlobCertificate\x12\x12\n\nblob_index\x18\x02 \x01(\r\x12\x17\n\x0finclusion_proof\x18\x03 \x01(\x0c\"\x98\x01\n\x0b\x41ttestation\x12\x1a\n\x12non_signer_pubkeys\x18\x01 \x03(\x0c\x12\x0e\n\x06\x61pk_g2\x18\x02 \x01(\x0c\x12\x13\n\x0bquorum_apks\x18\x03 \x03(\x0c\x12\r\n\x05sigma\x18\x04 \x01(\x0c\x12\x16\n\x0equorum_numbers\x18\x05 \x03(\r\x12!\n\x19quorum_signed_percentages\x18\x06 \x01(\x0c\"\xa9\x01\n\x13PaymentGlobalParams\x12!\n\x19global_symbols_per_second\x18\x01 \x01(\x04\x12\x17\n\x0fmin_num_symbols\x18\x02 \x01(\x04\x12\x18\n\x10price_per_symbol\x18\x03 \x01(\x04\x12\x1a\n\x12reservation_window\x18\x04 \x01(\x04\x12 \n\x18on_demand_quorum_numbers\x18\x05 \x03(\r\"\x88\x01\n\x0bReservation\x12\x1a\n\x12symbols_per_second\x18\x01 \x01(\x04\x12\x17\n\x0fstart_timestamp\x18\x02 \x01(\r\x12\x15\n\rend_timestamp\x18\x03 \x01(\r\x12\x16\n\x0equorum_numbers\x18\x04 \x03(\r\x12\x15\n\rquorum_splits\x18\x05 \x03(\r\",\n\x0cPeriodRecord\x12\r\n\x05index\x18\x01 \x01(\r\x12\r\n\x05usage\x18\x02 \x01(\x04*f\n\nBlobStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06QUEUED\x10\x01\x12\x0b\n\x07\x45NCODED\x10\x02\x12\x18\n\x14GATHERING_SIGNATURES\x10\x03\x12\x0c\n\x08\x43OMPLETE\x10\x04\x12\n\n\x06\x46\x41ILED\x10\x05\x32\xf2\x02\n\tDisperser\x12T\n\x0c\x44isperseBlob\x12!.disperser.v2.DisperseBlobRequest\x1a\x1f.disperser.v2.DisperseBlobReply\"\x00\x12Q\n\rGetBlobStatus\x12\x1f.disperser.v2.BlobStatusRequest\x1a\x1d.disperser.v2.BlobStatusReply\"\x00\x12]\n\x11GetBlobCommitment\x12#.disperser.v2.BlobCommitmentRequest\x1a!.disperser.v2.BlobCommitmentReply\"\x00\x12]\n\x0fGetPaymentState\x12$.disperser.v2.GetPaymentStateRequest\x1a\".disperser.v2.GetPaymentStateReply\"\x00\x42\x34Z2github.com/Layr-Labs/eigenda/api/grpc/disperser/v2b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x1f\x64isperser/v2/disperser_v2.proto\x12\x0c\x64isperser.v2\x1a\x13\x63ommon/common.proto\x1a\x19\x63ommon/v2/common_v2.proto"b\n\x13\x44isperseBlobRequest\x12\x0c\n\x04\x62lob\x18\x01 \x01(\x0c\x12*\n\x0b\x62lob_header\x18\x02 \x01(\x0b\x32\x15.common.v2.BlobHeader\x12\x11\n\tsignature\x18\x03 \x01(\x0c"O\n\x11\x44isperseBlobReply\x12(\n\x06result\x18\x01 \x01(\x0e\x32\x18.disperser.v2.BlobStatus\x12\x10\n\x08\x62lob_key\x18\x02 \x01(\x0c"%\n\x11\x42lobStatusRequest\x12\x10\n\x08\x62lob_key\x18\x01 \x01(\x0c"\xaa\x01\n\x0f\x42lobStatusReply\x12(\n\x06status\x18\x01 \x01(\x0e\x32\x18.disperser.v2.BlobStatus\x12/\n\x0csigned_batch\x18\x02 \x01(\x0b\x32\x19.disperser.v2.SignedBatch\x12<\n\x13\x62lob_inclusion_info\x18\x03 \x01(\x0b\x32\x1f.disperser.v2.BlobInclusionInfo"%\n\x15\x42lobCommitmentRequest\x12\x0c\n\x04\x62lob\x18\x01 \x01(\x0c"F\n\x13\x42lobCommitmentReply\x12/\n\x0f\x62lob_commitment\x18\x01 \x01(\x0b\x32\x16.common.BlobCommitment"R\n\x16GetPaymentStateRequest\x12\x12\n\naccount_id\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x11\n\ttimestamp\x18\x03 \x01(\x04"\xfc\x01\n\x14GetPaymentStateReply\x12@\n\x15payment_global_params\x18\x01 \x01(\x0b\x32!.disperser.v2.PaymentGlobalParams\x12\x32\n\x0eperiod_records\x18\x02 \x03(\x0b\x32\x1a.disperser.v2.PeriodRecord\x12.\n\x0breservation\x18\x03 \x01(\x0b\x32\x19.disperser.v2.Reservation\x12\x1a\n\x12\x63umulative_payment\x18\x04 \x01(\x0c\x12"\n\x1aonchain_cumulative_payment\x18\x05 \x01(\x0c"e\n\x0bSignedBatch\x12&\n\x06header\x18\x01 \x01(\x0b\x32\x16.common.v2.BatchHeader\x12.\n\x0b\x61ttestation\x18\x02 \x01(\x0b\x32\x19.disperser.v2.Attestation"v\n\x11\x42lobInclusionInfo\x12\x34\n\x10\x62lob_certificate\x18\x01 \x01(\x0b\x32\x1a.common.v2.BlobCertificate\x12\x12\n\nblob_index\x18\x02 \x01(\r\x12\x17\n\x0finclusion_proof\x18\x03 \x01(\x0c"\x98\x01\n\x0b\x41ttestation\x12\x1a\n\x12non_signer_pubkeys\x18\x01 \x03(\x0c\x12\x0e\n\x06\x61pk_g2\x18\x02 \x01(\x0c\x12\x13\n\x0bquorum_apks\x18\x03 \x03(\x0c\x12\r\n\x05sigma\x18\x04 \x01(\x0c\x12\x16\n\x0equorum_numbers\x18\x05 \x03(\r\x12!\n\x19quorum_signed_percentages\x18\x06 \x01(\x0c"\xa9\x01\n\x13PaymentGlobalParams\x12!\n\x19global_symbols_per_second\x18\x01 \x01(\x04\x12\x17\n\x0fmin_num_symbols\x18\x02 \x01(\x04\x12\x18\n\x10price_per_symbol\x18\x03 \x01(\x04\x12\x1a\n\x12reservation_window\x18\x04 \x01(\x04\x12 \n\x18on_demand_quorum_numbers\x18\x05 \x03(\r"\x88\x01\n\x0bReservation\x12\x1a\n\x12symbols_per_second\x18\x01 \x01(\x04\x12\x17\n\x0fstart_timestamp\x18\x02 \x01(\r\x12\x15\n\rend_timestamp\x18\x03 \x01(\r\x12\x16\n\x0equorum_numbers\x18\x04 \x03(\r\x12\x15\n\rquorum_splits\x18\x05 \x03(\r",\n\x0cPeriodRecord\x12\r\n\x05index\x18\x01 \x01(\r\x12\r\n\x05usage\x18\x02 \x01(\x04*f\n\nBlobStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\n\n\x06QUEUED\x10\x01\x12\x0b\n\x07\x45NCODED\x10\x02\x12\x18\n\x14GATHERING_SIGNATURES\x10\x03\x12\x0c\n\x08\x43OMPLETE\x10\x04\x12\n\n\x06\x46\x41ILED\x10\x05\x32\xf2\x02\n\tDisperser\x12T\n\x0c\x44isperseBlob\x12!.disperser.v2.DisperseBlobRequest\x1a\x1f.disperser.v2.DisperseBlobReply"\x00\x12Q\n\rGetBlobStatus\x12\x1f.disperser.v2.BlobStatusRequest\x1a\x1d.disperser.v2.BlobStatusReply"\x00\x12]\n\x11GetBlobCommitment\x12#.disperser.v2.BlobCommitmentRequest\x1a!.disperser.v2.BlobCommitmentReply"\x00\x12]\n\x0fGetPaymentState\x12$.disperser.v2.GetPaymentStateRequest\x1a".disperser.v2.GetPaymentStateReply"\x00\x42\x34Z2github.com/Layr-Labs/eigenda/api/grpc/disperser/v2b\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'disperser.v2.disperser_v2_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "disperser.v2.disperser_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-  _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z2github.com/Layr-Labs/eigenda/api/grpc/disperser/v2'
-  _globals['_BLOBSTATUS']._serialized_start=1675
-  _globals['_BLOBSTATUS']._serialized_end=1777
-  _globals['_DISPERSEBLOBREQUEST']._serialized_start=97
-  _globals['_DISPERSEBLOBREQUEST']._serialized_end=195
-  _globals['_DISPERSEBLOBREPLY']._serialized_start=197
-  _globals['_DISPERSEBLOBREPLY']._serialized_end=276
-  _globals['_BLOBSTATUSREQUEST']._serialized_start=278
-  _globals['_BLOBSTATUSREQUEST']._serialized_end=315
-  _globals['_BLOBSTATUSREPLY']._serialized_start=318
-  _globals['_BLOBSTATUSREPLY']._serialized_end=488
-  _globals['_BLOBCOMMITMENTREQUEST']._serialized_start=490
-  _globals['_BLOBCOMMITMENTREQUEST']._serialized_end=527
-  _globals['_BLOBCOMMITMENTREPLY']._serialized_start=529
-  _globals['_BLOBCOMMITMENTREPLY']._serialized_end=599
-  _globals['_GETPAYMENTSTATEREQUEST']._serialized_start=601
-  _globals['_GETPAYMENTSTATEREQUEST']._serialized_end=683
-  _globals['_GETPAYMENTSTATEREPLY']._serialized_start=686
-  _globals['_GETPAYMENTSTATEREPLY']._serialized_end=938
-  _globals['_SIGNEDBATCH']._serialized_start=940
-  _globals['_SIGNEDBATCH']._serialized_end=1041
-  _globals['_BLOBINCLUSIONINFO']._serialized_start=1043
-  _globals['_BLOBINCLUSIONINFO']._serialized_end=1161
-  _globals['_ATTESTATION']._serialized_start=1164
-  _globals['_ATTESTATION']._serialized_end=1316
-  _globals['_PAYMENTGLOBALPARAMS']._serialized_start=1319
-  _globals['_PAYMENTGLOBALPARAMS']._serialized_end=1488
-  _globals['_RESERVATION']._serialized_start=1491
-  _globals['_RESERVATION']._serialized_end=1627
-  _globals['_PERIODRECORD']._serialized_start=1629
-  _globals['_PERIODRECORD']._serialized_end=1673
-  _globals['_DISPERSER']._serialized_start=1780
-  _globals['_DISPERSER']._serialized_end=2150
+    _globals["DESCRIPTOR"]._loaded_options = None
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z2github.com/Layr-Labs/eigenda/api/grpc/disperser/v2"
+    )
+    _globals["_BLOBSTATUS"]._serialized_start = 1675
+    _globals["_BLOBSTATUS"]._serialized_end = 1777
+    _globals["_DISPERSEBLOBREQUEST"]._serialized_start = 97
+    _globals["_DISPERSEBLOBREQUEST"]._serialized_end = 195
+    _globals["_DISPERSEBLOBREPLY"]._serialized_start = 197
+    _globals["_DISPERSEBLOBREPLY"]._serialized_end = 276
+    _globals["_BLOBSTATUSREQUEST"]._serialized_start = 278
+    _globals["_BLOBSTATUSREQUEST"]._serialized_end = 315
+    _globals["_BLOBSTATUSREPLY"]._serialized_start = 318
+    _globals["_BLOBSTATUSREPLY"]._serialized_end = 488
+    _globals["_BLOBCOMMITMENTREQUEST"]._serialized_start = 490
+    _globals["_BLOBCOMMITMENTREQUEST"]._serialized_end = 527
+    _globals["_BLOBCOMMITMENTREPLY"]._serialized_start = 529
+    _globals["_BLOBCOMMITMENTREPLY"]._serialized_end = 599
+    _globals["_GETPAYMENTSTATEREQUEST"]._serialized_start = 601
+    _globals["_GETPAYMENTSTATEREQUEST"]._serialized_end = 683
+    _globals["_GETPAYMENTSTATEREPLY"]._serialized_start = 686
+    _globals["_GETPAYMENTSTATEREPLY"]._serialized_end = 938
+    _globals["_SIGNEDBATCH"]._serialized_start = 940
+    _globals["_SIGNEDBATCH"]._serialized_end = 1041
+    _globals["_BLOBINCLUSIONINFO"]._serialized_start = 1043
+    _globals["_BLOBINCLUSIONINFO"]._serialized_end = 1161
+    _globals["_ATTESTATION"]._serialized_start = 1164
+    _globals["_ATTESTATION"]._serialized_end = 1316
+    _globals["_PAYMENTGLOBALPARAMS"]._serialized_start = 1319
+    _globals["_PAYMENTGLOBALPARAMS"]._serialized_end = 1488
+    _globals["_RESERVATION"]._serialized_start = 1491
+    _globals["_RESERVATION"]._serialized_end = 1627
+    _globals["_PERIODRECORD"]._serialized_start = 1629
+    _globals["_PERIODRECORD"]._serialized_end = 1673
+    _globals["_DISPERSER"]._serialized_start = 1780
+    _globals["_DISPERSER"]._serialized_end = 2150
 # @@protoc_insertion_point(module_scope)

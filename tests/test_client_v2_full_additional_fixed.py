@@ -40,7 +40,7 @@ class TestDisperserClientV2FullAdditional:
             with patch.object(client, "_stub") as mock_stub:
                 # Mock GetBlobCommitment to raise ValueError
                 mock_stub.GetBlobCommitment.side_effect = ValueError("Invalid data")
-                
+
                 with pytest.raises(ValueError) as exc_info:
                     client.disperse_blob(b"test data")
 
@@ -53,6 +53,7 @@ class TestDisperserClientV2FullAdditional:
         client._payment_state = Mock()
         # Ensure accountant exists with proper state
         from eigenda.payment import SimpleAccountant
+
         client.accountant = SimpleAccountant(client.signer.get_account_id())
         client.accountant.cumulative_payment = 0
 
@@ -62,23 +63,29 @@ class TestDisperserClientV2FullAdditional:
                 mock_commitment_reply = Mock()
                 mock_commitment_reply.blob_commitment = Mock()
                 mock_stub.GetBlobCommitment.return_value = mock_commitment_reply
-                
+
                 # Mock the protobuf message creation to avoid issues
                 mock_blob_header = Mock()
                 mock_request = Mock()
                 with patch("eigenda.client_v2_full.common_v2_pb2.BlobHeader") as mock_header_class:
                     mock_header_class.return_value = mock_blob_header
                     with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
-                        with patch("eigenda.client_v2_full.disperser_v2_pb2.DisperseBlobRequest") as mock_request_class:
+                        with patch(
+                            "eigenda.client_v2_full.disperser_v2_pb2.DisperseBlobRequest"
+                        ) as mock_request_class:
                             mock_request_class.return_value = mock_request
+
                             # Create a proper gRPC error that inherits from BaseException
                             class MockGrpcError(Exception):
                                 def code(self):
                                     return grpc.StatusCode.UNAVAILABLE
+
                                 def details(self):
                                     return "Service unavailable"
-                            
-                            mock_stub.DisperseBlob.side_effect = MockGrpcError("Service unavailable")
-                            
+
+                            mock_stub.DisperseBlob.side_effect = MockGrpcError(
+                                "Service unavailable"
+                            )
+
                             with pytest.raises(Exception, match="Service unavailable"):
                                 client.disperse_blob(b"test data")

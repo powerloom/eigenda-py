@@ -9,13 +9,9 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    6,
-    31,
-    1,
-    '',
-    'retriever/v2/retriever_v2.proto'
+    _runtime_version.Domain.PUBLIC, 6, 31, 1, "", "retriever/v2/retriever_v2.proto"
 )
 # @@protoc_insertion_point(imports)
 
@@ -25,18 +21,22 @@ _sym_db = _symbol_database.Default()
 from eigenda.grpc.common.v2 import common_v2_pb2 as common_dot_v2_dot_common__v2__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fretriever/v2/retriever_v2.proto\x12\x0cretriever.v2\x1a\x19\x63ommon/v2/common_v2.proto\"l\n\x0b\x42lobRequest\x12*\n\x0b\x62lob_header\x18\x01 \x01(\x0b\x32\x15.common.v2.BlobHeader\x12\x1e\n\x16reference_block_number\x18\x02 \x01(\r\x12\x11\n\tquorum_id\x18\x03 \x01(\r\"\x19\n\tBlobReply\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x32Q\n\tRetriever\x12\x44\n\x0cRetrieveBlob\x12\x19.retriever.v2.BlobRequest\x1a\x17.retriever.v2.BlobReply\"\x00\x42\x34Z2github.com/Layr-Labs/eigenda/api/grpc/retriever/v2b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x1fretriever/v2/retriever_v2.proto\x12\x0cretriever.v2\x1a\x19\x63ommon/v2/common_v2.proto"l\n\x0b\x42lobRequest\x12*\n\x0b\x62lob_header\x18\x01 \x01(\x0b\x32\x15.common.v2.BlobHeader\x12\x1e\n\x16reference_block_number\x18\x02 \x01(\r\x12\x11\n\tquorum_id\x18\x03 \x01(\r"\x19\n\tBlobReply\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x32Q\n\tRetriever\x12\x44\n\x0cRetrieveBlob\x12\x19.retriever.v2.BlobRequest\x1a\x17.retriever.v2.BlobReply"\x00\x42\x34Z2github.com/Layr-Labs/eigenda/api/grpc/retriever/v2b\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'retriever.v2.retriever_v2_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "retriever.v2.retriever_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-  _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z2github.com/Layr-Labs/eigenda/api/grpc/retriever/v2'
-  _globals['_BLOBREQUEST']._serialized_start=76
-  _globals['_BLOBREQUEST']._serialized_end=184
-  _globals['_BLOBREPLY']._serialized_start=186
-  _globals['_BLOBREPLY']._serialized_end=211
-  _globals['_RETRIEVER']._serialized_start=213
-  _globals['_RETRIEVER']._serialized_end=294
+    _globals["DESCRIPTOR"]._loaded_options = None
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"Z2github.com/Layr-Labs/eigenda/api/grpc/retriever/v2"
+    )
+    _globals["_BLOBREQUEST"]._serialized_start = 76
+    _globals["_BLOBREQUEST"]._serialized_end = 184
+    _globals["_BLOBREPLY"]._serialized_start = 186
+    _globals["_BLOBREPLY"]._serialized_end = 211
+    _globals["_RETRIEVER"]._serialized_start = 213
+    _globals["_RETRIEVER"]._serialized_end = 294
 # @@protoc_insertion_point(module_scope)

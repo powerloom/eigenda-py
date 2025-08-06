@@ -51,9 +51,7 @@ def check_blob_status_example():
     raw_data = b"Hello, EigenDA! This is a test blob for status checking."
 
     # Disperse the blob (DisperserClientV2Full handles encoding internally)
-    print(
-        f"\nDispersing blob ({len(raw_data)} bytes)..."
-    )
+    print(f"\nDispersing blob ({len(raw_data)} bytes)...")
     try:
         status, blob_key = client.disperse_blob(
             data=raw_data, blob_version=0, quorum_numbers=[0, 1]  # Use quorums 0 and 1

@@ -5,29 +5,29 @@ import warnings
 
 from eigenda.grpc.disperser.v2 import disperser_v2_pb2 as disperser_dot_v2_dot_disperser__v2__pb2
 
-GRPC_GENERATED_VERSION = '1.74.0'
+GRPC_GENERATED_VERSION = "1.74.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
 try:
     from grpc._utilities import first_version_is_lower
+
     _version_not_supported = first_version_is_lower(GRPC_VERSION, GRPC_GENERATED_VERSION)
 except ImportError:
     _version_not_supported = True
 
 if _version_not_supported:
     raise RuntimeError(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in disperser/v2/disperser_v2_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
+        f"The grpc package installed is at version {GRPC_VERSION},"
+        + f" but the generated code in disperser/v2/disperser_v2_pb2_grpc.py depends on"
+        + f" grpcio>={GRPC_GENERATED_VERSION}."
+        + f" Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}"
+        + f" or downgrade your generated code using grpcio-tools<={GRPC_VERSION}."
     )
 
 
 class DisperserStub(object):
-    """Disperser defines the public APIs for dispersing blobs.
-    """
+    """Disperser defines the public APIs for dispersing blobs."""
 
     def __init__(self, channel):
         """Constructor.
@@ -36,30 +36,33 @@ class DisperserStub(object):
             channel: A grpc.Channel.
         """
         self.DisperseBlob = channel.unary_unary(
-                '/disperser.v2.Disperser/DisperseBlob',
-                request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobRequest.SerializeToString,
-                response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobReply.FromString,
-                _registered_method=True)
+            "/disperser.v2.Disperser/DisperseBlob",
+            request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobRequest.SerializeToString,
+            response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobReply.FromString,
+            _registered_method=True,
+        )
         self.GetBlobStatus = channel.unary_unary(
-                '/disperser.v2.Disperser/GetBlobStatus',
-                request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusRequest.SerializeToString,
-                response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusReply.FromString,
-                _registered_method=True)
+            "/disperser.v2.Disperser/GetBlobStatus",
+            request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusRequest.SerializeToString,
+            response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusReply.FromString,
+            _registered_method=True,
+        )
         self.GetBlobCommitment = channel.unary_unary(
-                '/disperser.v2.Disperser/GetBlobCommitment',
-                request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentRequest.SerializeToString,
-                response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentReply.FromString,
-                _registered_method=True)
+            "/disperser.v2.Disperser/GetBlobCommitment",
+            request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentRequest.SerializeToString,
+            response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentReply.FromString,
+            _registered_method=True,
+        )
         self.GetPaymentState = channel.unary_unary(
-                '/disperser.v2.Disperser/GetPaymentState',
-                request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.SerializeToString,
-                response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.FromString,
-                _registered_method=True)
+            "/disperser.v2.Disperser/GetPaymentState",
+            request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.SerializeToString,
+            response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.FromString,
+            _registered_method=True,
+        )
 
 
 class DisperserServicer(object):
-    """Disperser defines the public APIs for dispersing blobs.
-    """
+    """Disperser defines the public APIs for dispersing blobs."""
 
     def DisperseBlob(self, request, context):
         """DisperseBlob accepts blob to disperse from clients.
@@ -68,15 +71,14 @@ class DisperserServicer(object):
         processing status of the blob.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def GetBlobStatus(self, request, context):
-        """GetBlobStatus is meant to be polled for the blob status.
-        """
+        """GetBlobStatus is meant to be polled for the blob status."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def GetBlobCommitment(self, request, context):
         """GetBlobCommitment is a utility method that calculates commitment for a blob payload.
@@ -87,8 +89,8 @@ class DisperserServicer(object):
         https://github.com/Layr-Labs/eigenda/blob/6059c6a068298d11c41e50f5bcd208d0da44906a/api/clients/v2/disperser_client.go#L166
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
     def GetPaymentState(self, request, context):
         """GetPaymentState is a utility method to get the payment state of a given account, at a given disperser.
@@ -101,59 +103,61 @@ class DisperserServicer(object):
         https://github.com/Layr-Labs/eigenda/blob/6059c6a068298d11c41e50f5bcd208d0da44906a/api/clients/v2/disperser_client.go#L298
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_DisperserServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'DisperseBlob': grpc.unary_unary_rpc_method_handler(
-                    servicer.DisperseBlob,
-                    request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobRequest.FromString,
-                    response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobReply.SerializeToString,
-            ),
-            'GetBlobStatus': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetBlobStatus,
-                    request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusRequest.FromString,
-                    response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusReply.SerializeToString,
-            ),
-            'GetBlobCommitment': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetBlobCommitment,
-                    request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentRequest.FromString,
-                    response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentReply.SerializeToString,
-            ),
-            'GetPaymentState': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetPaymentState,
-                    request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.FromString,
-                    response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.SerializeToString,
-            ),
+        "DisperseBlob": grpc.unary_unary_rpc_method_handler(
+            servicer.DisperseBlob,
+            request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobRequest.FromString,
+            response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobReply.SerializeToString,
+        ),
+        "GetBlobStatus": grpc.unary_unary_rpc_method_handler(
+            servicer.GetBlobStatus,
+            request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusRequest.FromString,
+            response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusReply.SerializeToString,
+        ),
+        "GetBlobCommitment": grpc.unary_unary_rpc_method_handler(
+            servicer.GetBlobCommitment,
+            request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentRequest.FromString,
+            response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentReply.SerializeToString,
+        ),
+        "GetPaymentState": grpc.unary_unary_rpc_method_handler(
+            servicer.GetPaymentState,
+            request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.FromString,
+            response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.SerializeToString,
+        ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'disperser.v2.Disperser', rpc_method_handlers)
+        "disperser.v2.Disperser", rpc_method_handlers
+    )
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('disperser.v2.Disperser', rpc_method_handlers)
+    server.add_registered_method_handlers("disperser.v2.Disperser", rpc_method_handlers)
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class Disperser(object):
-    """Disperser defines the public APIs for dispersing blobs.
-    """
+    """Disperser defines the public APIs for dispersing blobs."""
 
     @staticmethod
-    def DisperseBlob(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def DisperseBlob(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/disperser.v2.Disperser/DisperseBlob',
+            "/disperser.v2.Disperser/DisperseBlob",
             disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobRequest.SerializeToString,
             disperser_dot_v2_dot_disperser__v2__pb2.DisperseBlobReply.FromString,
             options,
@@ -164,23 +168,26 @@ class Disperser(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def GetBlobStatus(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def GetBlobStatus(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/disperser.v2.Disperser/GetBlobStatus',
+            "/disperser.v2.Disperser/GetBlobStatus",
             disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusRequest.SerializeToString,
             disperser_dot_v2_dot_disperser__v2__pb2.BlobStatusReply.FromString,
             options,
@@ -191,23 +198,26 @@ class Disperser(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def GetBlobCommitment(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def GetBlobCommitment(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/disperser.v2.Disperser/GetBlobCommitment',
+            "/disperser.v2.Disperser/GetBlobCommitment",
             disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentRequest.SerializeToString,
             disperser_dot_v2_dot_disperser__v2__pb2.BlobCommitmentReply.FromString,
             options,
@@ -218,23 +228,26 @@ class Disperser(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )
 
     @staticmethod
-    def GetPaymentState(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
+    def GetPaymentState(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/disperser.v2.Disperser/GetPaymentState',
+            "/disperser.v2.Disperser/GetPaymentState",
             disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.SerializeToString,
             disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.FromString,
             options,
@@ -245,4 +258,5 @@ class Disperser(object):
             wait_for_ready,
             timeout,
             metadata,
-            _registered_method=True)
+            _registered_method=True,
+        )

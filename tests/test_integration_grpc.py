@@ -112,6 +112,7 @@ class MockDisperserServicer(disperser_v2_pb2_grpc.DisperserServicer):
         self.disperse_blob_called = True
         # Validate request - DisperserClientV2Full encodes the data
         from eigenda.codec.blob_codec import encode_blob_data
+
         expected_blob = encode_blob_data(b"hello world")
         assert request.blob == expected_blob
         assert hasattr(request, "blob_header")

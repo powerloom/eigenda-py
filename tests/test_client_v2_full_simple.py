@@ -93,9 +93,10 @@ class TestDisperserClientV2FullSimple:
                 class MockGrpcError(Exception):
                     def code(self):
                         return grpc.StatusCode.NOT_FOUND
+
                     def details(self):
                         return "Blob not found"
-                
+
                 # Set the error as side effect
                 mock_stub.GetBlobStatus.side_effect = MockGrpcError("Blob not found")
 
@@ -171,6 +172,7 @@ class TestDisperserClientV2FullSimple:
         client._payment_state = Mock()
         # Ensure accountant exists
         from eigenda.payment import SimpleAccountant
+
         client.accountant = SimpleAccountant(client.signer.get_account_id())
 
         expected_status = BlobStatus.QUEUED
@@ -183,31 +185,35 @@ class TestDisperserClientV2FullSimple:
                 mock_commitment_reply = Mock()
                 mock_commitment_reply.blob_commitment = Mock()
                 mock_stub.GetBlobCommitment.return_value = mock_commitment_reply
-                
+
                 # Mock DisperseBlob
                 mock_disperse_reply = Mock()
                 mock_disperse_reply.result = 1  # QUEUED
                 mock_disperse_reply.blob_key = b"y" * 32
                 mock_stub.DisperseBlob.return_value = mock_disperse_reply
-                
+
                 # Mock GetPaymentState (in case it's called)
                 mock_payment_state = Mock()
                 mock_payment_state.HasField.return_value = True
                 mock_payment_state.reservation.start_timestamp = 1000000000
                 mock_payment_state.reservation.end_timestamp = 2000000000
                 mock_stub.GetPaymentState.return_value = mock_payment_state
-                
+
                 # Mock the protobuf message creation to avoid issues
                 mock_blob_header = Mock()
                 mock_request = Mock()
                 with patch("eigenda.client_v2_full.common_v2_pb2.BlobHeader") as mock_header_class:
                     mock_header_class.return_value = mock_blob_header
                     with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
-                        with patch("eigenda.client_v2_full.disperser_v2_pb2.DisperseBlobRequest") as mock_request_class:
+                        with patch(
+                            "eigenda.client_v2_full.disperser_v2_pb2.DisperseBlobRequest"
+                        ) as mock_request_class:
                             mock_request_class.return_value = mock_request
                             # Call disperse_blob
                             with patch("builtins.print"):  # Suppress print statements
-                                with patch("time.time", return_value=1500000000):  # Within reservation
+                                with patch(
+                                    "time.time", return_value=1500000000
+                                ):  # Within reservation
                                     status, blob_key = client.disperse_blob(b"test data")
 
                 assert status == expected_status
