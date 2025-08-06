@@ -72,7 +72,7 @@ jobs:
     - name: Test imports
       run: |
         poetry run python -c "import eigenda; print(eigenda.__version__)"
-        poetry run python -c "from eigenda import DisperserClient, DisperserClientV2"
+        poetry run python -c "from eigenda import MockDisperserClient, DisperserClientV2, DisperserClientV2Full"
 
   build:
     name: Build Distribution Packages
