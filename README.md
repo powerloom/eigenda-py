@@ -1,5 +1,10 @@
 # EigenDA Python Client
 
+[![PyPI version](https://badge.fury.io/py/eigenda.svg)](https://badge.fury.io/py/eigenda)
+[![Python](https://img.shields.io/pypi/pyversions/eigenda.svg)](https://pypi.org/project/eigenda/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml)
+
 A Python implementation of the EigenDA v2 client for interacting with the EigenDA protocol.
 
 ## Overview
@@ -27,11 +32,27 @@ This client provides a Python interface to EigenDA, a decentralized data availab
 
 ## Installation
 
-### Using Poetry (Recommended)
+### From PyPI (For Users)
+
+```bash
+# Install from PyPI
+pip install eigenda
+
+# Or install from TestPyPI for pre-release versions
+pip install -i https://test.pypi.org/simple/ eigenda
+```
+
+### From Source (For Development)
+
+#### Using Poetry (Recommended)
 
 The project uses Poetry for dependency management, which provides better dependency resolution and reproducible builds.
 
 ```bash
+# Clone the repository
+git clone https://github.com/powerloom/eigenda-py.git
+cd eigenda-py
+
 # Install Poetry if you haven't already
 curl -sSL https://install.python-poetry.org | python3 -
 
@@ -47,11 +68,15 @@ poetry install --with docs,notebook
 
 For detailed Poetry usage instructions, see our [Poetry Guide](docs/POETRY_GUIDE.md).
 
-### Using pip
+#### Using pip
 
 If you prefer to use pip directly:
 
 ```bash
+# Clone and install
+git clone https://github.com/powerloom/eigenda-py.git
+cd eigenda-py
+
 # Export requirements from Poetry (if requirements.txt doesn't exist)
 poetry export -f requirements.txt --output requirements.txt --without-hashes
 
@@ -60,6 +85,40 @@ pip install -r requirements.txt
 ```
 
 ## Quick Start
+
+### As an Installed Package
+
+After installing via pip, you can use the package directly in your Python code:
+
+```python
+from eigenda import DisperserClientV2Full
+from eigenda.payment import PaymentConfig
+import os
+
+# Set up payment configuration
+payment_config = PaymentConfig(
+    private_key=os.getenv("EIGENDA_PRIVATE_KEY"),
+    network="sepolia"  # or "holesky", "mainnet"
+)
+
+# Create client
+client = DisperserClientV2Full(
+    host="disperser-testnet-sepolia.eigenda.xyz",
+    port=443,
+    use_secure_grpc=True,
+    payment_config=payment_config
+)
+
+# Disperse data
+data = b"Hello, EigenDA!"
+blob_key = client.disperse_blob(data)
+print(f"Blob key: {blob_key.hex()}")
+
+# Clean up
+client.close()
+```
+
+### Running Examples from Source
 
 1. **Set Environment Variables**
 ```bash

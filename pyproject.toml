@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "eigenda-py"
+name = "eigenda"
 version = "0.1.0"
-description = "Python client for EigenDA v2 - decentralized data availability service"
+description = "Python client for EigenDA v2 - a decentralized data availability (DA) service. This unofficial implementation was created by the Powerloom team."
 authors = ["Swaroop Hegde <email@swaroophegde.com>"]
 maintainers = ["Powerloom Team <hello@powerloom.io>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://powerloom.io/"
+homepage = "https://www.eigenda.xyz/"
 repository = "https://github.com/powerloom/eigenda-py"
 documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 keywords = ["eigenda", "ethereum", "data-availability", "blockchain", "web3", "powerloom"]
@@ -81,6 +81,16 @@ build-backend = "poetry.core.masonry.api"
 enable = true
 vcs = "git"
 style = "semver"
+pattern = "^v?(?P<base>\\d+\\.\\d+\\.\\d+)"
+format-jinja = """
+    {%- if distance == 0 -%}
+        {{ serialize_pep440(base, stage, revision) }}
+    {%- elif branch == 'develop' -%}
+        {{ serialize_pep440(base, stage, revision, dev=distance) }}
+    {%- else -%}
+        {{ serialize_pep440(base, stage, revision, dev=distance, metadata=[commit]) }}
+    {%- endif -%}
+"""
 
 [tool.black]
 line-length = 100
