@@ -33,9 +33,9 @@ def main():
     # Create client
     print("\nCreating client...")
     client = DisperserClientV2Full(
-        hostname=os.environ.get("EIGENDA_DISPERSER_HOST", "disperser-testnet-holesky.eigenda.xyz"),
-        port=443,
-        use_secure_grpc=True,
+        hostname=os.environ.get("EIGENDA_DISPERSER_HOST", "disperser-testnet-sepolia.eigenda.xyz"),
+        port=int(os.environ.get("EIGENDA_DISPERSER_PORT", "443")),
+        use_secure_grpc=os.environ.get("EIGENDA_USE_SECURE_GRPC", "true").lower() == "true",
         signer=signer,
         payment_config=PaymentConfig()
     )

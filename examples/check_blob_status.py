@@ -30,7 +30,7 @@ def check_blob_status_example():
         print("Please set it to your Ethereum private key (with 0x prefix)")
         return
 
-    disperser_host = os.getenv("EIGENDA_DISPERSER_HOST", "disperser-testnet-holesky.eigenda.xyz")
+    disperser_host = os.getenv("EIGENDA_DISPERSER_HOST", "disperser-testnet-sepolia.eigenda.xyz")
     disperser_port = int(os.getenv("EIGENDA_DISPERSER_PORT", "443"))
     use_secure_grpc = os.getenv("EIGENDA_USE_SECURE_GRPC", "true").lower() == "true"
 

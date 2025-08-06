@@ -91,10 +91,10 @@ python examples/minimal_client.py
 The client automatically detects the network based on the `EIGENDA_DISPERSER_HOST` environment variable:
 
 ```bash
-# Sepolia testnet
+# Sepolia testnet (default)
 EIGENDA_DISPERSER_HOST=disperser-testnet-sepolia.eigenda.xyz
 
-# Holesky testnet (default)
+# Holesky testnet
 EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz
 
 # Mainnet
