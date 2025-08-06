@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/powerloom/eigenda-py/actions/workflows/publish-pypi.yml)
 
-A Python implementation of the EigenDA v2 client for interacting with the EigenDA protocol.
+> This is an unofficial Python implementation of the EigenDA v2 client, developed by Powerloom, for interacting with the EigenDA protocol. Please note that it is on the bleeding edge and not recommended for use in production environments.
 
 ## Overview
 
@@ -665,4 +665,4 @@ MIT License - Copyright (c) 2025 Powerloom
 
 ## About
 
-This Python client for EigenDA v2 was developed by [Powerloom](https://powerloom.io/), a decentralized data protocol. For questions or support, please reach out to the Powerloom team.
+This unofficial Python client for EigenDA v2 was developed by [Powerloom](https://powerloom.io/), a decentralized data protocol. For questions or support, please reach out to the Powerloom team using the [issue tracker](https://github.com/powerloom/eigenda-py/issues).

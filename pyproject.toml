@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "eigenda"
 version = "0.1.0"
-description = "Python client for EigenDA v2 - a decentralized data availability (DA) service. This unofficial implementation was created by the Powerloom team."
+description = "Unofficial Python client for EigenDA v2 - a decentralized data availability (DA) service. This implementation is maintained by the Powerloom team."
 authors = ["Swaroop Hegde <email@swaroophegde.com>"]
 maintainers = ["Powerloom Team <hello@powerloom.io>"]
 license = "MIT"
