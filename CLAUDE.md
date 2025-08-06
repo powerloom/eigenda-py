@@ -351,6 +351,26 @@ Key discoveries made during development:
 
 ## Recent Updates
 
+### Default Network Changed to Sepolia (August 6th 2025)
+The Python client now uses **Sepolia testnet as the default** instead of Holesky:
+
+1. **Configuration Changes**: Default network is now Sepolia throughout the codebase
+2. **Environment Variables**: Standardized across all examples
+   - `EIGENDA_PRIVATE_KEY` - Your private key
+   - `EIGENDA_DISPERSER_HOST` - Default: `disperser-testnet-sepolia.eigenda.xyz`
+   - `EIGENDA_DISPERSER_PORT` - Default: `443`
+   - `EIGENDA_USE_SECURE_GRPC` - Default: `true`
+3. **Examples Updated**: All examples now use consistent environment variables
+4. **Documentation**: Created `docs/ENVIRONMENT_VARIABLES.md` for complete reference
+5. **Backward Compatible**: Holesky still supported via explicit configuration
+
+To use Holesky testnet, set: `EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz`
+
+### Test Failures Fixed (August 6th 2025)
+Fixed failing tests related to the `accountant` attribute initialization in test fixtures:
+- Updated test fixtures to properly initialize `SimpleAccountant`
+- All 352 tests now pass with 92% code coverage
+
 ### Advanced Reservation Support (July 15th 2025)
 The Python client now has feature parity with the Go client for reservation handling:
 

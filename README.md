@@ -86,6 +86,18 @@ python examples/minimal_client.py
 
 ## Configuration
 
+### Environment Variables
+
+All configuration is done through environment variables. See [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) for complete reference.
+
+**Required:**
+- `EIGENDA_PRIVATE_KEY` - Your Ethereum private key (without 0x prefix)
+
+**Optional (with defaults):**
+- `EIGENDA_DISPERSER_HOST` - Default: `disperser-testnet-sepolia.eigenda.xyz`
+- `EIGENDA_DISPERSER_PORT` - Default: `443`
+- `EIGENDA_USE_SECURE_GRPC` - Default: `true`
+
 ### Network Selection
 
 The client automatically detects the network based on the `EIGENDA_DISPERSER_HOST` environment variable:
@@ -513,6 +525,20 @@ poetry run python scripts/fix_grpc_imports.py
 ```
 
 ## Recent Updates
+
+### August 6th 2025
+- **Default Network Changed to Sepolia**: All examples and configuration now default to Sepolia testnet
+- **Standardized Environment Variables**: Consistent usage across all examples
+  - `EIGENDA_PRIVATE_KEY` - Your private key  
+  - `EIGENDA_DISPERSER_HOST` - Default: `disperser-testnet-sepolia.eigenda.xyz`
+  - `EIGENDA_DISPERSER_PORT` - Default: `443`
+  - `EIGENDA_USE_SECURE_GRPC` - Default: `true`
+- **Documentation Updates**:
+  - Created comprehensive `docs/ENVIRONMENT_VARIABLES.md`
+  - Updated all examples to use `dotenv` for loading environment variables
+  - Fixed incorrect hostnames in test files
+- **Test Fixes**: Updated test fixtures to properly initialize accountant objects (all 352 tests passing)
+- **Backward Compatible**: Holesky still supported via explicit configuration
 
 ### July 15th 2025
 - **Advanced Reservation Support** (Feature Parity with Go Client):
