@@ -137,15 +137,10 @@ class TestTonelliShanks:
             legendre = pow(P - 1, (P - 1) // 2, P)
             if legendre != 1:
                 # The function might return None or a special value for non-residues
-                # We need to handle both cases
-                try:
-                    result = tonelli_shanks(P - 1, P)
-                    # If it returns a value, it should not be a valid square root
-                    if result is not None:
-                        assert (result * result) % P != (P - 1)
-                except Exception:
-                    # If it raises an exception, that's also acceptable
-                    pass
+                # P - 1 is not a quadratic residue, so should return None
+                result = tonelli_shanks(P - 1, P)
+                # Should return None for non-residues
+                assert result is None
 
     def test_tonelli_shanks_large_values(self):
         """Test square roots of large values."""

@@ -64,9 +64,10 @@ class TestDisperserClientV2Simple:
 
         # Test with valid blob key
         blob_key = BlobKey(b"test" * 8)  # 32 bytes
-        status = client.get_blob_status(blob_key)
+        response = client.get_blob_status(blob_key)
 
-        assert status == BlobStatus.COMPLETE
+        assert response == mock_response
+        assert response.status == 4  # COMPLETE
 
         # Now test gRPC error
         mock_error = grpc.RpcError()

@@ -155,5 +155,5 @@ class TestPayment100Coverage:
         decoded = int.from_bytes(payment_bytes, "big")
         assert decoded == expected_total
 
-        # Cumulative payment is not updated internally
-        assert accountant.cumulative_payment == 500
+        # Cumulative payment IS updated internally
+        assert accountant.cumulative_payment == expected_total

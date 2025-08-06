@@ -43,11 +43,11 @@ class TestMockDisperserClient:
         # Test data
         data = b"Hello, EigenDA!"
         blob_version = 0
-        quorum_ids = [0, 1]
+        quorum_numbers = [0, 1]
 
         # Call disperse_blob
         status, blob_key = client.disperse_blob(
-            data=data, blob_version=blob_version, quorum_ids=quorum_ids, timeout=30
+            data=data, blob_version=blob_version, quorum_numbers=quorum_numbers, timeout=30
         )
 
         # Verify results
@@ -57,27 +57,27 @@ class TestMockDisperserClient:
 
         # The blob key calculation in the mock client uses SHA3-256 and includes timestamp
         # so we can't verify the exact value, but we can verify it's different each time
-        status2, blob_key2 = client.disperse_blob(data, blob_version, quorum_ids)
+        status2, blob_key2 = client.disperse_blob(data, blob_version, quorum_numbers)
         assert bytes(blob_key) != bytes(blob_key2)  # Different due to timestamp
 
     def test_disperse_blob_empty_data(self, client):
         """Test dispersing empty data."""
         with pytest.raises(ValueError, match="Data cannot be empty"):
-            client.disperse_blob(data=b"", blob_version=0, quorum_ids=[0])
+            client.disperse_blob(data=b"", blob_version=0, quorum_numbers=[0])
 
     def test_disperse_blob_different_inputs(self, client):
         """Test that different inputs produce different blob keys."""
         # First blob
-        status1, key1 = client.disperse_blob(data=b"data1", blob_version=0, quorum_ids=[0])
+        status1, key1 = client.disperse_blob(data=b"data1", blob_version=0, quorum_numbers=[0])
 
         # Second blob with different data
-        status2, key2 = client.disperse_blob(data=b"data2", blob_version=0, quorum_ids=[0])
+        status2, key2 = client.disperse_blob(data=b"data2", blob_version=0, quorum_numbers=[0])
 
         # Third blob with different version
-        status3, key3 = client.disperse_blob(data=b"data1", blob_version=1, quorum_ids=[0])
+        status3, key3 = client.disperse_blob(data=b"data1", blob_version=1, quorum_numbers=[0])
 
         # Fourth blob with different quorums
-        status4, key4 = client.disperse_blob(data=b"data1", blob_version=0, quorum_ids=[0, 1])
+        status4, key4 = client.disperse_blob(data=b"data1", blob_version=0, quorum_numbers=[0, 1])
 
         # All should be successful
         assert all(s == BlobStatus.QUEUED for s in [status1, status2, status3, status4])
@@ -89,7 +89,7 @@ class TestMockDisperserClient:
     def test_get_blob_status(self, client):
         """Test get_blob_status method."""
         # First disperse a blob
-        _, blob_key = client.disperse_blob(data=b"test data", blob_version=0, quorum_ids=[0])
+        _, blob_key = client.disperse_blob(data=b"test data", blob_version=0, quorum_numbers=[0])
 
         # Get status
         status = client.get_blob_status(blob_key)
@@ -125,7 +125,7 @@ class TestMockDisperserClient:
         ) as client:
             # Use client inside context
             status, blob_key = client.disperse_blob(
-                data=b"context test", blob_version=0, quorum_ids=[0]
+                data=b"context test", blob_version=0, quorum_numbers=[0]
             )
             assert status == BlobStatus.QUEUED
             assert isinstance(blob_key, BlobKey)
@@ -189,7 +189,7 @@ class TestMockDisperserClient:
         large_data = b"x" * (10 * 1024 * 1024)
 
         status, blob_key = client.disperse_blob(
-            data=large_data, blob_version=0, quorum_ids=[0], timeout=60
+            data=large_data, blob_version=0, quorum_numbers=[0], timeout=60
         )
 
         assert status == BlobStatus.QUEUED
@@ -200,7 +200,7 @@ class TestMockDisperserClient:
         # Various timeout values
         for timeout in [None, 10, 30, 100]:
             status, blob_key = client.disperse_blob(
-                data=b"timeout test", blob_version=0, quorum_ids=[0], timeout=timeout
+                data=b"timeout test", blob_version=0, quorum_numbers=[0], timeout=timeout
             )
             assert status == BlobStatus.QUEUED
 

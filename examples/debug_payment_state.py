@@ -106,10 +106,10 @@ def main():
 
         traceback.print_exc()
 
-    # Try advanced payment state
-    print("\n\n2. Getting advanced payment state (GetPaymentStateForAllQuorums)...")
+    # Try payment state
+    print("\n\n2. Getting payment state (GetPaymentState)...")
     try:
-        state = client.get_payment_state_for_all_quorums()
+        state = client.get_payment_state()
         if state:
             print("✅ Success!")
 

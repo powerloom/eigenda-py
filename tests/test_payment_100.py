@@ -151,8 +151,8 @@ class TestPaymentComplete100:
         assert increment == 4 * 100  # 400
         expected_total = 500 + 400  # 900
         assert payment_bytes == expected_total.to_bytes(2, "big")
-        # Note: account_blob does NOT update the internal cumulative_payment
-        assert accountant.cumulative_payment == 500  # Unchanged
+        # account_blob DOES update the internal cumulative_payment
+        assert accountant.cumulative_payment == 900  # Updated
 
     def test_simple_accountant_account_blob_large(self):
         """Test account_blob with large values."""
@@ -169,25 +169,22 @@ class TestPaymentComplete100:
         # Verify the bytes representation
         expected_total = expected_increment
         assert int.from_bytes(payment_bytes, "big") == expected_total
-        # Note: account_blob does NOT update the internal cumulative_payment
-        assert accountant.cumulative_payment == 0  # Unchanged
+        # account_blob DOES update the internal cumulative_payment
+        assert accountant.cumulative_payment == expected_increment  # Updated
 
     def test_account_blob_cumulative_update(self):
-        """Test that account_blob returns cumulative payment without updating internal state."""
+        """Test that account_blob updates cumulative payment correctly."""
         config = PaymentConfig(price_per_symbol=100, min_num_symbols=4)
         accountant = SimpleAccountant("0x123", config)
 
         # First blob
         payment_bytes1, increment1 = accountant.account_blob(50)
-        assert accountant.cumulative_payment == 0  # Not updated internally
+        assert accountant.cumulative_payment == increment1  # Updated internally
         assert int.from_bytes(payment_bytes1, "big") == increment1
 
-        # Manually update for next calculation
-        accountant.set_cumulative_payment(increment1)
-
-        # Second blob
+        # Second blob - should automatically accumulate
         payment_bytes2, increment2 = accountant.account_blob(100)
-        assert accountant.cumulative_payment == increment1  # Still at first value
+        assert accountant.cumulative_payment == increment1 + increment2  # Updated again
         assert int.from_bytes(payment_bytes2, "big") == increment1 + increment2
 
     def test_payment_bytes_length(self):

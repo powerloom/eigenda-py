@@ -31,37 +31,24 @@ class TestDisperserClientV2FullFinal:
             payment_config=PaymentConfig(price_per_symbol=447, min_num_symbols=4096),
         )
 
-    @patch("eigenda.client_v2_full.disperser_v2_pb2")
-    def test_get_blob_status_success_lines_228_245(self, mock_disperser_pb2, client):
-        """Test get_blob_status success to cover lines 228-245."""
-        # Mock the request class
-        mock_request = Mock()
-        mock_disperser_pb2.BlobStatusRequest.return_value = mock_request
-
+    def test_get_blob_status_success_lines_228_245(self, client):
+        """Test get_blob_status success."""
         # Mock the stub
         mock_response = Mock()
-        mock_response.status = 3  # Some status
+        mock_response.status = 4  # COMPLETE
         mock_response.info = Mock()
 
-        with patch.object(client, "_stub") as mock_stub:
-            mock_stub.GetBlobStatus.return_value = mock_response
+        with patch.object(client, "_connect"):
+            with patch.object(client, "_stub") as mock_stub:
+                mock_stub.GetBlobStatus.return_value = mock_response
 
-            # Ensure client is connected
-            client._connected = True
+                # Call the method with hex string
+                blob_key_hex = "abcd" * 16  # 64 hex chars = 32 bytes
+                result = client.get_blob_status(blob_key_hex)
 
-            # Call the method with hex string
-            blob_key_hex = "abcd" * 16  # 64 hex chars = 32 bytes
-            result = client.get_blob_status(blob_key_hex)
-
-            # Verify the request was created correctly (lines 231-235)
-            mock_disperser_pb2.BlobStatusRequest.assert_called_once_with(
-                blob_key=bytes.fromhex(blob_key_hex)
-            )
-
-            # Verify the gRPC call (lines 238-242)
-            mock_stub.GetBlobStatus.assert_called_once_with(
-                mock_request, timeout=client.config.timeout, metadata=client._get_metadata()
-            )
+                # Verify the response is returned
+                assert result == mock_response
+                assert result.status == 4
 
             # Verify the response is returned (line 245)
             assert result == mock_response

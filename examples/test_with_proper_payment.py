@@ -164,7 +164,7 @@ def main():
         # Disperse blob
         print("\nDispersing blob...")
         status, blob_key = client.disperse_blob(
-            data=encoded_data, blob_version=0, quorum_ids=[0, 1], timeout=30
+            data=encoded_data, blob_version=0, quorum_ids=[0, 1]
         )
 
         print("\n✅ Success!")

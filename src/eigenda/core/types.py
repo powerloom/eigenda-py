@@ -3,7 +3,7 @@
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from eth_typing import Address
 
@@ -153,77 +153,7 @@ class BlobHeader:
         return hashlib.sha3_256(data).digest()
 
 
-# Reservation and Payment Types
-@dataclass
-class ReservedPayment:
-    """Represents a reservation for payment."""
-
-    symbols_per_second: int
-    start_timestamp: int  # Unix timestamp in seconds
-    end_timestamp: int  # Unix timestamp in seconds
-    quorum_numbers: List[QuorumID]
-    quorum_splits: bytes  # Ordered mapping of quorum number to payment split
-
-    def is_active(self, current_timestamp: int) -> bool:
-        """Check if reservation is active at given timestamp (in seconds)."""
-        return self.start_timestamp <= current_timestamp <= self.end_timestamp
-
-
-@dataclass
-class PaymentQuorumConfig:
-    """Configuration for payment rates per quorum."""
-
-    reservation_symbols_per_second: int
-    on_demand_symbols_per_second: int
-    on_demand_price_per_symbol: int  # in wei
-
-
-@dataclass
-class PaymentQuorumProtocolConfig:
-    """Protocol configuration for payment handling per quorum."""
-
-    min_num_symbols: int
-    reservation_advance_window: int  # in seconds
-    reservation_rate_limit_window: int  # in seconds
-    on_demand_rate_limit_window: int  # in seconds
-    on_demand_enabled: bool
-
-
-@dataclass
-class PeriodRecord:
-    """Record of usage for a specific period."""
-
-    index: int  # Start timestamp of the period in seconds
-    usage: int  # Usage of the period in symbols
-
-
-@dataclass
-class QuorumReservation:
-    """Reservation details for a specific quorum (protobuf compatible)."""
-
-    symbols_per_second: int
-    start_timestamp: int  # Unix timestamp in seconds
-    end_timestamp: int  # Unix timestamp in seconds
-
-
-@dataclass
-class OnDemandPayment:
-    """On-demand payment details."""
-
-    cumulative_payment: int  # Total payment in wei
-
-
-@dataclass
-class PaymentVaultParams:
-    """Parameters from the payment vault contract."""
-
-    quorum_payment_configs: Dict[QuorumID, PaymentQuorumConfig]
-    quorum_protocol_configs: Dict[QuorumID, PaymentQuorumProtocolConfig]
-    on_demand_quorum_numbers: List[QuorumID]
-
-
-# Type for tracking period records per quorum
-QuorumPeriodRecords = Dict[QuorumID, List[PeriodRecord]]
+# Payment Types
 
 
 class PaymentType(Enum):

@@ -212,19 +212,44 @@ All networks currently have the same pricing structure.
 
 ## Usage
 
-### Production Client (V2) - With On-Demand Payments
+### Production Client (V2Full) - Automatic Payment Handling
 
-For production use with on-demand payments (when you have ETH deposited in PaymentVault):
+The `DisperserClientV2Full` automatically handles both reservation-based and on-demand payments:
 
 ```python
-# See examples/test_with_proper_payment.py for full implementation
-# Key steps:
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2_full import DisperserClientV2Full
 
-1. Get current payment state
-2. Calculate payment based on blob size (min 4096 symbols)
-3. Increment cumulative payment
-4. Disperse blob with payment metadata
+# Initialize signer
+signer = LocalBlobRequestSigner(private_key)
+
+# Create client (automatically detects payment method)
+client = DisperserClientV2Full(
+    hostname="disperser.eigenda.xyz",
+    port=443,
+    use_secure_grpc=True,
+    signer=signer
+)
+
+# Disperse blob (handles payment automatically)
+status, blob_key = client.disperse_blob(
+    data=b"Hello, EigenDA!",
+    quorum_numbers=[0, 1]
+)
+
+# Check payment information
+payment_info = client.get_payment_info()
+print(f"Payment type: {payment_info['payment_type']}")
+if payment_info['payment_type'] == 'reservation':
+    print(f"Bandwidth: {payment_info['reservation_details']['symbols_per_second']} symbols/sec")
+elif payment_info['payment_type'] == 'on_demand':
+    print(f"Balance: {payment_info['onchain_balance']/1e18:.4f} ETH")
 ```
+
+The client automatically:
+1. Checks for active reservations first (pre-paid, no per-blob charges)
+2. Falls back to on-demand payment if no reservation exists
+3. Handles all payment calculations and metadata
 
 Working example that successfully dispersed a blob:
 
@@ -361,11 +386,24 @@ Key features of advanced reservations:
 - **Automatic fallback**: Seamlessly switches to on-demand when needed
 - **Thread-safe**: Concurrent blob dispersals are handled correctly
 
-Examples demonstrating reservation features:
-- `examples/advanced_reservations.py` - Reservation-only dispersal (no fallback)
-- `examples/test_both_payments.py` - Automatic payment method selection
-- `examples/check_payment_vault.py` - Check on-chain reservation status
-- `examples/debug_payment_state.py` - Debug payment configuration
+## Examples
+
+The `examples/` directory contains working examples for various use cases:
+
+### Payment and Dispersal
+- `minimal_client.py` - Simplest example using mock client
+- `full_example.py` - Complete dispersal workflow with DisperserClientV2Full
+- `test_reservation_account.py` - Check if account has reservation and test it
+- `test_both_payments.py` - Test accounts with different payment methods
+- `test_with_proper_payment.py` - Manual payment calculation with DisperserClientV2
+- `check_payment_vault.py` - Check on-chain PaymentVault status
+- `debug_payment_state.py` - Debug payment configuration issues
+
+### Blob Operations
+- `check_blob_status.py` - Monitor blob status after dispersal
+- `check_existing_blob_status.py` - Check status of previously dispersed blob
+- `dispersal_with_retrieval_support.py` - Save metadata for later retrieval
+- `blob_retrieval_example.py` - Retrieve blob from EigenDA nodes
 
 ### Blob Retrieval
 

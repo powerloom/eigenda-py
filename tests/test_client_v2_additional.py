@@ -204,21 +204,20 @@ class TestDisperserClientV2Additional:
 
         # Mock response
         mock_response = Mock()
-        mock_response.status = 3  # CERTIFIED
+        mock_response.status = 4  # COMPLETE
         mock_response.info = Mock()
         mock_response.info.blob_header = Mock()
         mock_response.info.blob_header.commitment = Mock()
         mock_stub.GetBlobStatus.return_value = mock_response
 
-        # Mock _parse_blob_status
-        with patch.object(client, "_parse_blob_status", return_value=BlobStatus.COMPLETE):
-            client._connect()
+        client._connect()
 
-            blob_key = BlobKey(b"test_key" + b"\x00" * 24)
-            status = client.get_blob_status(blob_key)
+        blob_key = BlobKey(b"test_key" + b"\x00" * 24)
+        response = client.get_blob_status(blob_key)
 
-            assert status == BlobStatus.COMPLETE
-            mock_stub.GetBlobStatus.assert_called_once()
+        assert response == mock_response
+        assert response.status == 4  # COMPLETE
+        mock_stub.GetBlobStatus.assert_called_once()
 
     @patch("eigenda.client_v2.disperser_v2_pb2_grpc.DisperserStub")
     def test_get_blob_status_grpc_error(self, mock_stub_class, client):
