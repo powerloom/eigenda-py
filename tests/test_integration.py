@@ -19,7 +19,7 @@ class TestIntegration:
         signer = LocalBlobRequestSigner(private_key)
 
         client = MockDisperserClient(
-            hostname="disperser-testnet-holesky.eigenda.xyz",
+            hostname="disperser-testnet-sepolia.eigenda.xyz",
             port=443,
             use_secure_grpc=True,
             signer=signer
