@@ -29,9 +29,9 @@ _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "common.v2.common_v2_pb2", _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
     _globals["DESCRIPTOR"]._loaded_options = None
-    _globals["DESCRIPTOR"]._serialized_options = (
-        b"Z/github.com/Layr-Labs/eigenda/api/grpc/common/v2"
-    )
+    _globals[
+        "DESCRIPTOR"
+    ]._serialized_options = b"Z/github.com/Layr-Labs/eigenda/api/grpc/common/v2"
     _globals["_BLOBHEADER"]._serialized_start = 62
     _globals["_BLOBHEADER"]._serialized_end = 209
     _globals["_BLOBCERTIFICATE"]._serialized_start = 211

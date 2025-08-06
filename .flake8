@@ -1,7 +1,7 @@
 [flake8]
 max-line-length = 127
 max-complexity = 10
-exclude = 
+exclude =
     .git,
     __pycache__,
     build,
@@ -15,8 +15,8 @@ exclude =
     htmlcov,
     demo.py,
     src/eigenda/grpc/
-    
-extend-ignore = 
+
+extend-ignore =
     # W293: blank line contains whitespace
     W293,
     # W291: trailing whitespace

@@ -652,7 +652,7 @@ poetry run python scripts/fix_grpc_imports.py
 ### August 6th 2025
 - **Default Network Changed to Sepolia**: All examples and configuration now default to Sepolia testnet
 - **Standardized Environment Variables**: Consistent usage across all examples
-  - `EIGENDA_PRIVATE_KEY` - Your private key  
+  - `EIGENDA_PRIVATE_KEY` - Your private key
   - `EIGENDA_DISPERSER_HOST` - Default: `disperser-testnet-sepolia.eigenda.xyz`
   - `EIGENDA_DISPERSER_PORT` - Default: `443`
   - `EIGENDA_USE_SECURE_GRPC` - Default: `true`
@@ -687,7 +687,7 @@ poetry run python scripts/fix_grpc_imports.py
 - **Updated all examples**: Fixed status checking, DisperserClientV2Full initialization, and API usage
 - **Added status monitoring examples**: New examples for checking blob status during and after dispersal
 - **Improved error handling**: Better error messages and recovery in examples
-- **Code quality improvements**: 
+- **Code quality improvements**:
   - Removed all `sys.path` hacks from examples (Poetry handles imports properly)
   - Moved all inline imports to top of files following Python best practices
 

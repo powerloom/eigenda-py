@@ -32,9 +32,10 @@ repos:
         args: ['--max-line-length=100', '--extend-ignore=E203,W503']
         exclude: 'src/eigenda/grpc/.*_pb2.*\.py$'
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-all]
-        exclude: 'src/eigenda/grpc/.*_pb2.*\.py$'
+  # Mypy is optional - uncomment if you want type checking
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.8.0
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: []
+  #       exclude: 'src/eigenda/grpc/.*_pb2.*\.py$'

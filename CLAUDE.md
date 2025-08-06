@@ -68,7 +68,7 @@ Data must be encoded before dispersal:
 ✅ **All features fully implemented and working:**
 - ✅ Basic client structure implemented
 - ✅ gRPC communication working
-- ✅ Data encoding/decoding implemented  
+- ✅ Data encoding/decoding implemented
 - ✅ Mock DisperserClient for testing
 - ✅ Full DisperserClientV2 with gRPC
 - ✅ Signature verification working (fixed recovery ID)
@@ -98,7 +98,7 @@ To test the client:
 
 **Unit Tests** (178 tests):
 - `test_client_v2_full.py` - DisperserClientV2Full with payment handling
-- `test_codec.py` - Blob encoding/decoding 
+- `test_codec.py` - Blob encoding/decoding
 - `test_serialization.py` - Blob key calculation
 - `test_payment.py` - Payment calculations
 - `test_g1_g2_decompression.py` - Point decompression
@@ -180,7 +180,7 @@ The project uses Poetry for dependency management with the following structure:
 
 **Core Dependencies:**
 - `grpcio` and `grpcio-tools` for gRPC
-- `web3` and `eth-account` for Ethereum functionality  
+- `web3` and `eth-account` for Ethereum functionality
 - `protobuf` for message serialization
 - `cryptography` and `pycryptodome` for cryptographic operations
 - `python-dotenv` for environment variable management
@@ -277,7 +277,7 @@ The project uses GitHub Actions for automated publishing:
 The EigenDA Python client v2 is now **fully functional** and ready for production use. All core features have been implemented:
 
 1. ✅ **Complete Authentication** - ECDSA signatures with proper key derivation
-2. ✅ **Blob Dispersal** - Full gRPC v2 protocol support  
+2. ✅ **Blob Dispersal** - Full gRPC v2 protocol support
 3. ✅ **Dual Payment Methods** - Both reservation-based and on-demand payments
 4. ✅ **Network Configuration** - Automatic detection for Sepolia, Holesky, and Mainnet
 5. ✅ **G1/G2 Point Decompression** - Native Python implementation matching gnark-crypto
@@ -294,7 +294,7 @@ The project now has a comprehensive test suite:
   - 178 unit tests covering core functionality
   - 33 integration tests with mock gRPC servers
   - Tests run without network dependencies
-  
+
 - **Key Areas Tested**:
   - Client creation and configuration
   - Payment state management (reservation and on-demand)
@@ -339,7 +339,7 @@ The project now includes comprehensive integration tests that verify the complet
 ## Future Enhancements (Optional)
 
 1. ~~Add integration tests with real gRPC server~~ ✅ COMPLETED
-2. Implement local KZG commitment calculation  
+2. Implement local KZG commitment calculation
 3. Add more relay endpoints for blob retrieval
 4. Performance optimizations for large blobs
 5. Add streaming support for large blob operations
@@ -563,7 +563,7 @@ Comparison with other clients:
   - Used `autopep8` to fix PEP8 style issues
   - Excluded generated gRPC files from linting
 - GitHub Actions workflow improvements:
-  - Added pip caching for faster CI runs  
+  - Added pip caching for faster CI runs
   - Updated to latest action versions (v4)
   - Added coverage artifact uploads
   - Integrated linting checks in CI pipeline
@@ -572,7 +572,7 @@ Comparison with other clients:
 - Fixed import order issues in all 7 example files that were importing from `eigenda` before setting up `sys.path`
 - Files fixed:
   - `blob_retrieval_example.py`
-  - `check_payment_vault.py` 
+  - `check_payment_vault.py`
   - `dispersal_with_retrieval_support.py`
   - `full_example.py`
   - `minimal_client.py`

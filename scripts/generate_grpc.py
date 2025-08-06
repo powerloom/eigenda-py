@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate Python gRPC code from proto files."""
 
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -33,7 +33,9 @@ def main():
 
     # Generate Python code
     cmd = [
-        sys.executable, "-m", "grpc_tools.protoc",
+        sys.executable,
+        "-m",
+        "grpc_tools.protoc",
         f"--proto_path={proto_dir}",
         f"--python_out={output_dir}",
         f"--grpc_python_out={output_dir}",
@@ -63,11 +65,13 @@ def fix_imports(output_dir: Path):
             content = py_file.read_text()
 
             # Fix the double import issue first
-            content = content.replace("from eigenda.grpc.common import eigenda.grpc.common_pb2",
-                                      "from eigenda.grpc.common import common_pb2")
+            content = content.replace(
+                "from eigenda.grpc.common import eigenda.grpc.common_pb2",
+                "from eigenda.grpc.common import common_pb2",
+            )
             content = content.replace(
                 "from eigenda.grpc.common.v2 import eigenda.grpc.common_v2_pb2",
-                "from eigenda.grpc.common.v2 import common_v2_pb2"
+                "from eigenda.grpc.common.v2 import common_v2_pb2",
             )
 
             # Fix imports to use eigenda.grpc prefix

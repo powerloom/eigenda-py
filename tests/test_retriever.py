@@ -106,7 +106,6 @@ class TestBlobRetriever:
             ) as mock_secure,
             patch("eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub", return_value=mock_stub),
         ):
-
             retriever._connect()
 
             # Verify secure channel creation
@@ -139,7 +138,6 @@ class TestBlobRetriever:
             ) as mock_insecure,
             patch("eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub", return_value=mock_stub),
         ):
-
             retriever._connect()
 
             # Verify insecure channel creation
@@ -164,7 +162,6 @@ class TestBlobRetriever:
             ) as mock_secure,
             patch("eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub"),
         ):
-
             # First connect
             retriever._connect()
             assert mock_secure.call_count == 1
@@ -354,7 +351,6 @@ class TestBlobRetriever:
             patch("eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub", return_value=mock_stub),
             patch("eigenda.retriever.retriever_v2_pb2.BlobRequest"),
         ):
-
             # Ensure not connected
             assert not retriever._connected
 

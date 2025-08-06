@@ -27,7 +27,7 @@ def format_duration(seconds: int) -> str:
     if seconds < 60:
         return f"{seconds} seconds"
     elif seconds < 3600:
-        return f"{seconds//60} minutes, {seconds%60} seconds"
+        return f"{seconds//60} minutes, {seconds % 60} seconds"
     elif seconds < 86400:
         hours = seconds // 3600
         mins = (seconds % 3600) // 60
@@ -92,12 +92,14 @@ def test_reservation_account():
 
                 print("\nReservation Details:")
                 print(f"  • Bandwidth: {details['symbols_per_second']:,} symbols/second")
-                print(
-                    f"  • Started: {datetime.fromtimestamp(details['start_timestamp']).strftime('%Y-%m-%d %H:%M:%S')}"
+                start_str = datetime.fromtimestamp(details["start_timestamp"]).strftime(
+                    "%Y-%m-%d %H:%M:%S"
                 )
-                print(
-                    f"  • Expires: {datetime.fromtimestamp(details['end_timestamp']).strftime('%Y-%m-%d %H:%M:%S')}"
+                print(f"  • Started: {start_str}")
+                end_str = datetime.fromtimestamp(details["end_timestamp"]).strftime(
+                    "%Y-%m-%d %H:%M:%S"
                 )
+                print(f"  • Expires: {end_str}")
                 print(f"  • Time remaining: {format_duration(details['time_remaining'])}")
                 print(f"  • Allowed quorums: {details['quorum_numbers']}")
                 print(f"  • Quorum bandwidth splits: {details['quorum_splits']}%")
@@ -105,14 +107,12 @@ def test_reservation_account():
                 # Calculate daily/monthly capacity
                 daily_capacity = details["symbols_per_second"] * 86400
                 monthly_capacity = details["symbols_per_second"] * 86400 * 30
-                print(f"\nCapacity:")
+                print("\nCapacity:")
                 print(f"  • Per second: {details['symbols_per_second']:,} symbols")
-                print(
-                    f"  • Per day: {daily_capacity:,} symbols (~{daily_capacity * 31 / (1024*1024):.2f} MB)"
-                )
-                print(
-                    f"  • Per month: {monthly_capacity:,} symbols (~{monthly_capacity * 31 / (1024*1024):.2f} MB)"
-                )
+                daily_mb = daily_capacity * 31 / (1024 * 1024)
+                print(f"  • Per day: {daily_capacity:,} symbols (~{daily_mb:.2f} MB)")
+                monthly_mb = monthly_capacity * 31 / (1024 * 1024)
+                print(f"  • Per month: {monthly_capacity:,} symbols (~{monthly_mb:.2f} MB)")
 
                 print("\n" + "=" * 60)
                 print("TESTING BLOB DISPERSAL WITH RESERVATION")
@@ -146,7 +146,7 @@ def test_reservation_account():
                 elapsed = time.time() - start_time
                 print(f" Done in {elapsed:.2f}s")
 
-                print(f"\n✅ Blob dispersed successfully!")
+                print("\n✅ Blob dispersed successfully!")
                 print(f"  Status: {status.name}")
                 print(f"  Blob key: {blob_key.hex()}")
                 print(f"  Explorer URL: {get_explorer_url(blob_key.hex())}")
@@ -167,18 +167,17 @@ def test_reservation_account():
                 if final_cumulative == initial_cumulative:
                     print("\n✅ SUCCESS: No payment charged (using reservation)")
                 else:
-                    print(
-                        f"\n⚠️  WARNING: Payment increased by {final_cumulative - initial_cumulative} wei"
-                    )
+                    increase = final_cumulative - initial_cumulative
+                    print(f"\n⚠️  WARNING: Payment increased by {increase} wei")
 
         else:
             print("\n❌ NO ACTIVE RESERVATION FOUND")
 
             if payment_info["payment_type"] == "on_demand":
                 print("\nThis account is using on-demand payment instead.")
-                print(
-                    f"Current balance: {payment_info['onchain_balance']} wei ({payment_info['onchain_balance']/1e18:.4f} ETH)"
-                )
+                balance_wei = payment_info["onchain_balance"]
+                balance_eth = balance_wei / 1e18
+                print(f"Current balance: {balance_wei} wei ({balance_eth:.4f} ETH)")
             else:
                 print("\nThis account has no payment method configured.")
 
