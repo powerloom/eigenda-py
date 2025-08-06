@@ -538,6 +538,7 @@ poetry run python scripts/fix_grpc_imports.py
   - Updated all examples to use `dotenv` for loading environment variables
   - Fixed incorrect hostnames in test files
 - **Test Fixes**: Updated test fixtures to properly initialize accountant objects (all 352 tests passing)
+- **Enhanced check_payment_vault.py**: Added `--address` flag to check any address without private key
 - **Backward Compatible**: Holesky still supported via explicit configuration
 
 ### July 15th 2025

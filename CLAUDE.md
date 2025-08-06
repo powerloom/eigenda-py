@@ -366,6 +366,26 @@ The Python client now uses **Sepolia testnet as the default** instead of Holesky
 
 To use Holesky testnet, set: `EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz`
 
+### Enhanced check_payment_vault.py Script (August 6th 2025)
+Added `--address` flag to allow checking any Ethereum address without needing the private key:
+
+```bash
+# Check your own account (requires EIGENDA_PRIVATE_KEY)
+poetry run python examples/check_payment_vault.py
+
+# Check any address without private key (read-only)
+poetry run python examples/check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+
+# Short form
+poetry run python examples/check_payment_vault.py -a 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+```
+
+This is useful for:
+- Checking other users' payment vault status
+- Debugging without exposing private keys
+- Monitoring accounts programmatically
+- Quick lookups of any address on-chain
+
 ### Test Failures Fixed (August 6th 2025)
 Fixed failing tests related to the `accountant` attribute initialization in test fixtures:
 - Updated test fixtures to properly initialize `SimpleAccountant`
