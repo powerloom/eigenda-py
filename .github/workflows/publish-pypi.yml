@@ -94,9 +94,6 @@ jobs:
       with:
         version: latest
 
-    - name: Install poetry-dynamic-versioning
-      run: pip install poetry-dynamic-versioning
-
     - name: Set version for TestPyPI
       if: (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')) && !startsWith(github.ref, 'refs/tags/')
       run: |

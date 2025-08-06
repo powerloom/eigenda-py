@@ -11,6 +11,15 @@ A Python implementation of the EigenDA v2 client for interacting with the EigenD
 
 This client provides a Python interface to EigenDA, a decentralized data availability service. It includes full authentication support and compatibility with the official Go and Rust implementations.
 
+### Package Contents
+
+The `eigenda` package includes:
+- **DisperserClientV2Full** - Full-featured client with automatic payment handling
+- **DisperserClientV2** - Low-level gRPC client for advanced use cases
+- **MockDisperserClient** - Mock client for testing without network calls
+- **BlobRetriever** - Client for retrieving dispersed blobs
+- Complete type definitions and utilities for EigenDA protocol v2
+
 ## Status
 
 ✅ **Fully Working!** - The client successfully disperses blobs to EigenDA using both reservation-based and on-demand payments.
@@ -29,6 +38,12 @@ This client provides a Python interface to EigenDA, a decentralized data availab
   - ✅ On-demand payments (pay per blob)
 - Automatic payment method selection
 - Proper payment calculation based on blob size
+
+## Requirements
+
+- Python 3.9 or higher
+- Ethereum private key for signing requests
+- Network access to EigenDA disperser endpoints
 
 ## Installation
 
@@ -86,7 +101,7 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-### As an Installed Package
+### Using the Package
 
 After installing via pip, you can use the package directly in your Python code:
 
@@ -114,8 +129,19 @@ data = b"Hello, EigenDA!"
 blob_key = client.disperse_blob(data)
 print(f"Blob key: {blob_key.hex()}")
 
+# Check status
+status = client.get_blob_status(blob_key.hex())
+print(f"Status: {status}")
+
 # Clean up
 client.close()
+```
+
+### Checking Package Version
+
+```python
+import eigenda
+print(eigenda.__version__)  # Output: 0.1.0
 ```
 
 ### Running Examples from Source

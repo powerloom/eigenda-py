@@ -259,14 +259,16 @@ pip install eigenda
 
 The project uses GitHub Actions for automated publishing:
 - **TestPyPI**: Publishes on pushes to `develop` branch and pull requests to `master`/`main`
+  - Automatically generates dev versions with timestamps and PR numbers
 - **PyPI**: Publishes on version tags (`v*`) and GitHub releases
 - Uses trusted publishing (OIDC) - no API tokens needed in secrets
-- Dynamic versioning based on git tags
 
 ### Package Configuration
 
 - **Package name**: `eigenda` (changed from `eigenda-py`)
-- **Version management**: Uses `poetry-dynamic-versioning` for automatic version calculation from git tags
+- **Version management**: Manual versioning in pyproject.toml
+  - Dev versions for TestPyPI: `0.1.0.dev<timestamp><PR_number>`
+  - Production versions from git tags
 - **Build system**: Poetry with Poetry Core backend
 - **Python support**: 3.9 - 3.13
 

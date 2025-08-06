@@ -1,7 +1,7 @@
 """Version information for eigenda."""
 
 try:
-    # Try to get version from poetry-dynamic-versioning
+    # Try to get version from installed package
     from importlib.metadata import PackageNotFoundError, version
 
     try:
