@@ -151,6 +151,8 @@ class TestMockDisperserClient:
 
     def test_private_calculate_blob_key(self, client):
         """Test the private _calculate_blob_key method."""
+        import time
+
         # Test with various inputs
         test_cases = [
             (b"hello", 0, [0]),
@@ -168,6 +170,9 @@ class TestMockDisperserClient:
             assert len(bytes(key)) == 32
 
             # Should be non-deterministic due to timestamp
+            # Add a small delay to ensure timestamp changes on Windows
+            # Windows has lower clock resolution than Unix systems
+            time.sleep(0.01)  # 10ms should be enough for Windows
             key2 = client._calculate_blob_key(data, version, quorums)
             assert bytes(key) != bytes(key2)
 
