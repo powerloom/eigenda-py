@@ -354,43 +354,39 @@ print(f"Status: {status.name}")
 
 See `examples/check_blob_status.py` for monitoring status until completion, or `examples/check_existing_blob_status.py` to check a specific blob key.
 
-### Advanced Reservations (Per-Quorum Support)
+### Reservation Support
 
-The Python client now supports advanced per-quorum reservations, bringing it to feature parity with the Go client. This allows for more granular control over bandwidth allocation and payment tracking:
+The Python client supports EigenDA's reservation system for pre-paid bandwidth:
 
 ```python
-from eigenda.client_v2_full import DisperserClientV2Full
+from eigenda import DisperserClientV2Full, PaymentConfig
 
-# Enable advanced reservations
+# Client automatically detects and uses reservations if available
 client = DisperserClientV2Full(
-    hostname="disperser.eigenda.xyz",
+    host="disperser-testnet-sepolia.eigenda.xyz",
     port=443,
     use_secure_grpc=True,
-    signer=signer,
-    payment_config=PaymentConfig(),
-    use_advanced_reservations=True  # Enable per-quorum support
+    signer_private_key=private_key,
+    payment_config=PaymentConfig(min_symbols=4096)
 )
 
 # The client will automatically:
-# 1. Use GetPaymentStateForAllQuorums to get per-quorum reservation info
-# 2. Track period records for each quorum separately
-# 3. Validate reservations with nanosecond precision
-# 4. Support bin-based usage tracking with overflow handling
-# 5. Fall back to on-demand per quorum if needed
+# 1. Check for active reservations
+# 2. Use reservation if available (no ETH charges)
+# 3. Fall back to on-demand payment if no reservation
 
-# Check advanced payment state
-payment_state = client.get_payment_state_for_all_quorums()
-if payment_state:
-    for quorum_id, reservation in payment_state.quorum_reservations.items():
-        print(f"Quorum {quorum_id}: {reservation.symbols_per_second} symbols/sec")
+# Check detailed payment info
+info = client.get_payment_info()
+if info["reservation"]:
+    print(f"Using reservation for quorums: {info['reservation']['quorums']}")
+    print(f"Time remaining: {info['reservation']['time_remaining']} seconds")
+    print(f"Bandwidth available: {info['reservation']['bandwidth']}")
 ```
 
-Key features of advanced reservations:
-- **Per-quorum tracking**: Different reservations for different quorums
-- **Period records**: Usage tracked in time-based bins
-- **Nanosecond precision**: Matches Go client timing accuracy
-- **Automatic fallback**: Seamlessly switches to on-demand when needed
-- **Thread-safe**: Concurrent blob dispersals are handled correctly
+Key features of reservations:
+- **Pre-paid bandwidth**: Purchase bandwidth in advance with no per-blob charges
+- **Automatic detection**: Client checks for active reservations before dispersal
+- **Seamless fallback**: Automatically uses on-demand payment if no reservation
 
 ## Examples
 
@@ -738,6 +734,11 @@ poetry run python scripts/fix_grpc_imports.py
 ## Recent Updates
 
 ### August 6th 2025
+- **Simplified Reservation Support**: Removed advanced per-quorum reservation complexity
+  - Client now uses simpler reservation detection without per-quorum tracking
+  - Removed `use_advanced_reservations` parameter from `DisperserClientV2Full`
+  - Streamlined to match actual protocol usage patterns
+  - Maintains full support for basic reservation-based dispersal
 - **Default Network Changed to Sepolia**: All examples and configuration now default to Sepolia testnet
 - **Standardized Environment Variables**: Consistent usage across all examples
   - `EIGENDA_PRIVATE_KEY` - Your private key
