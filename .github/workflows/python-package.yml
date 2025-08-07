@@ -182,7 +182,7 @@ jobs:
 
     - name: Security check with bandit
       run: |
-        uv pip install --system bandit
+        uv pip install bandit
         uv run bandit -r src/ -ll -f json -o bandit-report.json || true
         if [ -f bandit-report.json ]; then
           echo "🔒 Security Scan Results:"
@@ -202,7 +202,7 @@ jobs:
 
     - name: Check for dependency vulnerabilities
       run: |
-        uv pip install --system safety
+        uv pip install safety
         uv run safety check --json --output safety-report.json || true
         if [ -f safety-report.json ]; then
           echo "📦 Dependency Security Check:"
@@ -241,7 +241,8 @@ jobs:
 
     - name: Check package with twine
       run: |
-        uv pip install --system twine
+        uv venv
+        uv pip install twine
         uv run twine check dist/*
         echo "✅ Package validation passed!"
 
