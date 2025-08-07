@@ -14,8 +14,6 @@ on:
       - main
     types: [opened, synchronize]
   push:
-    branches:
-      - develop  # Publish to TestPyPI on develop push
     tags:
       - 'v*'  # Publish to PyPI on version tags
   release:
@@ -37,11 +35,11 @@ permissions:
   contents: read
 
 jobs:
-  # Run tests for PRs and develop pushes
+  # Run tests for PRs only (workflow_run handles develop branch)
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')
+    if: github.event_name == 'pull_request'
     
     steps:
     - uses: actions/checkout@v4
