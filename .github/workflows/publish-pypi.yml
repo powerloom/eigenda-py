@@ -53,8 +53,12 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // Wait up to 10 minutes for the Python package workflow to complete
-            const maxAttempts = 60;
+            // Initial delay to allow Python package workflow to start
+            console.log('Waiting 15 seconds for Python package workflow to initialize...');
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            
+            // Wait up to 5 minutes for the Python package workflow to complete
+            const maxAttempts = 30;
             const delay = 10000; // 10 seconds
             
             for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -63,23 +67,33 @@ jobs:
                 repo: context.repo.repo,
                 workflow_id: 'python-package.yml',
                 head_sha: context.sha,
-                per_page: 1
+                per_page: 5
               });
               
+              console.log(`Attempt ${attempt + 1}: Found ${runs.data.workflow_runs.length} workflow runs for SHA ${context.sha}`);
+              
               if (runs.data.workflow_runs.length > 0) {
-                const run = runs.data.workflow_runs[0];
-                console.log(`Attempt ${attempt + 1}: Workflow status is ${run.status}, conclusion is ${run.conclusion || 'pending'}`);
+                // Find the Python package workflow run
+                const run = runs.data.workflow_runs.find(r => r.name === 'Python package');
                 
-                if (run.status === 'completed') {
-                  if (run.conclusion === 'success') {
-                    core.setOutput('conclusion', 'success');
-                    console.log('Tests passed successfully!');
-                    return;
-                  } else {
-                    core.setOutput('conclusion', run.conclusion);
-                    throw new Error(`Tests failed with status: ${run.conclusion}`);
+                if (run) {
+                  console.log(`Python package workflow: status=${run.status}, conclusion=${run.conclusion || 'pending'}, id=${run.id}`);
+                  
+                  if (run.status === 'completed') {
+                    if (run.conclusion === 'success') {
+                      core.setOutput('conclusion', 'success');
+                      console.log('✅ Tests passed successfully!');
+                      return;
+                    } else {
+                      core.setOutput('conclusion', run.conclusion);
+                      throw new Error(`❌ Tests failed with status: ${run.conclusion}`);
+                    }
                   }
+                } else {
+                  console.log('Python package workflow not found yet, waiting...');
                 }
+              } else {
+                console.log('No workflow runs found yet for this SHA, waiting...');
               }
               
               if (attempt < maxAttempts - 1) {
@@ -87,7 +101,7 @@ jobs:
               }
             }
             
-            throw new Error('Timeout waiting for tests to complete');
+            throw new Error('Timeout waiting for tests to complete after 5 minutes');
 
   # Run tests for PRs only
   test:
