@@ -16,6 +16,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Install UV
       uses: astral-sh/setup-uv@v6
       with:
@@ -23,10 +28,17 @@ jobs:
         cache-dependency-glob: "uv.lock"
         cache-suffix: "lint"
 
-    - name: Set up Python
-      run: uv python install 3.12
+    - name: Cache virtual environment
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-lint-${{ hashFiles('uv.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-lint-
 
     - name: Install dependencies
+      if: steps.cache-venv.outputs.cache-hit != 'true'
       run: uv sync --all-extras --frozen
 
     - name: Check with black
@@ -77,7 +89,17 @@ jobs:
         cache-dependency-glob: "uv.lock"
         cache-suffix: "py${{ matrix.python-version }}-${{ matrix.os }}"
 
+    - name: Cache virtual environment
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-py${{ matrix.python-version }}-
+
     - name: Install dependencies and package
+      if: steps.cache-venv.outputs.cache-hit != 'true'
       run: |
         uv sync --all-extras --frozen
 
@@ -175,16 +197,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Install UV
       uses: astral-sh/setup-uv@v6
       with:
         enable-cache: true
         cache-dependency-glob: "uv.lock"
+        cache-suffix: "security"
 
-    - name: Set up Python
-      run: uv python install 3.12
+    - name: Cache virtual environment
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-security-${{ hashFiles('uv.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-security-
 
     - name: Install dependencies
+      if: steps.cache-venv.outputs.cache-hit != 'true'
       run: uv sync --all-extras --frozen
 
     - name: Security check with bandit
