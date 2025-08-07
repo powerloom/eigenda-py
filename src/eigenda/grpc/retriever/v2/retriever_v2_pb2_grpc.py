@@ -6,7 +6,7 @@ import grpc
 
 from eigenda.grpc.retriever.v2 import retriever_v2_pb2 as retriever_dot_v2_dot_retriever__v2__pb2
 
-GRPC_GENERATED_VERSION = "1.73.1"
+GRPC_GENERATED_VERSION = "1.74.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 

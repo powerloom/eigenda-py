@@ -6,7 +6,7 @@ import grpc
 
 from eigenda.grpc.disperser import disperser_pb2 as disperser_dot_disperser__pb2
 
-GRPC_GENERATED_VERSION = "1.73.1"
+GRPC_GENERATED_VERSION = "1.74.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 

@@ -212,19 +212,44 @@ All networks currently have the same pricing structure.
 
 ## Usage
 
-### Production Client (V2) - With On-Demand Payments
+### Production Client (V2Full) - Automatic Payment Handling
 
-For production use with on-demand payments (when you have ETH deposited in PaymentVault):
+The `DisperserClientV2Full` automatically handles both reservation-based and on-demand payments:
 
 ```python
-# See examples/test_with_proper_payment.py for full implementation
-# Key steps:
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2_full import DisperserClientV2Full
 
-1. Get current payment state
-2. Calculate payment based on blob size (min 4096 symbols)
-3. Increment cumulative payment
-4. Disperse blob with payment metadata
+# Initialize signer
+signer = LocalBlobRequestSigner(private_key)
+
+# Create client (automatically detects payment method)
+client = DisperserClientV2Full(
+    hostname="disperser.eigenda.xyz",
+    port=443,
+    use_secure_grpc=True,
+    signer=signer
+)
+
+# Disperse blob (handles payment automatically)
+status, blob_key = client.disperse_blob(
+    data=b"Hello, EigenDA!",
+    quorum_numbers=[0, 1]
+)
+
+# Check payment information
+payment_info = client.get_payment_info()
+print(f"Payment type: {payment_info['payment_type']}")
+if payment_info['payment_type'] == 'reservation':
+    print(f"Bandwidth: {payment_info['reservation_details']['symbols_per_second']} symbols/sec")
+elif payment_info['payment_type'] == 'on_demand':
+    print(f"Balance: {payment_info['onchain_balance']/1e18:.4f} ETH")
 ```
+
+The client automatically:
+1. Checks for active reservations first (pre-paid, no per-blob charges)
+2. Falls back to on-demand payment if no reservation exists
+3. Handles all payment calculations and metadata
 
 Working example that successfully dispersed a blob:
 
@@ -323,49 +348,58 @@ print(f"Status: {status.name}")
 
 See `examples/check_blob_status.py` for monitoring status until completion, or `examples/check_existing_blob_status.py` to check a specific blob key.
 
-### Advanced Reservations (Per-Quorum Support)
+### Reservation Support
 
-The Python client now supports advanced per-quorum reservations, bringing it to feature parity with the Go client. This allows for more granular control over bandwidth allocation and payment tracking:
+The Python client supports EigenDA's reservation system for pre-paid bandwidth:
 
 ```python
-from eigenda.client_v2_full import DisperserClientV2Full
+from eigenda import DisperserClientV2Full, PaymentConfig
 
-# Enable advanced reservations
+# Client automatically detects and uses reservations if available
 client = DisperserClientV2Full(
-    hostname="disperser.eigenda.xyz",
+    host="disperser-testnet-sepolia.eigenda.xyz",
     port=443,
     use_secure_grpc=True,
-    signer=signer,
-    payment_config=PaymentConfig(),
-    use_advanced_reservations=True  # Enable per-quorum support
+    signer_private_key=private_key,
+    payment_config=PaymentConfig(min_symbols=4096)
 )
 
 # The client will automatically:
-# 1. Use GetPaymentStateForAllQuorums to get per-quorum reservation info
-# 2. Track period records for each quorum separately
-# 3. Validate reservations with nanosecond precision
-# 4. Support bin-based usage tracking with overflow handling
-# 5. Fall back to on-demand per quorum if needed
+# 1. Check for active reservations
+# 2. Use reservation if available (no ETH charges)
+# 3. Fall back to on-demand payment if no reservation
 
-# Check advanced payment state
-payment_state = client.get_payment_state_for_all_quorums()
-if payment_state:
-    for quorum_id, reservation in payment_state.quorum_reservations.items():
-        print(f"Quorum {quorum_id}: {reservation.symbols_per_second} symbols/sec")
+# Check detailed payment info
+info = client.get_payment_info()
+if info["reservation"]:
+    print(f"Using reservation for quorums: {info['reservation']['quorums']}")
+    print(f"Time remaining: {info['reservation']['time_remaining']} seconds")
+    print(f"Bandwidth available: {info['reservation']['bandwidth']}")
 ```
 
-Key features of advanced reservations:
-- **Per-quorum tracking**: Different reservations for different quorums
-- **Period records**: Usage tracked in time-based bins
-- **Nanosecond precision**: Matches Go client timing accuracy
-- **Automatic fallback**: Seamlessly switches to on-demand when needed
-- **Thread-safe**: Concurrent blob dispersals are handled correctly
+Key features of reservations:
+- **Pre-paid bandwidth**: Purchase bandwidth in advance with no per-blob charges
+- **Automatic detection**: Client checks for active reservations before dispersal
+- **Seamless fallback**: Automatically uses on-demand payment if no reservation
 
-Examples demonstrating reservation features:
-- `examples/advanced_reservations.py` - Reservation-only dispersal (no fallback)
-- `examples/test_both_payments.py` - Automatic payment method selection
-- `examples/check_payment_vault.py` - Check on-chain reservation status
-- `examples/debug_payment_state.py` - Debug payment configuration
+## Examples
+
+The `examples/` directory contains working examples for various use cases:
+
+### Payment and Dispersal
+- `minimal_client.py` - Simplest example using mock client
+- `full_example.py` - Complete dispersal workflow with DisperserClientV2Full
+- `test_reservation_account.py` - Check if account has reservation and test it
+- `test_both_payments.py` - Test accounts with different payment methods
+- `test_with_proper_payment.py` - Manual payment calculation with DisperserClientV2
+- `check_payment_vault.py` - Check on-chain PaymentVault status
+- `debug_payment_state.py` - Debug payment configuration issues
+
+### Blob Operations
+- `check_blob_status.py` - Monitor blob status after dispersal
+- `check_existing_blob_status.py` - Check status of previously dispersed blob
+- `dispersal_with_retrieval_support.py` - Save metadata for later retrieval
+- `blob_retrieval_example.py` - Retrieve blob from EigenDA nodes
 
 ### Blob Retrieval
 
@@ -612,6 +646,11 @@ poetry run python scripts/fix_grpc_imports.py
 ## Recent Updates
 
 ### August 6th 2025
+- **Simplified Reservation Support**: Removed advanced per-quorum reservation complexity
+  - Client now uses simpler reservation detection without per-quorum tracking
+  - Removed `use_advanced_reservations` parameter from `DisperserClientV2Full`
+  - Streamlined to match actual protocol usage patterns
+  - Maintains full support for basic reservation-based dispersal
 - **Default Network Changed to Sepolia**: All examples and configuration now default to Sepolia testnet
 - **Standardized Environment Variables**: Consistent usage across all examples
   - `EIGENDA_PRIVATE_KEY` - Your private key  

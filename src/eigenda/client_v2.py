@@ -2,7 +2,7 @@
 
 import time
 from dataclasses import dataclass
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import grpc
 
@@ -141,7 +141,7 @@ class DisperserClientV2:
         except grpc.RpcError as e:
             raise Exception(f"gRPC error: {e.code()} - {e.details()}")
 
-    def get_blob_status(self, blob_key: BlobKey) -> BlobStatus:
+    def get_blob_status(self, blob_key: Union[BlobKey, str]) -> Any:
         """
         Get the status of a dispersed blob.
 
@@ -149,9 +149,13 @@ class DisperserClientV2:
             blob_key: The unique identifier of the blob
 
         Returns:
-            The current status of the blob
+            The BlobStatusReply containing status and inclusion info
         """
         self._connect()
+
+        # Handle both BlobKey objects and hex strings
+        if isinstance(blob_key, str):
+            blob_key = BlobKey.from_hex(blob_key)
 
         request = disperser_v2_pb2.BlobStatusRequest(blob_key=bytes(blob_key))
 
@@ -160,7 +164,7 @@ class DisperserClientV2:
                 request, timeout=self.config.timeout, metadata=self._get_metadata()
             )
 
-            return self._parse_blob_status(response.status)
+            return response
 
         except grpc.RpcError as e:
             raise Exception(f"gRPC error: {e.code()} - {e.details()}")

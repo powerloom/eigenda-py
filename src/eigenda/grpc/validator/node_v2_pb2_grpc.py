@@ -6,7 +6,7 @@ import grpc
 
 from eigenda.grpc.validator import node_v2_pb2 as validator_dot_node__v2__pb2
 
-GRPC_GENERATED_VERSION = "1.73.1"
+GRPC_GENERATED_VERSION = "1.74.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 

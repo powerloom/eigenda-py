@@ -5,15 +5,15 @@
 Install the EigenDA Python client using pip:
 
 ```bash
-pip install eigenda-py
+pip install powerloom-eigenda
 ```
 
-Or install from source:
+Or install from source using Poetry:
 
 ```bash
-git clone https://github.com/Layr-Labs/eigenda.git
-cd eigenda/python-client
-pip install -e .
+git clone https://github.com/powerloom/eigenda-py powerloom-eigenda
+cd powerloom-eigenda
+poetry install
 ```
 
 ## Configuration
@@ -31,82 +31,109 @@ cp .env.example .env
 # Edit .env with your private key
 ```
 
-## Basic Usage
+## Basic Usage (Recommended - Automatic Payment Handling)
 
 ```python
-from eigenda import DisperserClient, LocalBlobRequestSigner
-from eigenda.codec import encode_blob_data
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2_full import DisperserClientV2Full
 
 # Initialize signer
 signer = LocalBlobRequestSigner("your_private_key_here")
 
-# Create client
-client = DisperserClient(
+# Create client (automatically handles payments)
+client = DisperserClientV2Full(
     hostname="disperser-testnet-sepolia.eigenda.xyz",
     port=443,
     use_secure_grpc=True,
     signer=signer
 )
 
-# Prepare and encode data
+# Disperse blob (no encoding needed - handled automatically)
 data = b"Hello, EigenDA!"
-encoded_data = encode_blob_data(data)
-
-# Disperse blob
 status, blob_key = client.disperse_blob(
-    data=encoded_data,
-    blob_version=0,
-    quorum_ids=[0, 1]
+    data=data,  # Pass raw data directly
+    quorum_numbers=[0, 1]  # Note: quorum_numbers for V2Full
 )
 
 print(f"Blob Key: {blob_key.hex()}")
-print(f"Status: {status}")
+print(f"Status: {status.name}")
+
+# Check payment info
+payment_info = client.get_payment_info()
+print(f"Payment type: {payment_info['payment_type']}")
 
 # Clean up
 client.close()
 ```
+
+The `DisperserClientV2Full` automatically:
+- Encodes your data
+- Checks for active reservations (no ETH charges)
+- Falls back to on-demand payment if needed
+- Handles all payment calculations
 
 ## Using Context Manager
 
 The client supports Python's context manager protocol:
 
 ```python
-with DisperserClient(
+from eigenda.auth.signer import LocalBlobRequestSigner
+from eigenda.client_v2_full import DisperserClientV2Full
+
+signer = LocalBlobRequestSigner("your_private_key_here")
+
+with DisperserClientV2Full(
     hostname="disperser-testnet-sepolia.eigenda.xyz",
     port=443,
     use_secure_grpc=True,
     signer=signer
 ) as client:
     status, blob_key = client.disperse_blob(
-        data=encoded_data,
-        blob_version=0,
-        quorum_ids=[0, 1]
+        data=b"Hello, EigenDA!",
+        quorum_numbers=[0, 1]
     )
+    print(f"Blob Key: {blob_key.hex()}")
 ```
 
 ## Data Encoding
 
-EigenDA requires data to be encoded in a specific format. The `encode_blob_data` function handles this:
+When using `DisperserClientV2Full`, encoding is handled automatically. If you need manual control:
 
 ```python
-from eigenda.codec import encode_blob_data, decode_blob_data
+from eigenda.codec.blob_codec import encode_blob_data, decode_blob_data
 
-# Encode data for dispersal
+# DisperserClientV2Full handles this automatically
+# But if using DisperserClientV2 or for manual encoding:
 raw_data = b"My data"
 encoded = encode_blob_data(raw_data)
 
 # Decode data after retrieval
-decoded = decode_blob_data(encoded)
+decoded = decode_blob_data(encoded, len(raw_data))
 assert decoded == raw_data
 ```
+
+**Note:** `DisperserClientV2Full` encodes data automatically, while `DisperserClientV2` requires pre-encoded data.
 
 ## Checking Blob Status
 
 After dispersing a blob, you can check its status:
 
 ```python
-status = client.get_blob_status(blob_key)
+from eigenda.core.types import BlobStatus
+
+# Get status (pass hex string)
+response = client.get_blob_status(blob_key.hex())
+
+# Parse the status
+status = BlobStatus(response.status)
 print(f"Current status: {status.name}")
+
+# Status values:
+# - QUEUED: Blob is waiting to be processed
+# - ENCODED: Blob has been encoded
+# - GATHERING_SIGNATURES: Collecting signatures from nodes
+# - COMPLETE: Successfully dispersed
+# - FAILED: Dispersal failed
 ```
 
 ## Error Handling
@@ -114,22 +141,69 @@ print(f"Current status: {status.name}")
 ```python
 try:
     status, blob_key = client.disperse_blob(
-        data=encoded_data,
-        blob_version=0,
-        quorum_ids=[0, 1]
+        data=b"Hello, EigenDA!",
+        quorum_numbers=[0, 1]
     )
 except ValueError as e:
     print(f"Invalid input: {e}")
+    # Common causes:
+    # - Empty data
+    # - Data exceeds 16 MiB limit
+    # - No payment method available
 except Exception as e:
     print(f"Dispersal failed: {e}")
 ```
 
+## Payment Methods
+
+The client automatically detects and uses the best payment method:
+
+```python
+# Check payment information
+payment_info = client.get_payment_info()
+
+if payment_info['payment_type'] == 'reservation':
+    # Using pre-paid reservation (no per-blob charges)
+    print(f"Bandwidth: {payment_info['reservation_details']['symbols_per_second']} symbols/sec")
+    print(f"Time remaining: {payment_info['reservation_details']['time_remaining']} seconds")
+elif payment_info['payment_type'] == 'on_demand':
+    # Using on-demand payment (ETH charged per blob)
+    print(f"Balance: {payment_info['onchain_balance']/1e18:.4f} ETH")
+    print(f"Used: {payment_info['current_cumulative_payment']/1e18:.4f} ETH")
+else:
+    print("No payment method available!")
+    print("Please deposit ETH to PaymentVault or purchase a reservation")
+```
+
 ## Network Endpoints
 
-### Testnet (Sepolia)
+### Testnet (Sepolia) - Default
 - Disperser: `disperser-testnet-sepolia.eigenda.xyz:443`
 - Explorer: `https://blobs-v2-testnet-sepolia.eigenda.xyz`
+- PaymentVault: `0x2E1BDB221E7D6bD9B7b2365208d41A5FD70b24Ed`
+
+### Testnet (Holesky)
+- Disperser: `disperser-testnet-holesky.eigenda.xyz:443`
+- Explorer: `https://blobs-v2-testnet-holesky.eigenda.xyz`
+- PaymentVault: `0x4a7Fff191BCDa5806f1Bc8689afc1417c08C61AB`
 
 ### Mainnet
 - Disperser: `disperser.eigenda.xyz:443`
-- Explorer: `https://blobs-v2.eigenda.xyz`
+- Explorer: `https://blobs.eigenda.xyz`
+- PaymentVault: `0xb2e7ef419a2A399472ae22ef5cFcCb8bE97A4B05`
+
+## Examples
+
+The `examples/` directory contains working examples for various use cases:
+
+- `minimal_client.py` - Simplest example using mock client
+- `full_example.py` - Complete dispersal workflow
+- `test_reservation_account.py` - Check if account has reservation
+- `test_both_payments.py` - Test different payment methods
+- `check_blob_status.py` - Monitor blob status
+- `check_payment_vault.py` - Check on-chain payment status
+
+Run any example:
+```bash
+poetry run python examples/minimal_client.py
+```

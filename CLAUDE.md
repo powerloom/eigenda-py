@@ -376,6 +376,41 @@ Key discoveries made during development:
 
 ## Recent Updates
 
+### Example Files Fixed and Enhanced (August 6th 2025)
+All example files have been updated for compatibility with the latest code changes:
+
+1. **Fixed parameter inconsistencies**:
+   - `DisperserClientV2` uses `quorum_ids` parameter
+   - `DisperserClientV2Full` uses `quorum_numbers` parameter
+   - `MockDisperserClient` uses `quorum_numbers` parameter
+
+2. **Fixed status parsing in examples**:
+   - `check_existing_blob_status.py` - Now correctly parses BlobStatus from protobuf response
+   - `check_blob_status.py` - Already had correct status parsing
+   - `dispersal_with_retrieval_support.py` - Fixed BlobStatus.PROCESSING → BlobStatus.QUEUED
+
+3. **Added `get_payment_info()` method to DisperserClientV2Full**:
+   - Returns comprehensive payment information including:
+     - Payment type (reservation/on_demand/none)
+     - Reservation details (bandwidth, expiry, quorums, time remaining)
+     - Current cumulative payment and onchain balance
+     - Pricing configuration
+   - Updated test coverage for the new method
+
+4. **New reservation example**:
+   - Created `test_reservation_account.py` - Working example that detects and uses reservations
+   - Shows detailed reservation info (bandwidth, expiry, allowed quorums)
+   - Demonstrates blob dispersal with reservation (no ETH charges)
+   - Verifies that cumulative payment doesn't increase
+   - Removed old `demo_reservation.py` which was just theoretical
+
+5. **Fixed `test_both_payments.py`**:
+   - Updated to use new `get_payment_info()` method
+   - Checks for reservations first (matching protocol priority)
+   - Shows appropriate details for each payment type
+
+## Recent Updates
+
 ### PyPI Publishing Support Added (August 6th 2025)
 The Python client is now ready for publication to PyPI as the `eigenda` package:
 

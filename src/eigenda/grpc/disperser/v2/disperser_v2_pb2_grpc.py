@@ -6,7 +6,7 @@ import grpc
 
 from eigenda.grpc.disperser.v2 import disperser_v2_pb2 as disperser_dot_v2_dot_disperser__v2__pb2
 
-GRPC_GENERATED_VERSION = "1.73.1"
+GRPC_GENERATED_VERSION = "1.74.0"
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -60,12 +60,6 @@ class DisperserStub(object):
             response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.FromString,
             _registered_method=True,
         )
-        self.GetPaymentStateForAllQuorums = channel.unary_unary(
-            "/disperser.v2.Disperser/GetPaymentStateForAllQuorums",
-            request_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateForAllQuorumsRequest.SerializeToString,
-            response_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateForAllQuorumsReply.FromString,
-            _registered_method=True,
-        )
 
 
 class DisperserServicer(object):
@@ -102,28 +96,7 @@ class DisperserServicer(object):
     def GetPaymentState(self, request, context):
         """GetPaymentState is a utility method to get the payment state of a given account, at a given disperser.
         EigenDA's payment system for v2 is currently centralized, meaning that each disperser does its own accounting.
-        As reservation moves to be quorum specific and served by permissionless dispersers, GetPaymentState will soon be deprecated
-        in replacement of GetPaymentStateForAllQuorums to include more specifications. During the endpoint migration time, the response
-        uses quorum 0 for the global parameters, and the most retrictive reservation parameters of a user across quorums. For
-        OnDemand, EigenDA disperser is the only allowed disperser, so it will provide real values tracked for on-demand offchain payment records.
-        For other dispersers, they will refuse to serve ondemand requests and serve 0 as the on-demand offchain records. A client using
-        non-EigenDA dispersers should only request with reserved usages.
-
         A client wanting to disperse a blob would thus need to synchronize its local accounting state with that of the disperser.
-        That typically only needs to be done once, and the state can be updated locally as the client disperses blobs.
-        The accounting rules are simple and can be updated locally, but periodic checks with the disperser can't hurt.
-
-        For an example usage, see how our disperser_client makes a call to this endpoint to populate its local accountant struct:
-        https://github.com/Layr-Labs/eigenda/blob/6059c6a068298d11c41e50f5bcd208d0da44906a/api/clients/v2/disperser_client.go#L298
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
-
-    def GetPaymentStateForAllQuorums(self, request, context):
-        """GetPaymentStateForAllQuorums is a utility method to get the payment state of a given account, at a given disperser.
-        EigenDA's dispersers and validators each does its own accounting for reservation usages, indexed by the account and quorum id.
-        A client wanting to disperse a blob would thus need to synchronize its local accounting state with the disperser it plans to disperse to.
         That typically only needs to be done once, and the state can be updated locally as the client disperses blobs.
         The accounting rules are simple and can be updated locally, but periodic checks with the disperser can't hurt.
 
@@ -156,11 +129,6 @@ def add_DisperserServicer_to_server(servicer, server):
             servicer.GetPaymentState,
             request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.FromString,
             response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.SerializeToString,
-        ),
-        "GetPaymentStateForAllQuorums": grpc.unary_unary_rpc_method_handler(
-            servicer.GetPaymentStateForAllQuorums,
-            request_deserializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateForAllQuorumsRequest.FromString,
-            response_serializer=disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateForAllQuorumsReply.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -283,36 +251,6 @@ class Disperser(object):
             "/disperser.v2.Disperser/GetPaymentState",
             disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateRequest.SerializeToString,
             disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateReply.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True,
-        )
-
-    @staticmethod
-    def GetPaymentStateForAllQuorums(
-        request,
-        target,
-        options=(),
-        channel_credentials=None,
-        call_credentials=None,
-        insecure=False,
-        compression=None,
-        wait_for_ready=None,
-        timeout=None,
-        metadata=None,
-    ):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            "/disperser.v2.Disperser/GetPaymentStateForAllQuorums",
-            disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateForAllQuorumsRequest.SerializeToString,
-            disperser_dot_v2_dot_disperser__v2__pb2.GetPaymentStateForAllQuorumsReply.FromString,
             options,
             channel_credentials,
             insecure,

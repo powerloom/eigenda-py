@@ -73,7 +73,7 @@ class DisperserClient:
         self,
         data: bytes,
         blob_version: BlobVersion,
-        quorum_ids: List[QuorumID],
+        quorum_numbers: List[QuorumID],
         timeout: Optional[int] = None,
     ) -> Tuple[BlobStatus, BlobKey]:
         """
@@ -82,7 +82,7 @@ class DisperserClient:
         Args:
             data: The encoded blob data to disperse
             blob_version: Version of the blob format
-            quorum_ids: List of quorum IDs to disperse to
+            quorum_numbers: List of quorum IDs to disperse to
             timeout: Optional timeout in seconds
 
         Returns:
@@ -101,7 +101,7 @@ class DisperserClient:
 
         # Create a mock blob header (in real implementation, this would be properly constructed)
         # For demonstration purposes, we'll create a simplified version
-        blob_key = self._calculate_blob_key(data, blob_version, quorum_ids)
+        blob_key = self._calculate_blob_key(data, blob_version, quorum_numbers)
 
         # In a real implementation, we would:
         # 1. Create a proper BlobHeader with commitments
@@ -144,7 +144,7 @@ class DisperserClient:
         self.close()
 
     def _calculate_blob_key(
-        self, data: bytes, blob_version: BlobVersion, quorum_ids: List[QuorumID]
+        self, data: bytes, blob_version: BlobVersion, quorum_numbers: List[QuorumID]
     ) -> BlobKey:
         """
         Calculate a mock blob key for demonstration.
@@ -156,7 +156,7 @@ class DisperserClient:
         hasher = hashlib.sha3_256()
         hasher.update(struct.pack(">H", blob_version))  # 2 bytes for version
         hasher.update(data)
-        hasher.update(bytes(quorum_ids))
+        hasher.update(bytes(quorum_numbers))
         hasher.update(str(time.time()).encode())  # Add timestamp for uniqueness
 
         return BlobKey(hasher.digest())

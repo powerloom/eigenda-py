@@ -150,7 +150,9 @@ class TestEndToEndFlow:
 
                 # Verify dispersal request
                 disperse_call = mock_stub.DisperseBlob.call_args[0][0]
-                assert disperse_call.blob == original_data
+                assert (
+                    disperse_call.blob == encoded_data
+                )  # DisperserClientV2Full sends encoded data
                 assert hasattr(disperse_call, "blob_header")
 
                 # Step 3: Check status
@@ -188,6 +190,10 @@ class TestEndToEndFlow:
             mock_stub.GetPaymentState.return_value = disperser_v2_pb2.GetPaymentStateReply(
                 cumulative_payment=b"\x00" * 31 + b"\x10",  # 16 in last byte
                 onchain_cumulative_payment=b"\x00" * 31 + b"\x10",
+                payment_global_params=disperser_v2_pb2.PaymentGlobalParams(
+                    price_per_symbol=447000000,
+                    min_num_symbols=4096,
+                ),
             )
             # Add GetBlobCommitment response
             mock_stub.GetBlobCommitment.return_value = disperser_v2_pb2.BlobCommitmentReply(
@@ -236,7 +242,8 @@ class TestEndToEndFlow:
 
                 # Verify payment calculation
                 config = PaymentConfig(price_per_symbol=447000000, min_num_symbols=4096)
-                expected_increment = calculate_payment_increment(len(data), config)
+                encoded_data = encode_blob_data(data)
+                expected_increment = calculate_payment_increment(len(encoded_data), config)
                 expected_cumulative = 16 + expected_increment
 
                 assert cumulative_payment == expected_cumulative
@@ -514,9 +521,10 @@ class TestPerformanceIntegration:
                 expected_key = b"large_blob_key" + b"\x00" * 18
                 assert bytes(blob_key) == expected_key
 
-                # Verify request
+                # Verify request (should be encoded data)
                 request = mock_stub.DisperseBlob.call_args[0][0]
-                assert len(request.blob) == len(large_data)
+                # DisperserClientV2Full encodes the data, so it should be larger
+                assert len(request.blob) > len(large_data)
 
             finally:
                 client.close()

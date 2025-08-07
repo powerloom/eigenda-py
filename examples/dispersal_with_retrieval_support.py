@@ -33,7 +33,7 @@ class DisperserWithRetrieval(DisperserClientV2Full):
         self._last_reference_block = None
 
     def disperse_blob_with_header(
-        self, data: bytes, blob_version: int = 0, quorum_ids: list = None, timeout: int = None
+        self, data: bytes, blob_version: int = 0, quorum_numbers: list = None
     ) -> Tuple[BlobStatus, BlobKey, Any, int]:
         """
         Disperse a blob and return the header needed for retrieval.
@@ -60,7 +60,7 @@ class DisperserWithRetrieval(DisperserClientV2Full):
             reference_block = int(time.time() // 12)  # Rough approximation
 
             # Disperse the blob
-            status, blob_key = self.disperse_blob(data, blob_version, quorum_ids, timeout)
+            status, blob_key = self.disperse_blob(data, quorum_numbers, blob_version)
 
             # Return status, key, header, and block number
             return status, blob_key, blob_header_capture, reference_block
@@ -133,10 +133,10 @@ def main():
     try:
         # Disperse with header capture
         status, blob_key, blob_header, reference_block = client.disperse_blob_with_header(
-            test_data, quorum_ids=[0]  # Using quorum 0
+            test_data, quorum_numbers=[0]  # Using quorum 0
         )
 
-        if status == BlobStatus.PROCESSING:
+        if status == BlobStatus.QUEUED:
             print("✅ Blob dispersed successfully!")
             print(f"   Blob key: {blob_key.hex()}")
             print(f"   Reference block: {reference_block}")

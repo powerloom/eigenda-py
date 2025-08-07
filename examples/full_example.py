@@ -14,7 +14,6 @@ from eigenda import (
     DisperserClientV2Full,
     LocalBlobRequestSigner,
     decode_blob_data,
-    encode_blob_data,
 )
 from eigenda.config import get_explorer_url, get_network_config
 from eigenda.payment import PaymentConfig
@@ -39,14 +38,13 @@ def setup_signer():
 def disperse_blob(disperser, original_data):
     """Disperse a blob to EigenDA."""
     raw_data = original_data.encode("utf-8")
-    encoded_data = encode_blob_data(raw_data)
 
     print(f"Original data: {original_data}")
     print(f"Raw size: {len(raw_data)} bytes")
-    print(f"Encoded size: {len(encoded_data)} bytes")
 
     print("\nDispersing blob...")
-    status, blob_key = disperser.disperse_blob(data=encoded_data, blob_version=0, quorum_ids=[0, 1])
+    # DisperserClientV2Full handles encoding internally
+    status, blob_key = disperser.disperse_blob(data=raw_data, blob_version=0, quorum_numbers=[0, 1])
 
     print("\n✅ Blob dispersed successfully!")
     print(f"Status: {status.name}")
@@ -113,7 +111,6 @@ def main():
         use_secure_grpc=True,
         signer=signer,
         payment_config=payment_config,
-        use_advanced_reservations=True,  # Check for advanced reservations
     )
 
     # Check payment method

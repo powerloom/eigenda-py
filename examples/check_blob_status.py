@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
-from eigenda.codec.blob_codec import encode_blob_data
 from eigenda.core.types import BlobStatus
 
 # Load environment variables
@@ -51,16 +50,11 @@ def check_blob_status_example():
     # Data to disperse
     raw_data = b"Hello, EigenDA! This is a test blob for status checking."
 
-    # Encode the data for EigenDA
-    encoded_data = encode_blob_data(raw_data)
-
-    # Disperse the blob
-    print(
-        f"\nDispersing blob (original: {len(raw_data)} bytes, encoded: {len(encoded_data)} bytes)..."
-    )
+    # Disperse the blob (DisperserClientV2Full handles encoding internally)
+    print(f"\nDispersing blob ({len(raw_data)} bytes)...")
     try:
         status, blob_key = client.disperse_blob(
-            data=encoded_data, blob_version=0, quorum_ids=[0, 1]  # Use quorums 0 and 1
+            data=raw_data, blob_version=0, quorum_numbers=[0, 1]  # Use quorums 0 and 1
         )
 
         print(f"Initial status: {status.name} ({status.value})")

@@ -19,6 +19,7 @@ class TestDisperserClientV2Full:
         """Create a mock signer."""
         signer = Mock(spec=LocalBlobRequestSigner)
         signer.get_account_id.return_value = "0x1234567890123456789012345678901234567890"
+        signer.sign_payment_state_request.return_value = b"sig" + b"\x00" * 62  # 65 bytes
         return signer
 
     @pytest.fixture
@@ -147,8 +148,16 @@ class TestDisperserClientV2Full:
 
     def test_create_blob_header_on_demand(self, client):
         """Test creating blob header with on-demand payment."""
-        # Set payment type to on-demand
-        client._payment_type = PaymentType.ON_DEMAND
+        # Mock payment state to return on-demand payment
+        mock_payment_state = Mock()
+        mock_payment_state.HasField = Mock(return_value=False)  # No reservation
+        mock_payment_state.onchain_cumulative_payment = b"\x00" * 31 + b"\x01"  # Non-zero
+        mock_payment_state.cumulative_payment = b"\x00" * 32
+        mock_payment_state.payment_global_params = Mock()
+        mock_payment_state.payment_global_params.price_per_symbol = 447000000
+        mock_payment_state.payment_global_params.min_num_symbols = 4096
+
+        # Set last blob size for payment calculation
         client._last_blob_size = 126976  # 4096 symbols worth
 
         # Expected payment
@@ -166,16 +175,18 @@ class TestDisperserClientV2Full:
         mock_blob_header.payment_header.account_id = "0x1234567890123456789012345678901234567890"
         mock_blob_header.payment_header.cumulative_payment = expected_payment_bytes
 
-        with patch(
-            "eigenda.client_v2_full.common_v2_pb2.BlobHeader", return_value=mock_blob_header
-        ):
-            with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
-                # Create blob header
-                blob_header = client._create_blob_header(
-                    blob_version=0,
-                    blob_commitment=mock_blob_header.commitment,
-                    quorum_numbers=[0, 1],
-                )
+        with patch.object(client, "get_payment_state", return_value=mock_payment_state):
+            with patch.object(client, "_connect"):
+                with patch(
+                    "eigenda.client_v2_full.common_v2_pb2.BlobHeader", return_value=mock_blob_header
+                ):
+                    with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
+                        # Create blob header
+                        blob_header = client._create_blob_header(
+                            blob_version=0,
+                            blob_commitment=mock_blob_header.commitment,
+                            quorum_numbers=[0, 1],
+                        )
 
         assert blob_header.version == 0
         assert blob_header.quorum_numbers == [0, 1]
@@ -188,134 +199,224 @@ class TestDisperserClientV2Full:
         assert payment_int == expected_payment
 
     def test_create_blob_header_no_payment(self, client):
-        """Test creating blob header with no payment method."""
-        # No payment type set
-        client._payment_type = None
+        """Test creating blob header with no payment method raises error."""
+        # Mock payment state to return no payment method
+        mock_payment_state = Mock()
+        mock_payment_state.HasField = Mock(return_value=False)  # No reservation
+        mock_payment_state.onchain_cumulative_payment = b""  # No on-demand payment
 
-        # Mock the blob header creation
-        mock_blob_header = Mock()
-        mock_blob_header.version = 0
-        mock_blob_header.commitment = Mock()
-        mock_blob_header.quorum_numbers = [0, 1]
-        mock_blob_header.payment_header = Mock()
-        mock_blob_header.payment_header.account_id = "0x1234567890123456789012345678901234567890"
-        mock_blob_header.payment_header.cumulative_payment = b""
-
-        # Mock payment state check
-        with patch.object(client, "_check_payment_state"):
-            with patch(
-                "eigenda.client_v2_full.common_v2_pb2.BlobHeader", return_value=mock_blob_header
-            ):
-                with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
-                    # Create blob header
-                    blob_header = client._create_blob_header(
+        with patch.object(client, "get_payment_state", return_value=mock_payment_state):
+            with patch.object(client, "_connect"):
+                # Should raise ValueError when no payment method is available
+                with pytest.raises(ValueError) as exc_info:
+                    client._create_blob_header(
                         blob_version=0,
-                        blob_commitment=mock_blob_header.commitment,
+                        blob_commitment=Mock(),
                         quorum_numbers=[0, 1],
                     )
 
-        assert blob_header.payment_header.cumulative_payment == b""  # Empty when no payment
+                assert "No payment method available" in str(exc_info.value)
+                assert "Make an on-demand deposit" in str(exc_info.value)
 
     def test_disperse_blob_successful(self, client):
         """Test successful blob dispersal."""
+        # Set up client state
+        client._payment_type = PaymentType.ON_DEMAND
+        client._has_reservation = False
+        # Ensure accountant exists
+        from eigenda.payment import SimpleAccountant
+
+        client.accountant = SimpleAccountant(client.signer.get_account_id())
+
         # Mock successful dispersal
         expected_key = BlobKey(b"x" * 32)
-        expected_status = BlobStatus.COMPLETE
+        expected_status = BlobStatus.QUEUED
 
-        with patch.object(
-            DisperserClientV2Full.__bases__[0],
-            "disperse_blob",
-            return_value=(expected_status, expected_key),
-        ):
-            status, key = client.disperse_blob(b"test data")
+        # Mock the gRPC components
+        with patch.object(client, "_connect"):
+            with patch.object(client, "_stub") as mock_stub:
+                # Mock GetBlobCommitment
+                mock_commitment_reply = Mock()
+                mock_commitment_reply.blob_commitment = Mock()
+                mock_stub.GetBlobCommitment.return_value = mock_commitment_reply
+
+                # Mock DisperseBlob
+                mock_disperse_reply = Mock()
+                mock_disperse_reply.result = 1  # QUEUED
+                mock_disperse_reply.blob_key = b"x" * 32
+                mock_stub.DisperseBlob.return_value = mock_disperse_reply
+
+                # Mock GetPaymentState (called in _check_payment_state)
+                mock_payment_state = Mock()
+                mock_payment_state.HasField.return_value = False
+                mock_payment_state.onchain_cumulative_payment = b"\x00" * 32
+                mock_payment_state.cumulative_payment = b"\x00" * 32
+                mock_payment_state.payment_global_params = Mock()
+                mock_payment_state.payment_global_params.price_per_symbol = 447000000
+                mock_payment_state.payment_global_params.min_num_symbols = 4096
+                mock_stub.GetPaymentState.return_value = mock_payment_state
+
+                # Mock the protobuf message creation to avoid issues
+                mock_blob_header = Mock()
+                mock_request = Mock()
+                with patch("eigenda.client_v2_full.common_v2_pb2.BlobHeader") as mock_header_class:
+                    mock_header_class.return_value = mock_blob_header
+                    with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
+                        with patch(
+                            "eigenda.client_v2_full.disperser_v2_pb2.DisperseBlobRequest"
+                        ) as mock_request_class:
+                            mock_request_class.return_value = mock_request
+                            status, key = client.disperse_blob(b"test data")
 
         assert status == expected_status
         assert key == expected_key
-        assert client._last_blob_size == 9  # len(b'test data')
+        assert client._last_blob_size > 9  # Encoded size is larger than raw data
 
     def test_disperse_blob_fallback_to_on_demand(self, client):
-        """Test blob dispersal falling back from reservation to on-demand."""
-        # Start with reservation payment type
-        client._payment_type = PaymentType.RESERVATION
-
-        # Mock reservation failure then success
+        """Test blob dispersal with on-demand payment when no reservation."""
+        # Don't set payment type initially - let _check_payment_state do it
         expected_key = BlobKey(b"x" * 32)
-        expected_status = BlobStatus.COMPLETE
+        expected_status = BlobStatus.QUEUED
 
-        call_count = 0
+        # Mock GetPaymentState to return on-demand payment
+        mock_payment_state = Mock()
+        mock_payment_state.HasField = Mock(return_value=False)  # No reservation
+        mock_payment_state.onchain_cumulative_payment = b"\x00" * 31 + b"\x01"  # Non-zero payment
+        mock_payment_state.cumulative_payment = b"\x00" * 32
+        mock_payment_state.payment_global_params = Mock()
+        mock_payment_state.payment_global_params.price_per_symbol = 447000000
+        mock_payment_state.payment_global_params.min_num_symbols = 4096
 
-        def side_effect(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                # First call fails with reservation error
-                raise Exception("not a valid active reservation for account")
-            else:
-                # Second call succeeds
-                return (expected_status, expected_key)
+        # Mock the gRPC components
+        with patch.object(client, "_connect"):
+            with patch.object(client, "_stub") as mock_stub:
+                # Mock GetPaymentState first since it's called in _check_payment_state
+                mock_stub.GetPaymentState.return_value = mock_payment_state
 
-        with patch.object(
-            DisperserClientV2Full.__bases__[0], "disperse_blob", side_effect=side_effect
-        ):
-            with patch.object(client, "_check_payment_state"):
-                status, key = client.disperse_blob(b"test data")
+                # Mock GetBlobCommitment
+                mock_commitment_reply = Mock()
+                mock_commitment_reply.blob_commitment = Mock()
+                mock_stub.GetBlobCommitment.return_value = mock_commitment_reply
+
+                # Mock DisperseBlob
+                mock_disperse_reply = Mock()
+                mock_disperse_reply.result = 1  # QUEUED
+                mock_disperse_reply.blob_key = b"x" * 32
+                mock_stub.DisperseBlob.return_value = mock_disperse_reply
+
+                # Mock the protobuf message creation to avoid issues
+                mock_blob_header = Mock()
+                mock_request = Mock()
+                with patch("eigenda.client_v2_full.common_v2_pb2.BlobHeader") as mock_header_class:
+                    mock_header_class.return_value = mock_blob_header
+                    with patch("eigenda.client_v2_full.common_v2_pb2.PaymentHeader"):
+                        with patch(
+                            "eigenda.client_v2_full.disperser_v2_pb2.DisperseBlobRequest"
+                        ) as mock_request_class:
+                            mock_request_class.return_value = mock_request
+                            status, key = client.disperse_blob(b"test data")
 
         assert status == expected_status
         assert key == expected_key
+        # After dispersal with on-demand payment, these should be set correctly
         assert client._payment_type == PaymentType.ON_DEMAND
         assert not client._has_reservation
 
     def test_disperse_blob_other_error(self, client):
-        """Test blob dispersal with non-reservation error."""
-        # Mock dispersal failure
-        with patch.object(
-            DisperserClientV2Full.__bases__[0],
-            "disperse_blob",
-            side_effect=Exception("Network error"),
-        ):
-            with pytest.raises(Exception, match="Network error"):
-                client.disperse_blob(b"test data")
+        """Test blob dispersal with network error."""
+        # Set up client state
+        client._payment_type = PaymentType.ON_DEMAND
+        client._has_reservation = False
+
+        # Mock the gRPC components with error
+        with patch.object(client, "_connect"):
+            with patch.object(client, "_stub") as mock_stub:
+                # Mock GetBlobCommitment to raise error immediately
+                mock_stub.GetBlobCommitment.side_effect = Exception("Network error")
+
+                # Mock GetPaymentState (won't be called since error happens first)
+                mock_payment_state = Mock()
+                mock_payment_state.HasField.return_value = False
+                mock_payment_state.onchain_cumulative_payment = b"\x00" * 32
+                mock_stub.GetPaymentState.return_value = mock_payment_state
+
+                with pytest.raises(Exception, match="Network error"):
+                    client.disperse_blob(b"test data")
 
     def test_get_payment_info_reservation(self, client):
-        """Test getting payment info with reservation."""
-        # Set reservation payment
+        """Test get_payment_info with reservation."""
+        # Set up reservation state
         client._payment_type = PaymentType.RESERVATION
         client._has_reservation = True
-        client._payment_state = Mock()  # Avoid check
 
+        # Mock payment state with reservation
+        mock_reservation = Mock()
+        mock_reservation.symbols_per_second = 10000
+        mock_reservation.start_timestamp = 1000000000
+        mock_reservation.end_timestamp = 2000000000
+        mock_reservation.quorum_numbers = bytes([0, 1])
+        mock_reservation.quorum_splits = bytes([50, 50])
+
+        client._payment_state = Mock()
+        client._payment_state.reservation = mock_reservation
+        client._payment_state.cumulative_payment = b"\x00" * 32
+        client._payment_state.onchain_cumulative_payment = b"\x00" * 31 + b"\x01"
+
+        # Get payment info
         info = client.get_payment_info()
 
+        # Verify reservation info
         assert info["payment_type"] == "reservation"
         assert info["has_reservation"] is True
-        assert "current_cumulative_payment" not in info
+        assert info["reservation_details"] is not None
+        assert info["reservation_details"]["symbols_per_second"] == 10000
+        assert info["reservation_details"]["quorum_numbers"] == [0, 1]
+        assert info["reservation_details"]["quorum_splits"] == [50, 50]
 
     def test_get_payment_info_on_demand(self, client):
-        """Test getting payment info with on-demand."""
+        """Test get_payment_info with on-demand."""
         # Set on-demand payment
         client._payment_type = PaymentType.ON_DEMAND
         client._has_reservation = False
-        client._payment_state = Mock()  # Avoid check
+
+        # Mock payment state
+        client._payment_state = Mock()
+        client._payment_state.cumulative_payment = (10**17).to_bytes(32, "big")  # 0.1 ETH used
+        client._payment_state.onchain_cumulative_payment = (10**18).to_bytes(
+            32, "big"
+        )  # 1 ETH deposited
+
         # Accountant is already initialized in fixture
         assert client.accountant is not None
-        client.accountant.set_cumulative_payment(10**18)  # 1 ETH
+        client.accountant.set_cumulative_payment(10**17)
 
+        # Get payment info
         info = client.get_payment_info()
 
+        # Verify on-demand info
         assert info["payment_type"] == "on_demand"
         assert info["has_reservation"] is False
-        assert info["current_cumulative_payment"] == 10**18
+        assert info["current_cumulative_payment"] == 10**17
+        assert info["onchain_balance"] == 10**18
         assert info["price_per_symbol"] == 447000000
         assert info["min_symbols"] == 4096
 
     def test_get_payment_info_no_payment(self, client):
-        """Test getting payment info with no payment method."""
-        # Mock payment state check
-        with patch.object(client, "_check_payment_state"):
-            info = client.get_payment_info()
+        """Test get_payment_info with no payment method."""
+        # Reset payment state
+        client._payment_type = None
+        client._has_reservation = False
+        client._payment_state = None
 
-        assert info["payment_type"] == "none"
+        # Get payment info
+        info = client.get_payment_info()
+
+        # Verify no payment info
+        assert info["payment_type"] is None
         assert info["has_reservation"] is False
-        assert "current_cumulative_payment" not in info
+        assert info["reservation_details"] is None
+        assert info["current_cumulative_payment"] == 0
+        assert info["onchain_balance"] == 0
 
     def test_expired_reservation(self, client):
         """Test handling expired reservation."""

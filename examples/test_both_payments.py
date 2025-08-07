@@ -9,7 +9,6 @@ from eth_account import Account
 
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2_full import DisperserClientV2Full
-from eigenda.codec.blob_codec import encode_blob_data
 from eigenda.config import get_explorer_url, get_network_config
 from eigenda.payment import PaymentConfig
 
@@ -28,7 +27,7 @@ def test_account(private_key: str, description: str):
     print(f"Account: {signer.account}")
     print(f"Network: {network_config.network_name}")
 
-    # Create client with full payment support (try advanced reservations first)
+    # Create client with full payment support
     client = DisperserClientV2Full(
         hostname=network_config.disperser_host,
         port=network_config.disperser_port,
@@ -38,40 +37,28 @@ def test_account(private_key: str, description: str):
             price_per_symbol=network_config.price_per_symbol,
             min_num_symbols=network_config.min_num_symbols,
         ),
-        use_advanced_reservations=True,  # Enable advanced reservation support
     )
 
     try:
-        # Check for advanced reservations first
+        # Check payment configuration
         print("\nChecking payment configuration...")
-        has_advanced_reservation = False
 
-        try:
-            advanced_state = client.get_payment_state_for_all_quorums()
-            if (
-                advanced_state
-                and hasattr(advanced_state, "quorum_reservations")
-                and advanced_state.quorum_reservations
-            ):
-                print("✅ Advanced per-quorum reservations found!")
-                for quorum_id, res in advanced_state.quorum_reservations.items():
-                    print(f"  Quorum {quorum_id}: {res.symbols_per_second} symbols/sec")
-                has_advanced_reservation = True
-        except:
-            pass
-
-        # Get payment info (will use simple check if advanced not available)
+        # Get payment info
         payment_info = client.get_payment_info()
-
-        if has_advanced_reservation:
-            print(f"Payment type: advanced_reservation")
-        else:
-            print(f"Payment type: {payment_info['payment_type']}")
-
+        print(f"Payment type: {payment_info['payment_type']}")
         print(f"Has reservation: {payment_info['has_reservation']}")
 
-        if payment_info["payment_type"] == "on_demand":
+        if payment_info["payment_type"] == "reservation" and payment_info["reservation_details"]:
+            details = payment_info["reservation_details"]
+            print(f"Symbols per second: {details['symbols_per_second']}")
+            print(f"Time remaining: {details['time_remaining']} seconds")
+            print(f"Allowed quorums: {details['quorum_numbers']}")
+            print(f"Quorum splits: {details['quorum_splits']}%")
+        elif payment_info["payment_type"] == "on_demand":
             print(f"Current cumulative payment: {payment_info['current_cumulative_payment']} wei")
+            print(
+                f"Onchain balance: {payment_info['onchain_balance']} wei ({payment_info['onchain_balance']/1e18:.4f} ETH)"
+            )
             print(f"Price per symbol: {payment_info['price_per_symbol']} wei")
             print(f"Min symbols: {payment_info['min_symbols']}")
 
@@ -79,14 +66,11 @@ def test_account(private_key: str, description: str):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         test_data = f"Test {payment_info['payment_type']} - {timestamp}".encode()
         print(f"\nTest data: {test_data.decode()}")
+        print(f"Data size: {len(test_data)} bytes")
 
-        # Encode data
-        encoded_data = encode_blob_data(test_data)
-        print(f"Encoded size: {len(encoded_data)} bytes")
-
-        # Disperse blob
+        # Disperse blob (DisperserClientV2Full handles encoding internally)
         status, blob_key = client.disperse_blob(
-            data=encoded_data, blob_version=0, quorum_ids=[0, 1], timeout=30
+            data=test_data, blob_version=0, quorum_numbers=[0, 1]
         )
 
         print("\n✅ Success!")

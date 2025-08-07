@@ -1,32 +1,33 @@
-"""EigenDA v2 Disperser Client with full payment support (reservation and on-demand)."""
+"""
+DisperserClientV2Full - A simplified version with payment handling.
+
+This is a higher-level client that handles payment state automatically.
+It simplifies blob dispersal by:
+1. Tries to use reservation first (if available)
+2. Falls back to on-demand payment if no reservation
+3. Handles payment state tracking automatically
+"""
 
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import grpc
 
 from eigenda.auth.signer import LocalBlobRequestSigner
 from eigenda.client_v2 import DisperserClientConfig, DisperserClientV2
-from eigenda.core.types import (
-    BlobKey,
-    BlobStatus,
-    BlobVersion,
-    PaymentQuorumConfig,
-    PaymentQuorumProtocolConfig,
-    PaymentType,
-    QuorumID,
-    ReservedPayment,
-)
+from eigenda.codec.blob_codec import encode_blob_data
+from eigenda.core.types import BlobKey, BlobStatus, PaymentType, QuorumID
 from eigenda.grpc.common.v2 import common_v2_pb2
 from eigenda.grpc.disperser.v2 import disperser_v2_pb2
-from eigenda.payment import PaymentConfig, ReservationAccountant, SimpleAccountant
+from eigenda.payment import PaymentConfig, SimpleAccountant, calculate_payment_increment
 
 
 class DisperserClientV2Full(DisperserClientV2):
     """
-    Full-featured disperser client with both reservation and on-demand payment support.
+    Extended DisperserClient with automatic payment handling.
 
-    This client mimics the Go client behavior:
+    This client automatically handles both reservation-based and on-demand payments.
+    It intelligently chooses the payment method based on availability:
     1. Tries to use reservation first (if available)
     2. Falls back to on-demand payment if no reservation
     3. Handles payment state tracking automatically
@@ -40,10 +41,9 @@ class DisperserClientV2Full(DisperserClientV2):
         signer: LocalBlobRequestSigner,
         timeout: int = 30,
         payment_config: Optional[PaymentConfig] = None,
-        use_advanced_reservations: bool = False,
     ):
         """
-        Initialize the client with full payment support.
+        Initialize the client with payment support.
 
         Args:
             hostname: Disperser service hostname
@@ -52,7 +52,6 @@ class DisperserClientV2Full(DisperserClientV2):
             signer: Request signer for authentication
             timeout: Request timeout in seconds
             payment_config: Optional payment configuration for on-demand
-            use_advanced_reservations: Whether to use per-quorum reservation support
         """
         # Initialize parent
         config = DisperserClientConfig(
@@ -62,141 +61,69 @@ class DisperserClientV2Full(DisperserClientV2):
 
         # Payment configuration
         self.payment_config = payment_config or PaymentConfig()
-        self.use_advanced_reservations = use_advanced_reservations
 
         # Payment state
         self.accountant = None  # Will be initialized based on payment state
         self._payment_state = None
-        self._payment_state_all_quorums = None
         self._has_reservation = False
         self._payment_type = None
-
-        # Advanced reservation state
-        self._reservations: Dict[QuorumID, ReservedPayment] = {}
-        self._quorum_configs: Dict[QuorumID, PaymentQuorumProtocolConfig] = {}
-        self._payment_configs: Dict[QuorumID, PaymentQuorumConfig] = {}
-        self._on_demand_quorums: List[QuorumID] = []
 
     def _check_payment_state(self) -> None:
         """Check and cache payment state from disperser."""
         try:
-            # Try advanced reservations first if enabled
-            if self.use_advanced_reservations:
-                self._payment_state_all_quorums = self.get_payment_state_for_all_quorums()
-
-                if self._payment_state_all_quorums:
-                    self._process_advanced_payment_state()
-                    return
-
-            # Fall back to simple payment state
             self._payment_state = self.get_payment_state()
-            self._process_simple_payment_state()
+            self._process_payment_state()
 
         except Exception as e:
             print(f"  ⚠️  Could not get payment state: {e}")
             self._payment_type = None
 
-    def _process_advanced_payment_state(self) -> None:
-        """Process payment state with per-quorum reservations."""
-        # Clear existing state
-        self._reservations.clear()
-        self._quorum_configs.clear()
-        self._payment_configs.clear()
-        self._on_demand_quorums.clear()
-
-        # Parse quorum reservations
-        if hasattr(self._payment_state_all_quorums, "quorum_reservations"):
-            for (
-                quorum_id,
-                reservation,
-            ) in self._payment_state_all_quorums.quorum_reservations.items():
-                self._reservations[quorum_id] = ReservedPayment(
-                    symbols_per_second=reservation.symbols_per_second,
-                    start_timestamp=reservation.start_timestamp,
-                    end_timestamp=reservation.end_timestamp,
-                    quorum_numbers=[quorum_id],
-                    quorum_splits=b"",  # Not used in simple case
-                )
-
-        # Parse quorum configs
-        if hasattr(self._payment_state_all_quorums, "quorum_configs"):
-            for quorum_id, config in self._payment_state_all_quorums.quorum_configs.items():
-                self._quorum_configs[quorum_id] = PaymentQuorumProtocolConfig(
-                    min_num_symbols=config.min_num_symbols,
-                    reservation_advance_window=config.reservation_advance_window,
-                    reservation_rate_limit_window=config.reservation_rate_limit_window,
-                    on_demand_rate_limit_window=config.on_demand_rate_limit_window,
-                    on_demand_enabled=config.on_demand_enabled,
-                )
-
-                self._payment_configs[quorum_id] = PaymentQuorumConfig(
-                    reservation_symbols_per_second=config.reservation_symbols_per_second,
-                    on_demand_symbols_per_second=config.on_demand_symbols_per_second,
-                    on_demand_price_per_symbol=config.on_demand_price_per_symbol,
-                )
-
-                if config.on_demand_enabled:
-                    self._on_demand_quorums.append(quorum_id)
-
-        # Create reservation accountant
-        self.accountant = ReservationAccountant(
-            self.signer.get_account_id(),
-            self._reservations,
-            self._quorum_configs,
-            self._payment_configs,
-            self._on_demand_quorums,
-            self.payment_config,
-        )
-
-        # Update cumulative payment
-        if hasattr(self._payment_state_all_quorums, "cumulative_payment"):
-            current = int.from_bytes(self._payment_state_all_quorums.cumulative_payment, "big")
-            self.accountant.set_cumulative_payment(current)
-
-        # Determine payment type
-        if self._reservations:
-            self._has_reservation = True
-            self._payment_type = PaymentType.RESERVATION
-            print(f"  ✓ Per-quorum reservations found for {len(self._reservations)} quorums")
-        elif self._on_demand_quorums:
-            self._has_reservation = False
-            self._payment_type = PaymentType.ON_DEMAND
-            print(f"  ✓ On-demand payment available for {len(self._on_demand_quorums)} quorums")
-        else:
+    def _process_payment_state(self) -> None:
+        """Process simple payment state and determine payment type."""
+        if not self._payment_state:
+            print("  ⚠️  No payment state received")
             self._payment_type = None
-            print("  ⚠️  No payment methods available")
+            return
 
-    def _process_simple_payment_state(self) -> None:
-        """Process simple payment state (backward compatibility)."""
-        # Check if account has active reservation
+        # Update payment config from global params if available
+        if hasattr(self._payment_state, "payment_global_params"):
+            params = self._payment_state.payment_global_params
+            if params:
+                self.payment_config.price_per_symbol = params.price_per_symbol
+                self.payment_config.min_num_symbols = params.min_num_symbols
+
+        # Check for reservation
         if hasattr(self._payment_state, "reservation") and self._payment_state.HasField(
             "reservation"
         ):
             reservation = self._payment_state.reservation
-            # Check if reservation is active (has valid timestamps)
-            if (
-                hasattr(reservation, "start_timestamp")
-                and hasattr(reservation, "end_timestamp")
-                and reservation.start_timestamp > 0
-                and reservation.end_timestamp > 0
-            ):
 
-                current_time = int(time.time())
-                if reservation.start_timestamp <= current_time <= reservation.end_timestamp:
-                    self._has_reservation = True
-                    self._payment_type = PaymentType.RESERVATION
-                    print(f"  ✓ Active reservation found (ends at {reservation.end_timestamp})")
+            # Check if reservation is active
+            current_time = int(time.time())
+            if reservation.start_timestamp <= current_time <= reservation.end_timestamp:
+                self._has_reservation = True
+                self._payment_type = PaymentType.RESERVATION
 
-                    # Create simple accountant for reservation
-                    self.accountant = SimpleAccountant(
-                        self.signer.get_account_id(), self.payment_config
-                    )
-                    return
+                # Create simple accountant for reservation
+                self.accountant = SimpleAccountant(
+                    self.signer.get_account_id(), self.payment_config
+                )
 
-        # No active reservation, check on-demand capability
+                print(
+                    f"  ✓ Active reservation found (expires in {reservation.end_timestamp - current_time}s)"
+                )
+                return
+
+        # Check for on-demand payment
         if hasattr(self._payment_state, "onchain_cumulative_payment"):
             ocp = self._payment_state.onchain_cumulative_payment
-            if ocp and int.from_bytes(ocp, "big") > 0:
+            if ocp and len(ocp) > 0:
+                amount = int.from_bytes(ocp, "big")
+                if amount > 0:
+                    print(f"  ✓ On-demand deposit found: {amount} wei ({amount/1e18:.4f} ETH)")
+                else:
+                    print("  ⚠️  On-demand deposit is zero")
+
                 self._has_reservation = False
                 self._payment_type = PaymentType.ON_DEMAND
 
@@ -220,7 +147,7 @@ class DisperserClientV2Full(DisperserClientV2):
         print("  ⚠️  No active reservation or on-demand deposit found")
 
     def _create_blob_header(
-        self, blob_version: BlobVersion, blob_commitment: Any, quorum_numbers: List[QuorumID]
+        self, blob_version: Any, blob_commitment: Any, quorum_numbers: List[QuorumID]
     ) -> Any:
         """
         Create a protobuf BlobHeader with appropriate payment handling.
@@ -240,22 +167,10 @@ class DisperserClientV2Full(DisperserClientV2):
         account_id = self.signer.get_account_id()
         timestamp_ns = int(time.time() * 1e9)
 
-        # Determine payment bytes based on accountant type
+        # Determine payment bytes based on payment type
         payment_bytes = b""
-        payment_type_used = self._payment_type
 
-        if isinstance(self.accountant, ReservationAccountant) and hasattr(self, "_last_blob_size"):
-            # Use reservation accountant for advanced payment handling
-            payment_bytes, payment_type_used, increment = self.accountant.account_blob(
-                self._last_blob_size, quorum_numbers, timestamp_ns
-            )
-
-            if payment_type_used == PaymentType.RESERVATION:
-                print("  Using per-quorum reservation payment")
-            else:
-                print(f"  Using on-demand payment: +{increment} wei ({increment / 1e9:.3f} gwei)")
-
-        elif self._payment_type == PaymentType.RESERVATION:
+        if self._payment_type == PaymentType.RESERVATION:
             # Simple reservation
             payment_bytes = b""
             print("  Using reservation-based payment")
@@ -275,9 +190,13 @@ class DisperserClientV2Full(DisperserClientV2):
                     else b""
                 )
         else:
-            # No payment method available, try empty (might work on some testnets)
-            print("  ⚠️  No payment method available, trying with empty payment")
-            payment_bytes = b""
+            # No payment method available - fail with clear error
+            raise ValueError(
+                "No payment method available. Please either:\n"
+                "  1. Make an on-demand deposit to the PaymentVault contract\n"
+                "  2. Purchase a reservation\n"
+                "  3. Use the testnet with an account that has payment set up"
+            )
 
         # Create payment header
         payment_header = common_v2_pb2.PaymentHeader(
@@ -297,101 +216,92 @@ class DisperserClientV2Full(DisperserClientV2):
     def disperse_blob(
         self,
         data: bytes,
-        blob_version: BlobVersion = 0,
-        quorum_ids: Optional[List[QuorumID]] = None,
-        timeout: Optional[int] = None,
+        quorum_numbers: Optional[List[int]] = None,
+        blob_version: int = 0,
     ) -> Tuple[BlobStatus, BlobKey]:
         """
-        Disperse a blob with automatic payment method selection.
-
-        Tries reservation first, falls back to on-demand if needed.
-        """
-        print(f"\nDispersing blob ({len(data)} bytes)...")
-
-        # Store blob size for on-demand payment calculation
-        self._last_blob_size = len(data)
-
-        # First attempt
-        try:
-            status, blob_key = super().disperse_blob(data, blob_version, quorum_ids, timeout)
-            return (status, blob_key)  # Return tuple as expected
-        except Exception as e:
-            error_msg = str(e)
-
-            # If it's a reservation error and we haven't tried on-demand yet
-            if (
-                "reservation" in error_msg.lower()
-                and "not a valid active reservation" in error_msg
-                and self._payment_type != PaymentType.ON_DEMAND
-            ):
-
-                print("  Reservation failed, retrying with on-demand payment...")
-
-                # Force switch to on-demand
-                self._payment_type = PaymentType.ON_DEMAND
-                self._has_reservation = False
-
-                # Refresh payment state to get latest cumulative payment
-                self._check_payment_state()
-
-                # Retry
-                status, blob_key = super().disperse_blob(data, blob_version, quorum_ids, timeout)
-                return (status, blob_key)  # Return tuple as expected
-            else:
-                # Re-raise other errors
-                raise
-
-    def get_blob_status(self, blob_key: str) -> Any:
-        """
-        Get the status of a dispersed blob.
+        Disperse a blob with automatic payment handling.
 
         Args:
-            blob_key: The blob key as a hex string
+            data: Raw data to disperse
+            quorum_numbers: Optional list of quorum IDs (defaults to [0, 1])
+            blob_version: Blob version (default 0)
 
         Returns:
-            The full blob status response (not just the status enum)
+            Tuple of (blob_key, request_id)
         """
+        # Set default quorums if not provided
+        if quorum_numbers is None:
+            quorum_numbers = [0, 1]
+
+        # Validate data
+        if len(data) == 0:
+            raise ValueError("Data cannot be empty")
+        if len(data) > 16 * 1024 * 1024:  # 16 MiB limit
+            raise ValueError("Data exceeds maximum size of 16 MiB")
+
+        # Encode the data
+        encoded_data = encode_blob_data(data)
+
+        # Store blob size for payment calculation
+        self._last_blob_size = len(encoded_data)
+
+        # Get blob commitment
+        commitment_reply = self.get_blob_commitment(encoded_data)
+        # Extract the actual commitment from the reply
+        commitment = (
+            commitment_reply.blob_commitment
+            if hasattr(commitment_reply, "blob_commitment")
+            else commitment_reply
+        )
+
+        # Create blob header with payment
+        blob_header = self._create_blob_header(blob_version, commitment, quorum_numbers)
+
+        # Sign the blob header
+        signature = self.signer.sign_blob_request(blob_header)
+
+        # Create the protobuf request
+        request = disperser_v2_pb2.DisperseBlobRequest(
+            blob=encoded_data, blob_header=blob_header, signature=signature
+        )
+
+        # Make the gRPC call
         self._connect()
-
-        # Convert hex string to bytes
-        blob_key_bytes = bytes.fromhex(blob_key)
-
-        request = disperser_v2_pb2.BlobStatusRequest(blob_key=blob_key_bytes)
-
         try:
-            response = self._stub.GetBlobStatus(
+            response = self._stub.DisperseBlob(
                 request, timeout=self.config.timeout, metadata=self._get_metadata()
             )
 
-            # Return the full response, not just the parsed status
-            return response
+            # Parse response
+            status = self._parse_blob_status(response.result)
+            blob_key = BlobKey(response.blob_key)
+
+            return (status, blob_key)
 
         except grpc.RpcError as e:
             raise Exception(f"gRPC error: {e.code()} - {e.details()}")
 
-    def get_payment_info(self) -> dict:
-        """Get information about current payment configuration."""
-        if self._payment_state is None:
-            self._check_payment_state()
-
-        info = {
-            "payment_type": self._payment_type.value if self._payment_type else "none",
-            "has_reservation": self._has_reservation,
+    def _parse_blob_status(self, proto_status: Any) -> BlobStatus:
+        """Parse protobuf BlobStatus to our enum."""
+        # Map from protobuf status to our enum
+        status_map = {
+            0: BlobStatus.UNKNOWN,
+            1: BlobStatus.QUEUED,
+            2: BlobStatus.ENCODED,
+            3: BlobStatus.GATHERING_SIGNATURES,
+            4: BlobStatus.COMPLETE,
+            5: BlobStatus.FAILED,
         }
 
-        if self._payment_type == PaymentType.ON_DEMAND:
-            info["current_cumulative_payment"] = self.accountant.cumulative_payment
-            info["price_per_symbol"] = self.accountant.config.price_per_symbol
-            info["min_symbols"] = self.accountant.config.min_num_symbols
+        return status_map.get(proto_status, BlobStatus.UNKNOWN)
 
-        return info
-
-    def get_payment_state_for_all_quorums(self) -> Any:
+    def get_payment_state(self) -> Any:
         """
-        Get payment state for all quorums.
+        Get payment state for the account.
 
         Returns:
-            The payment state response containing per-quorum reservation info
+            The payment state response
         """
         self._connect()
 
@@ -404,7 +314,7 @@ class DisperserClientV2Full(DisperserClientV2):
         )
 
         try:
-            response = self._stub.GetPaymentStateForAllQuorums(
+            response = self._stub.GetPaymentState(
                 request, timeout=self.config.timeout, metadata=self._get_metadata()
             )
             return response
@@ -413,3 +323,58 @@ class DisperserClientV2Full(DisperserClientV2):
             if e.code() == grpc.StatusCode.UNIMPLEMENTED:
                 return None
             raise
+
+    def get_payment_info(self) -> dict:
+        """
+        Get current payment information for the account.
+
+        Returns:
+            Dictionary containing payment information:
+            - payment_type: "reservation", "on_demand", or None
+            - has_reservation: bool
+            - reservation_details: dict with reservation info (if active)
+            - current_cumulative_payment: int (wei)
+            - onchain_balance: int (wei)
+            - price_per_symbol: int (wei)
+            - min_symbols: int
+        """
+        # Check payment state if not cached
+        if self._payment_state is None:
+            self._check_payment_state()
+
+        info = {
+            "payment_type": self._payment_type.value if self._payment_type else None,
+            "has_reservation": self._has_reservation,
+            "reservation_details": None,
+            "current_cumulative_payment": 0,
+            "onchain_balance": 0,
+            "price_per_symbol": self.payment_config.price_per_symbol,
+            "min_symbols": self.payment_config.min_num_symbols,
+        }
+
+        if self._payment_state:
+            # Add reservation details if present
+            if self._has_reservation and hasattr(self._payment_state, "reservation"):
+                reservation = self._payment_state.reservation
+                current_time = int(time.time())
+                info["reservation_details"] = {
+                    "symbols_per_second": reservation.symbols_per_second,
+                    "start_timestamp": reservation.start_timestamp,
+                    "end_timestamp": reservation.end_timestamp,
+                    "time_remaining": max(0, reservation.end_timestamp - current_time),
+                    "quorum_numbers": list(reservation.quorum_numbers),
+                    "quorum_splits": list(reservation.quorum_splits),
+                }
+
+            # Add payment amounts
+            if hasattr(self._payment_state, "cumulative_payment"):
+                info["current_cumulative_payment"] = int.from_bytes(
+                    self._payment_state.cumulative_payment, "big"
+                )
+
+            if hasattr(self._payment_state, "onchain_cumulative_payment"):
+                info["onchain_balance"] = int.from_bytes(
+                    self._payment_state.onchain_cumulative_payment, "big"
+                )
+
+        return info
