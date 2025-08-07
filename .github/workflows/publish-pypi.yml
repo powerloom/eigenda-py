@@ -112,19 +112,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: '3.12'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
     
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Set up Python
+      run: uv python install 3.12
     
     - name: Install dependencies
-      run: poetry install --no-interaction
+      run: uv sync --all-extras
     
     - name: Run tests
-      run: poetry run pytest tests/ -v
+      run: uv run pytest tests/ -v
     
   build:
     name: Build Distribution Packages
@@ -141,18 +142,19 @@ jobs:
       with:
         fetch-depth: 0  # Needed for git-based versioning
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: '3.12'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Set up Python
+      run: uv python install 3.12
 
     - name: Set version for TestPyPI
       if: (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')) && !startsWith(github.ref, 'refs/tags/')
       run: |
-        # Get current version from pyproject.toml (specifically from [tool.poetry] section)
+        # Get current version from pyproject.toml (from [project] section)
         CURRENT_VERSION=$(grep '^version = ' pyproject.toml | head -1 | cut -d'"' -f2)
 
         # Create appropriate dev version
@@ -173,7 +175,7 @@ jobs:
         rm pyproject.toml.bak
 
     - name: Build package
-      run: poetry build
+      run: uv build
 
     - name: Check build artifacts
       run: |

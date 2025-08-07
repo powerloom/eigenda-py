@@ -99,8 +99,11 @@ ipython_config.py
 # pipenv
 # Pipfile.lock
 
-# poetry
-# poetry.lock
+# uv
+# uv.lock (committed for reproducible builds)
+
+# Prevent blob files from being committed
+blob_*.json
 
 # pdm
 .pdm.toml

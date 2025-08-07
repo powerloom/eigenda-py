@@ -8,7 +8,7 @@ The Python client provides full Python support for EigenDA v2, with feature pari
 
 ## Project Structure
 
-The project now uses Poetry and follows a standard Python package structure with `src/` layout:
+The project now uses UV and follows a standard Python package structure with `src/` layout:
 
 - `src/eigenda/` - Main package with client implementation
   - `client.py` - Mock client for basic testing (fully working)
@@ -185,7 +185,7 @@ To test the client:
 
 ### 9. Dependencies
 
-The project uses Poetry for dependency management with the following structure:
+The project uses UV for dependency management with the following structure:
 
 **Core Dependencies:**
 - `grpcio` and `grpcio-tools` for gRPC
@@ -202,53 +202,46 @@ The project uses Poetry for dependency management with the following structure:
 
 ### 10. Environment Setup
 
-#### Using Poetry (Recommended)
+#### Using UV (Recommended)
 
-The project now uses Poetry for dependency management. Poetry provides better dependency resolution, lock files for reproducible builds, and easier package management.
+The project uses UV for ultra-fast dependency management. UV provides 10-100x faster dependency resolution and installation compared to pip.
 
 ```bash
-# Install Poetry if you haven't already
-curl -sSL https://install.python-poetry.org | python3 -
+# Install UV if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Navigate to the project directory
-cd eigenda-py
+cd eigenda-py/python-client
 
-# Install dependencies using Poetry
-poetry install
+# Install dependencies using UV
+uv sync
 
-# Install with development dependencies only
-poetry install --only dev
+# Install with development dependencies
+uv sync --dev
 
-# Install without development dependencies
-poetry install --without dev
+# Install with optional extras
+uv sync --extra docs --extra notebook
 
-# Activate the virtual environment
-poetry shell
-
-# Or run commands directly
-poetry run python examples/minimal_client.py
+# Run commands directly (no activation needed)
+uv run python examples/minimal_client.py
 ```
 
-#### Using a specific Python version with Poetry
+#### Using a specific Python version with UV
 
-If you need to use a specific Python version, you can use your preferred Python version manager (pyenv, conda, etc.) and then tell Poetry to use it:
 ```bash
-cd eigenda-py
+# UV can manage Python versions directly
+uv sync --python 3.11
 
-# Use your preferred method to set Python version (e.g., pyenv, conda, etc.)
-# Then tell Poetry to use the active Python
-poetry env use python
-
-# Install dependencies
-poetry install
+# Or run with specific version
+uv run --python 3.11 python examples/minimal_client.py
 ```
 
-#### Legacy pip setup (not recommended)
+#### Legacy pip setup (alternative)
 
 If you need to use pip directly:
 ```bash
-# Export requirements from Poetry
-poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Export requirements from UV
+uv pip compile pyproject.toml -o requirements.txt
 
 # Install with pip
 pip install -r requirements.txt
@@ -278,7 +271,7 @@ The project uses GitHub Actions for automated publishing:
 - **Version management**: Manual versioning in pyproject.toml
   - Dev versions for TestPyPI: `0.1.0.dev<timestamp><PR_number>`
   - Production versions from git tags
-- **Build system**: Poetry with Poetry Core backend
+- **Build system**: Hatchling with standard PEP 621 format
 - **Python support**: 3.9 - 3.13
 
 ## Project Status
@@ -391,12 +384,12 @@ Key discoveries made during development:
    - Runs black, isort, and flake8 on every git commit
    - **Check-only mode**: Prevents commits with issues but doesn't auto-fix
    - Manual fix option via `./scripts/verify_code_quality.sh --fix`
-   - Version-synchronized tools between Poetry and pre-commit:
+   - Version-synchronized tools between UV and pre-commit:
      - black: 25.1.0 (100 char line length)
      - isort: 6.0.1 (black compatibility)
      - flake8: 7.3.0 (configured for black compatibility)
    - Configuration in `.pre-commit-config.yaml`
-   - Install with: `poetry run pre-commit install`
+   - Install with: `uv run pre-commit install`
 
 2. **Code Quality Verification Script**:
    - Located at `scripts/verify_code_quality.sh`
@@ -425,7 +418,7 @@ Key discoveries made during development:
    - All imports properly sorted with isort
    - Zero flake8 linting errors (E203, W503 ignored for black compatibility)
    - 95% test coverage maintained
-   - Tool versions synchronized between Poetry dependencies and pre-commit hooks
+   - Tool versions synchronized between UV dependencies and pre-commit hooks
 
 ### Example Files Fixed and Enhanced (August 6th 2025)
 All example files have been updated for compatibility with the latest code changes:
@@ -470,7 +463,7 @@ The Python client is now ready for publication to PyPI as the `eigenda` package:
    - TestPyPI for development releases (`develop` branch)
    - PyPI for stable releases (version tags)
    - Uses trusted publishing (OIDC) for secure deployment
-3. **Dynamic Versioning**: Configured `poetry-dynamic-versioning` for automatic version calculation from git tags
+3. **Package Building**: UV builds packages using Hatchling backend with PEP 621 format
 4. **Installation**: Users can now install with `pip install powerloom-eigenda`
 
 ### Default Network Changed to Sepolia (August 6th 2025)
@@ -493,13 +486,13 @@ Added `--address` flag to allow checking any Ethereum address without needing th
 
 ```bash
 # Check your own account (requires EIGENDA_PRIVATE_KEY)
-poetry run python examples/check_payment_vault.py
+uv run python examples/check_payment_vault.py
 
 # Check any address without private key (read-only)
-poetry run python examples/check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+uv run python examples/check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
 
 # Short form
-poetry run python examples/check_payment_vault.py -a 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+uv run python examples/check_payment_vault.py -a 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
 ```
 
 This is useful for:
@@ -551,13 +544,14 @@ Comparison with other clients:
 - **Rust client**: Uses GetPaymentState (simple reservations only)
 - **Python client**: Supports BOTH approaches for maximum compatibility
 
-### Poetry Configuration Enhanced (July 10th 2025)
-- **Migrated to Poetry**: Project now uses Poetry for modern dependency management
+### UV Package Manager Migration (August 2025)
+- **Migrated to UV**: Project now uses UV for ultra-fast dependency management
+- **Performance improvements**: 10-100x faster dependency resolution and installation
 - **Organized dependencies**: Split into separate groups (dev, docs, notebook) for better control
-- **Updated metadata**: Added missing License classifier and Bug Tracker URL
+- **Updated metadata**: Standard PEP 621 pyproject.toml format
 - **Python 3.13 support**: Added support for latest Python version
-- **Removed sys.path hacks**: All example files now work cleanly with Poetry's import handling
-- **Enhanced documentation**: Added comprehensive Poetry guide at `docs/POETRY_GUIDE.md`
+- **Simplified workflow**: UV automatically manages virtual environments in .venv
+- **Enhanced documentation**: Added comprehensive UV guide at `docs/UV_GUIDE.md`
 
 ### Integration Tests Added (older)
 - Added 33 comprehensive integration tests with mock gRPC servers
@@ -671,7 +665,7 @@ Comparison with other clients:
   - Status checking examples properly monitor blob progress
 
 ### Example Files Code Quality Improvements (older)
-- **Removed all sys.path hacks**: Since we're using Poetry, the `sys.path.insert()` hacks are no longer needed
+- **Removed all sys.path hacks**: Since we're using UV, the `sys.path.insert()` hacks are no longer needed
   - Cleaned `check_blob_status.py` and `check_existing_blob_status.py`
   - All examples now import cleanly without path manipulation
 - **Moved all inline imports to top of files**:
@@ -694,7 +688,7 @@ The project uses GitHub Actions for comprehensive continuous integration:
 **Local Development**:
 - **Pre-commit hooks**: Automatically run black, isort, and flake8 on every commit
 - **Configuration**: `.pre-commit-config.yaml` ensures consistent code quality
-- **Manual checks**: `poetry run pre-commit run --all-files`
+- **Manual checks**: `uv run pre-commit run --all-files`
 
 ## Credits
 

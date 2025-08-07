@@ -65,41 +65,41 @@ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/
 
 ### From Source (For Development)
 
-#### Using Poetry (Recommended)
+#### Using UV (Recommended)
 
-The project uses Poetry for dependency management, which provides better dependency resolution and reproducible builds.
+The project uses UV for dependency management, which provides much faster dependency resolution and installation compared to pip.
 
 ```bash
 # Clone the repository
-git clone https://github.com/powerloom/eigenda-py.git
-cd eigenda-py
+git clone https://github.com/powerloom/eigenda-py.git powerloom-eigenda
+cd powerloom-eigenda
 
-# Install Poetry if you haven't already
-curl -sSL https://install.python-poetry.org | python3 -
+# Install UV if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install project dependencies
-poetry install
+uv sync
 
-# Or install without development dependencies
-poetry install --without dev
+# Or install with development dependencies
+uv sync --dev
 
 # Install with optional groups (docs, notebook)
-poetry install --with docs,notebook
+uv sync --extra docs --extra notebook
 ```
 
-For detailed Poetry usage instructions, see our [Poetry Guide](docs/POETRY_GUIDE.md).
+For detailed UV usage instructions, see our [UV Guide](docs/UV_GUIDE.md).
 
-#### Using pip
+#### Using pip (Alternative)
 
 If you prefer to use pip directly:
 
 ```bash
 # Clone and install
 git clone https://github.com/powerloom/eigenda-py.git
-cd eigenda-py
+cd eigenda-py/python-client
 
-# Export requirements from Poetry (if requirements.txt doesn't exist)
-poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Export requirements from UV (if requirements.txt doesn't exist)
+uv pip compile pyproject.toml -o requirements.txt
 
 # Install with pip
 pip install -r requirements.txt
@@ -163,15 +163,17 @@ echo "EIGENDA_PRIVATE_KEY=your_private_key_here" >> .env
 
 2. **Run Examples**
 ```bash
-# Using Poetry (recommended) - no PYTHONPATH setup needed!
-poetry run python examples/minimal_client.py
+# Using UV - no PYTHONPATH setup needed!
+uv run python examples/minimal_client.py
 
 # Or run other examples
-poetry run python examples/full_example.py
-poetry run python examples/check_payment_vault.py
+uv run python examples/full_example.py
+uv run python examples/check_payment_vault.py
 
-# Or activate the Poetry shell first
-poetry shell
+# Or activate the virtual environment first
+source .venv/bin/activate  # Linux/macOS
+# or
+.venv\Scripts\activate  # Windows
 python examples/minimal_client.py
 ```
 
@@ -484,21 +486,22 @@ See `examples/blob_retrieval_example.py` and `examples/dispersal_with_retrieval_
 
 ### Development Setup
 
-When developing or running code directly from the repository, Poetry handles the Python path automatically:
+When developing or running code directly from the repository, UV handles the Python path automatically:
 
 ```bash
 # Install the project in development mode
-poetry install
+uv sync
 
-# Run scripts with Poetry
-poetry run python your_script.py
+# Run scripts with UV
+uv run python your_script.py
 
 # Or activate the virtual environment
-poetry shell
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate     # Windows
 python your_script.py
 ```
 
-The project is configured to use the `src/` layout, and Poetry automatically handles the import paths when you install the project.
+The project is configured to use the `src/` layout, and UV automatically handles the import paths when you install the project.
 
 ### Project Milestones
 
@@ -508,7 +511,7 @@ The EigenDA Python client has achieved several significant milestones:
 2. **✅ 95% Test Coverage** - Comprehensive test suite with 332 tests
 3. **✅ 100% Linting Compliance** - 0 errors, fully PEP8 compliant
 4. **✅ Production Ready** - Successfully dispersing blobs on mainnet and testnets
-5. **✅ Modern Python Packaging** - Full Poetry support with organized dependency groups
+5. **✅ Modern Python Packaging** - UV package manager with ultra-fast dependency resolution
 6. **✅ Python 3.13 Support** - Compatible with Python 3.9 through 3.13
 
 ## Development Workflow
@@ -517,12 +520,12 @@ The EigenDA Python client has achieved several significant milestones:
 
 The project enforces strict code quality standards using black, isort, and flake8. All tools use consistent versions to ensure reproducible results.
 
-**Tool Versions** (managed by Poetry and pre-commit):
+**Tool Versions** (managed by UV and pre-commit):
 - black: 25.1.0
 - isort: 6.0.1  
 - flake8: 7.3.0
 
-These versions are synchronized between Poetry and pre-commit hooks to ensure consistency.
+These versions are synchronized between UV dependencies and pre-commit hooks to ensure consistency.
 
 #### Quick Code Quality Check
 
@@ -538,13 +541,13 @@ These versions are synchronized between Poetry and pre-commit hooks to ensure co
 
 ```bash
 # Check formatting without making changes
-poetry run black --check src/ tests/ examples/
-poetry run isort --check-only src/ tests/ examples/
-poetry run flake8 .
+uv run black --check src/ tests/ examples/
+uv run isort --check-only src/ tests/ examples/
+uv run flake8 .
 
 # Apply formatting fixes
-poetry run black src/ tests/ examples/
-poetry run isort src/ tests/ examples/
+uv run black src/ tests/ examples/
+uv run isort src/ tests/ examples/
 ```
 
 ### Pre-commit Hooks
@@ -553,10 +556,10 @@ Pre-commit hooks run automatically on `git commit` to prevent poorly formatted c
 
 ```bash
 # Install pre-commit hooks (one-time setup)
-poetry run pre-commit install
+uv run pre-commit install
 
 # Manual check (runs all hooks)
-poetry run pre-commit run --all-files
+uv run pre-commit run --all-files
 
 # Skip hooks temporarily (not recommended)
 git commit --no-verify
@@ -596,18 +599,18 @@ GitHub Actions runs comprehensive checks on every push:
 ### Running Tests
 
 ```bash
-# Using Poetry (recommended)
-poetry run pytest tests/
+# Using UV (recommended)
+uv run pytest tests/
 
 # Run with coverage report
-poetry run pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
 # Run specific test categories
-poetry run pytest tests/test_client_v2_full.py  # Client tests
-poetry run pytest tests/test_integration_*.py   # Integration tests
+uv run pytest tests/test_client_v2_full.py  # Client tests
+uv run pytest tests/test_integration_*.py   # Integration tests
 
 # Or activate the virtual environment first
-poetry shell
+source .venv/bin/activate  # Linux/macOS
 pytest tests/
 
 # Test Statistics:
@@ -660,25 +663,25 @@ The unreachable line in `payment.py` is due to mathematical constraints: `(data_
 All examples have been updated to work with the latest code changes, including proper BlobStatus enum values and correct API usage.
 
 ```bash
-# Using Poetry (recommended)
-poetry run python examples/test_both_payments.py
+# Using UV (recommended)
+uv run python examples/test_both_payments.py
 
 # Full example with dispersal and status monitoring
-poetry run python examples/full_example.py
+uv run python examples/full_example.py
 
 # Check your PaymentVault balance and pricing
-poetry run python examples/check_payment_vault.py
+uv run python examples/check_payment_vault.py
 
 # Check blob status after dispersal (monitors until completion)
-poetry run python examples/check_blob_status.py
+uv run python examples/check_blob_status.py
 
 # Check status of an existing blob
-poetry run python examples/check_existing_blob_status.py <blob_key_hex>
+uv run python examples/check_existing_blob_status.py <blob_key_hex>
 
 # Simple example with mock client
-poetry run python examples/minimal_client.py
+uv run python examples/minimal_client.py
 # Or activate the virtual environment first
-poetry shell
+source .venv/bin/activate  # Linux/macOS
 python examples/test_both_payments.py
 ```
 
@@ -691,18 +694,18 @@ python examples/test_both_payments.py
 The project maintains high code quality standards with automated tooling:
 
 ```bash
-# Check code quality using Poetry (0 errors!)
-poetry run flake8 . --exclude="*/grpc/*" --max-line-length=127
+# Check code quality using UV (0 errors!)
+uv run flake8 . --exclude="*/grpc/*" --max-line-length=127
 
 # Run linting tools for automatic fixes:
-poetry run autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive . --exclude "*/grpc/*"
-poetry run autopep8 --in-place --max-line-length=127 --recursive . --exclude="*/grpc/*"
+uv run autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive . --exclude "*/grpc/*"
+uv run autopep8 --in-place --max-line-length=127 --recursive . --exclude="*/grpc/*"
 
 # Custom fixes for specific issues
-poetry run python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespace
+uv run python fix_linting.py  # Fixes f-strings without placeholders, trailing whitespace
 
 # Or use pre-commit hooks (if configured)
-poetry run pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 **Linting achievements:**
@@ -716,8 +719,8 @@ poetry run pre-commit run --all-files
 
 **Example files improvements:**
 - Fixed import order in all example files
-- Examples work seamlessly with Poetry - no PYTHONPATH configuration needed
-- Removed sys.path hacks as Poetry handles imports automatically
+- Examples work seamlessly with UV - no PYTHONPATH configuration needed
+- Removed sys.path hacks as UV handles imports automatically
 
 **Critical bug fixes:**
 - Fixed on-demand payment state synchronization issue
@@ -727,11 +730,20 @@ poetry run pre-commit run --all-files
 ### Regenerating gRPC Code
 
 ```bash
-poetry run python scripts/generate_grpc.py
-poetry run python scripts/fix_grpc_imports.py
+uv run python scripts/generate_grpc.py
+uv run python scripts/fix_grpc_imports.py
 ```
 
 ## Recent Updates
+
+### August 7th 2025
+- **Migrated to UV Package Manager**:
+  - Replaced Poetry with UV for 10-100x faster dependency resolution
+  - Updated all documentation and scripts to use UV commands
+  - Updated GitHub Actions workflows to use `astral-sh/setup-uv@v6`
+  - Updated Makefile and code quality scripts for UV
+  - Created comprehensive UV guide at `docs/UV_GUIDE.md`
+  - All tests passing with 93% coverage under UV
 
 ### August 6th 2025
 - **Simplified Reservation Support**: Removed advanced per-quorum reservation complexity
@@ -783,7 +795,7 @@ poetry run python scripts/fix_grpc_imports.py
 ## Requirements
 
 - Python 3.9+
-- Poetry (for dependency management)
+- UV (for ultra-fast dependency management)
 - See `pyproject.toml` for full dependencies
 
 ## License

@@ -30,17 +30,17 @@ run_quality_checks() {
     if [ "$fix" = true ]; then
         # Fix mode - apply formatters
         echo -e "${YELLOW}1. Applying black formatting...${NC}"
-        poetry run black src/ tests/ examples/
+        uv run black src/ tests/ examples/
         echo -e "${GREEN}✅ Black formatting applied${NC}"
         echo ""
         
         echo -e "${YELLOW}2. Fixing import sorting with isort...${NC}"
-        poetry run isort src/ tests/ examples/
+        uv run isort src/ tests/ examples/
         echo -e "${GREEN}✅ Import sorting fixed${NC}"
         echo ""
         
         echo -e "${YELLOW}3. Running flake8 to identify remaining issues...${NC}"
-        if poetry run flake8 .; then
+        if uv run flake8 .; then
             echo -e "${GREEN}✅ No linting issues found${NC}"
         else
             echo -e "${YELLOW}⚠️  Some linting issues cannot be auto-fixed${NC}"
@@ -50,7 +50,7 @@ run_quality_checks() {
     else
         # Check mode - verify without changing
         echo "1. Checking black formatting..."
-        if poetry run black --check src/ tests/ examples/; then
+        if uv run black --check src/ tests/ examples/; then
             echo -e "${GREEN}✅ Black formatting check passed${NC}"
         else
             echo -e "${RED}❌ Black formatting check failed${NC}"
@@ -60,7 +60,7 @@ run_quality_checks() {
         echo ""
         
         echo "2. Checking import sorting with isort..."
-        if poetry run isort --check-only src/ tests/ examples/; then
+        if uv run isort --check-only src/ tests/ examples/; then
             echo -e "${GREEN}✅ Import sorting check passed${NC}"
         else
             echo -e "${RED}❌ Import sorting check failed${NC}"
@@ -70,7 +70,7 @@ run_quality_checks() {
         echo ""
         
         echo "3. Running flake8 linting..."
-        if poetry run flake8 .; then
+        if uv run flake8 .; then
             echo -e "${GREEN}✅ Flake8 linting passed${NC}"
         else
             echo -e "${RED}❌ Flake8 linting failed${NC}"
@@ -83,7 +83,7 @@ run_quality_checks() {
     
     # Always run pre-commit check at the end
     echo "4. Running pre-commit hooks (check only)..."
-    if poetry run pre-commit run --all-files; then
+    if uv run pre-commit run --all-files; then
         echo -e "${GREEN}✅ All pre-commit hooks passed${NC}"
     else
         echo -e "${RED}❌ Pre-commit hooks failed${NC}"

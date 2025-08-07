@@ -16,47 +16,35 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
     - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Configure Poetry
-      run: |
-        poetry config virtualenvs.create true
-        poetry config virtualenvs.in-project true
-
-    - name: Cache Poetry virtualenv
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: ${{ runner.os }}-poetry-lint-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-poetry-lint-
+      run: uv python install 3.12
 
     - name: Install dependencies
-      run: poetry install --no-interaction --no-root
+      run: uv sync --all-extras
 
     - name: Check with black
       run: |
         echo "🔍 Checking code formatting with black..."
-        poetry run black --check src/ tests/ examples/
+        uv run black --check src/ tests/ examples/
 
     - name: Check with isort
       run: |
         echo "🔍 Checking import sorting with isort..."
-        poetry run isort --check-only src/ tests/ examples/
+        uv run isort --check-only src/ tests/ examples/
 
     - name: Lint with flake8
       run: |
         echo "🔍 Running flake8 linting..."
         # Stop the build if there are Python syntax errors or undefined names
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # Check all linting rules
-        poetry run flake8 . --count --statistics
+        uv run flake8 . --count --statistics
 
   test:
     name: Test Python ${{ matrix.python-version }}
@@ -76,35 +64,21 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
 
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Configure Poetry
+    - name: Install dependencies and package
       run: |
-        poetry config virtualenvs.create true
-        poetry config virtualenvs.in-project true
-
-    - name: Cache Poetry virtualenv
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-poetry-${{ matrix.python-version }}-
-
-    - name: Install dependencies
-      run: poetry install --no-interaction --no-root
-
-    - name: Install package
-      run: poetry install --no-interaction
+        uv sync --all-extras
 
     - name: Test with pytest
-      run: poetry run pytest tests/ --junitxml=junit/test-results-${{ matrix.python-version }}-${{ matrix.os }}.xml --cov=src/eigenda --cov-report=xml --cov-report=html --cov-report=term-missing -v
+      run: uv run pytest tests/ --junitxml=junit/test-results-${{ matrix.python-version }}-${{ matrix.os }}.xml --cov=src/eigenda --cov-report=xml --cov-report=html --cov-report=term-missing -v
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -137,12 +111,18 @@ jobs:
         name: coverage-reports
         path: .
 
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
+
+    - name: Set up Python
+      run: uv python install 3.12
+
     - name: Display coverage summary
       run: |
         echo "📊 Coverage Summary"
         echo "==================="
         if [ -f coverage.xml ]; then
-          python -c "
+          uv run python -c "
         import xml.etree.ElementTree as ET
         tree = ET.parse('coverage.xml')
         root = tree.getroot()
@@ -188,37 +168,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
     - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Configure Poetry
-      run: |
-        poetry config virtualenvs.create true
-        poetry config virtualenvs.in-project true
-
-    - name: Cache Poetry virtualenv
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: ${{ runner.os }}-poetry-security-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-poetry-security-
+      run: uv python install 3.12
 
     - name: Install dependencies
-      run: poetry install --no-interaction --no-root
+      run: uv sync --all-extras
 
     - name: Security check with bandit
       run: |
-        poetry run pip install bandit
-        poetry run bandit -r src/ -ll -f json -o bandit-report.json || true
+        uv pip install bandit
+        uv run bandit -r src/ -ll -f json -o bandit-report.json || true
         if [ -f bandit-report.json ]; then
           echo "🔒 Security Scan Results:"
-          poetry run python -c "
+          uv run python -c "
         import json
         with open('bandit-report.json') as f:
             data = json.load(f)
@@ -234,11 +202,11 @@ jobs:
 
     - name: Check for dependency vulnerabilities
       run: |
-        poetry run pip install safety
-        poetry run safety check --json --output safety-report.json || true
+        uv pip install safety
+        uv run safety check --json --output safety-report.json || true
         if [ -f safety-report.json ]; then
           echo "📦 Dependency Security Check:"
-          poetry run python -c "
+          uv run python -c "
         import json
         with open('safety-report.json') as f:
             data = json.load(f)
@@ -256,29 +224,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: '3.12'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Configure Poetry
-      run: |
-        poetry config virtualenvs.create true
-        poetry config virtualenvs.in-project true
+    - name: Set up Python
+      run: uv python install 3.12
 
     - name: Build package
       run: |
-        poetry build
+        uv build
         echo "📦 Built packages:"
         ls -la dist/
 
     - name: Check package with twine
       run: |
-        pip install twine
-        twine check dist/*
+        uv pip install twine
+        uv run twine check dist/*
         echo "✅ Package validation passed!"
 
     - name: Upload build artifacts

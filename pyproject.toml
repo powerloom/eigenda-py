@@ -1,12 +1,17 @@
-[tool.poetry]
+[project]
 name = "powerloom-eigenda"
 version = "0.1.0"
 description = "Unofficial Python client for EigenDA v2 - a decentralized data availability (DA) service. This implementation is maintained by the Powerloom team."
-authors = ["Swaroop Hegde <email@swaroophegde.com>"]
-maintainers = ["Powerloom Team <hello@powerloom.io>"]
-license = "MIT"
+authors = [
+    {name = "Swaroop Hegde", email = "email@swaroophegde.com"},
+]
+maintainers = [
+    {name = "Powerloom Team", email = "hello@powerloom.io"},
+]
+license = {text = "MIT"}
 readme = "README.md"
-homepage = "https://www.eigenda.xyz/"
+homepage = "https://www.eigenda.xyz"
+powerloom = "https://powerloom.io"
 repository = "https://github.com/powerloom/eigenda-py"
 documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 keywords = ["eigenda", "ethereum", "data-availability", "blockchain", "web3", "powerloom"]
@@ -24,58 +29,64 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: System :: Distributed Computing",
 ]
-packages = [{include = "eigenda", from = "src"}]
-include = ["src/eigenda/py.typed"]
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "grpcio>=1.60.0",
+    "grpcio-tools>=1.60.0",
+    "protobuf>=4.25.0",
+    "web3>=6.0.0",
+    "eth-account>=0.10.0",
+    "eth-utils>=2.0.0",
+    "eth-abi>=4.0.0",
+    "eth-typing>=3.0.0",
+    "cryptography>=41.0.0",
+    "pycryptodome>=3.19.0",
+    "python-dotenv>=1.0.0",
+]
 
-[tool.poetry.urls]
+[project.urls]
+Homepage = "https://www.eigenda.xyz/"
+Repository = "https://github.com/powerloom/eigenda-py"
+Documentation = "https://docs.eigencloud.xyz/products/eigenda/core-concepts/overview"
 "Bug Tracker" = "https://github.com/powerloom/eigenda-py/issues"
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-grpcio = ">=1.60.0"
-grpcio-tools = ">=1.60.0"
-protobuf = ">=4.25.0"
-web3 = ">=6.0.0"
-eth-account = ">=0.10.0"
-eth-utils = ">=2.0.0"
-eth-abi = {version = ">=4.0.0", python = ">=3.9,<4"}
-eth-typing = ">=3.0.0"
-cryptography = ">=41.0.0"
-pycryptodome = ">=3.19.0"
-python-dotenv = ">=1.0.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = ">=7.0.0"
-pytest-asyncio = ">=0.21.0"
-pytest-cov = ">=4.0.0"
-pytest-mock = ">=3.10.0"
-black = ">=23.0.0"
-isort = ">=5.12.0"
-mypy = ">=1.5.0"
-types-protobuf = ">=4.24.0"
-types-requests = ">=2.31.0"
-flake8 = ">=6.0.0"
-pylint = ">=3.0.0"
-pre-commit = ">=3.0.0"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-sphinx = ">=7.0.0"
-sphinx-rtd-theme = ">=2.0.0"
-autodoc-pydantic = {version = ">=2.0.0", python = ">=3.9,<4.0.0"}
-
-[tool.poetry.group.notebook]
-optional = true
-
-[tool.poetry.group.notebook.dependencies]
-jupyter = ">=1.0.0"
-ipython = ">=8.0.0"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+    "types-protobuf>=4.24.0",
+    "types-requests>=2.31.0",
+    "flake8>=6.0.0",
+    "pylint>=3.0.0",
+    "pre-commit>=3.0.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "autodoc-pydantic>=2.0.0",
+]
+notebook = [
+    "jupyter>=1.0.0",
+    "ipython>=8.0.0",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/eigenda"]
+
+[tool.hatch.build]
+include = [
+    "src/eigenda/**/*.py",
+    "src/eigenda/py.typed",
+]
 
 
 [tool.black]
