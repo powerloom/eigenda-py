@@ -30,9 +30,6 @@ The `eigenda` package includes:
 - Multi-platform support (Linux, macOS, Windows)
 - Comprehensive CI/CD pipeline with security scanning
 
-### Important Update (Latest)
-**Fixed BlobStatus enum mismatch with v2 protocol** - The Python client now correctly maps blob status values to match the EigenDA v2 protobuf definition. This fixes the issue where status 0 (UNKNOWN) was being returned when blobs were actually being processed. Status values now correctly show QUEUED, ENCODED, etc.
-
 ### Implemented Features
 - Full gRPC v2 protocol support
 - ECDSA signature authentication
