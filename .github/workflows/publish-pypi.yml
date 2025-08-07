@@ -198,10 +198,14 @@ jobs:
     # - Successful workflow_run from develop branch
     # - Manual workflow dispatch with publish_to_testpypi=true
     if: |
-      (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
+      always() &&
+      needs.build.result == 'success' &&
+      (
+        (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
+      )
 
     environment:
       name: testpypi
