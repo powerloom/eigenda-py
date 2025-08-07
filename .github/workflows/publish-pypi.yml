@@ -35,6 +35,7 @@ on:
 
 permissions:
   contents: read
+  actions: read  # Required for checking workflow status
 
 jobs:
   # Check if tests have passed when triggered by push to develop
@@ -42,6 +43,8 @@ jobs:
     name: Check Test Status
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    permissions:
+      actions: read
     outputs:
       tests-passed: ${{ steps.check.outputs.conclusion }}
     steps:
