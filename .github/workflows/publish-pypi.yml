@@ -125,12 +125,10 @@ jobs:
     runs-on: ubuntu-latest
     # Publish to TestPyPI on:
     # - Pull requests to master/main branch
-    # - Push to develop branch
-    # - Successful workflow_run from develop branch
+    # - Successful workflow_run from develop branch (triggered by push to develop)
     # - Manual workflow dispatch with publish_to_testpypi=true
     if: |
       (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
 
