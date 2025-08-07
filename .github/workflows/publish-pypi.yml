@@ -14,6 +14,8 @@ on:
       - main
     types: [opened, synchronize]
   push:
+    branches:
+      - develop  # Publish to TestPyPI on develop push
     tags:
       - 'v*'  # Publish to PyPI on version tags
   release:
@@ -35,11 +37,11 @@ permissions:
   contents: read
 
 jobs:
-  # Run tests for PRs since workflow_run doesn't trigger on PRs
+  # Run tests for PRs and develop pushes
   test:
-    name: Run Tests (PR)
+    name: Run Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')
     
     steps:
     - uses: actions/checkout@v4
@@ -125,10 +127,12 @@ jobs:
     runs-on: ubuntu-latest
     # Publish to TestPyPI on:
     # - Pull requests to master/main branch
+    # - Push to develop branch
     # - Successful workflow_run from develop branch
     # - Manual workflow dispatch with publish_to_testpypi=true
     if: |
       (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
 
