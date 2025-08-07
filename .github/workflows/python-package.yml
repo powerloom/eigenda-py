@@ -103,7 +103,14 @@ jobs:
           ${{ runner.os }}-poetry-${{ matrix.python-version }}-
 
     - name: Install dependencies
-      run: poetry install --no-interaction --no-root
+      run: |
+        # Python 3.13 may have dependency resolution issues with the lock file
+        # Force install pytest and related packages if they're missing
+        poetry install --no-interaction --no-root
+        if ! poetry run pytest --version 2>/dev/null; then
+          echo "pytest not found, installing explicitly..."
+          poetry add --group dev pytest pytest-cov pytest-asyncio --no-interaction
+        fi
 
     - name: Install package
       run: poetry install --no-interaction
