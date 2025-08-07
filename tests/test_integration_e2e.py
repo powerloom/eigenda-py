@@ -108,7 +108,6 @@ class TestEndToEndFlow:
                 "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class,
         ):
-
             # Configure mock stub
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
@@ -182,7 +181,6 @@ class TestEndToEndFlow:
                 "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class,
         ):
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -339,7 +337,6 @@ class TestEndToEndFlow:
                 "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class,
         ):
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -426,7 +423,6 @@ class TestErrorScenarios:
         with patch("grpc.insecure_channel"), patch(
             "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
         ):
-
             client = DisperserClientV2Full(
                 hostname="localhost", port=50051, signer=mock_signer, use_secure_grpc=False
             )
@@ -454,7 +450,6 @@ class TestErrorScenarios:
                 "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class,
         ):
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -485,7 +480,6 @@ class TestPerformanceIntegration:
                 "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class,
         ):
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -537,7 +531,6 @@ class TestPerformanceIntegration:
                 "eigenda.grpc.disperser.v2.disperser_v2_pb2_grpc.DisperserStub"
             ) as mock_stub_class,
         ):
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 

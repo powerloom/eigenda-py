@@ -9,7 +9,7 @@ Full implementation of the EigenDA v2 disperser client with gRPC communication.
 ```python
 class DisperserClientV2:
     def __init__(
-        self, 
+        self,
         hostname: str,
         port: int,
         use_secure_grpc: bool,
@@ -20,7 +20,7 @@ class DisperserClientV2:
 
 **Parameters:**
 - `hostname`: Disperser service hostname
-- `port`: Disperser service port  
+- `port`: Disperser service port
 - `use_secure_grpc`: Whether to use TLS connection
 - `signer`: Request signer for authentication
 - `config`: Optional additional configuration
@@ -68,7 +68,7 @@ Main client for interacting with EigenDA disperser service.
 ```python
 class DisperserClient:
     def __init__(
-        self, 
+        self,
         hostname: str,
         port: int,
         use_secure_grpc: bool,
@@ -79,7 +79,7 @@ class DisperserClient:
 
 **Parameters:**
 - `hostname`: Disperser service hostname
-- `port`: Disperser service port  
+- `port`: Disperser service port
 - `use_secure_grpc`: Whether to use TLS connection
 - `signer`: Request signer for authentication
 - `config`: Optional additional configuration
@@ -190,10 +190,10 @@ Unique 32-byte identifier for a blob.
 ```python
 class BlobKey:
     def hex(self) -> str
-    
+
     @classmethod
     def from_hex(cls, hex_str: str) -> BlobKey
-    
+
     @classmethod
     def from_bytes(cls, data: bytes) -> BlobKey
 ```

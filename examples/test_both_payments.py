@@ -56,9 +56,9 @@ def test_account(private_key: str, description: str):
             print(f"Quorum splits: {details['quorum_splits']}%")
         elif payment_info["payment_type"] == "on_demand":
             print(f"Current cumulative payment: {payment_info['current_cumulative_payment']} wei")
-            print(
-                f"Onchain balance: {payment_info['onchain_balance']} wei ({payment_info['onchain_balance']/1e18:.4f} ETH)"
-            )
+            balance_wei = payment_info["onchain_balance"]
+            balance_eth = balance_wei / 1e18
+            print(f"Onchain balance: {balance_wei} wei ({balance_eth:.4f} ETH)")
             print(f"Price per symbol: {payment_info['price_per_symbol']} wei")
             print(f"Min symbols: {payment_info['min_symbols']}")
 

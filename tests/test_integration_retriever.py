@@ -298,7 +298,6 @@ class TestRetrieverWithDisperser:
         with patch("grpc.insecure_channel"), patch(
             "eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub"
         ) as mock_stub_class:
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -378,7 +377,6 @@ class TestRetrieverErrorHandling:
         with patch("grpc.insecure_channel"), patch(
             "eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub"
         ) as mock_stub_class:
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -414,7 +412,6 @@ class TestRetrieverErrorHandling:
         with patch("grpc.insecure_channel"), patch(
             "eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub"
         ) as mock_stub_class:
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -439,7 +436,6 @@ class TestRetrieverPerformance:
         with patch("grpc.insecure_channel"), patch(
             "eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub"
         ) as mock_stub_class:
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 
@@ -481,7 +477,6 @@ class TestRetrieverPerformance:
         with patch("grpc.insecure_channel"), patch(
             "eigenda.retriever.retriever_v2_pb2_grpc.RetrieverStub"
         ) as mock_stub_class:
-
             mock_stub = Mock()
             mock_stub_class.return_value = mock_stub
 

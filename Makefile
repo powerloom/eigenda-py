@@ -4,7 +4,7 @@
 install:
 	pip install -r requirements.txt
 
-# Install development dependencies  
+# Install development dependencies
 install-dev:
 	pip install -e ".[dev]"
 

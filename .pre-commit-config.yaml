@@ -1,9 +1,8 @@
 repos:
+  # Basic file checks - these only check, don't auto-fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
         args: ['--maxkb=1000']
@@ -11,30 +10,35 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
       - id: debug-statements
-      - id: mixed-line-ending
+      - id: check-ast  # Verify Python syntax
+      - id: check-case-conflict  # Check for files with names that would conflict on case-insensitive filesystems
 
+  # Code formatting checks - CHECK ONLY, no auto-fixing
   - repo: https://github.com/psf/black
-    rev: 23.12.1
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3
+        args: ['--check', '--diff']  # Only check, show diff of what would change
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
-        args: ["--profile", "black"]
+        args: ["--profile", "black", "--check-only", "--diff"]  # Only check, show diff
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.3.0
     hooks:
       - id: flake8
-        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
+        # Use the project's .flake8 config file for consistency
+        # This ensures pre-commit uses the same rules as direct flake8 calls
         exclude: 'src/eigenda/grpc/.*_pb2.*\.py$'
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-all]
-        exclude: 'src/eigenda/grpc/.*_pb2.*\.py$'
+  # Mypy is optional - uncomment if you want type checking
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.8.0
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: []
+  #       exclude: 'src/eigenda/grpc/.*_pb2.*\.py$'

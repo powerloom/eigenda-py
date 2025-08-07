@@ -107,12 +107,10 @@ def check_reservation(contract, account_address: str) -> None:
 
         print("Reservation found:")
         print(f"  Symbols per second: {reservation[0]:,}")
-        print(
-            f"  Start timestamp: {reservation[1]} ({time.ctime(reservation[1]) if reservation[1] > 0 else 'Not set'})"
-        )
-        print(
-            f"  End timestamp: {reservation[2]} ({time.ctime(reservation[2]) if reservation[2] > 0 else 'Not set'})"
-        )
+        start_time = time.ctime(reservation[1]) if reservation[1] > 0 else "Not set"
+        print(f"  Start timestamp: {reservation[1]} ({start_time})")
+        end_time = time.ctime(reservation[2]) if reservation[2] > 0 else "Not set"
+        print(f"  End timestamp: {reservation[2]} ({end_time})")
 
         # Parse quorum numbers
         quorum_bytes = reservation[3]
@@ -120,7 +118,7 @@ def check_reservation(contract, account_address: str) -> None:
             quorum_numbers = list(quorum_bytes)
             print(f"  Quorum numbers: {quorum_numbers}")
         else:
-            print(f"  Quorum numbers: [] (empty)")
+            print("  Quorum numbers: [] (empty)")
 
         print(f"  Quorum splits: {reservation[4].hex()}")
 
@@ -130,9 +128,9 @@ def check_reservation(contract, account_address: str) -> None:
             if reservation[1] <= current_time <= reservation[2]:
                 print("  Status: ✅ ACTIVE")
                 remaining = reservation[2] - current_time
-                print(
-                    f"  Time remaining: {remaining // 3600} hours, {(remaining % 3600) // 60} minutes"
-                )
+                hours = remaining // 3600
+                minutes = (remaining % 3600) // 60
+                print(f"  Time remaining: {hours} hours, {minutes} minutes")
             elif current_time < reservation[1]:
                 print("  Status: ⏳ NOT YET ACTIVE")
                 print(f"  Starts in: {(reservation[1] - current_time) // 3600} hours")
@@ -210,10 +208,10 @@ def main():
 Examples:
   # Check using private key from environment
   python check_payment_vault.py
-  
+
   # Check specific address (read-only, no private key needed)
   python check_payment_vault.py --address 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
-  
+
   # Check on specific network
   EIGENDA_DISPERSER_HOST=disperser-testnet-holesky.eigenda.xyz python check_payment_vault.py
         """,

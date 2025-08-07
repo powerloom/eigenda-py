@@ -12,7 +12,7 @@ def fix_f541_issues(content):
 
     def replacer(match):
         string_content = match.group(1)
-        if '{' not in string_content:
+        if "{" not in string_content:
             # It's an f-string without placeholders, convert to regular string
             return f'"{string_content}"'
         return match.group(0)
@@ -24,7 +24,7 @@ def fix_f541_issues(content):
 
     def replacer_single(match):
         string_content = match.group(1)
-        if '{' not in string_content:
+        if "{" not in string_content:
             return f"'{string_content}'"
         return match.group(0)
 
@@ -34,7 +34,7 @@ def fix_f541_issues(content):
 def fix_file(filepath):
     """Fix linting issues in a single file."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
 
         original_content = content
@@ -43,16 +43,16 @@ def fix_file(filepath):
         content = fix_f541_issues(content)
 
         # Add newline at end of file if missing
-        if content and not content.endswith('\n'):
-            content += '\n'
+        if content and not content.endswith("\n"):
+            content += "\n"
 
         # Remove trailing whitespace
-        lines = content.split('\n')
+        lines = content.split("\n")
         lines = [line.rstrip() for line in lines]
-        content = '\n'.join(lines)
+        content = "\n".join(lines)
 
         if content != original_content:
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             print(f"Fixed: {filepath}")
             return True
@@ -67,15 +67,28 @@ def main():
     fixed_count = 0
 
     # Find all Python files
-    for root, dirs, files in os.walk('.'):
+    for root, dirs, files in os.walk("."):
         # Skip directories
-        if any(skip in root for skip in ['.git', '__pycache__', 'build', 'dist', '.eggs',
-                                         '.venv', 'venv', '.tox', '.pytest_cache', 'htmlcov',
-                                         'src/eigenda/grpc/']):
+        if any(
+            skip in root
+            for skip in [
+                ".git",
+                "__pycache__",
+                "build",
+                "dist",
+                ".eggs",
+                ".venv",
+                "venv",
+                ".tox",
+                ".pytest_cache",
+                "htmlcov",
+                "src/eigenda/grpc/",
+            ]
+        ):
             continue
 
         for file in files:
-            if file.endswith('.py'):
+            if file.endswith(".py"):
                 filepath = os.path.join(root, file)
                 if fix_file(filepath):
                     fixed_count += 1
@@ -83,5 +96,5 @@ def main():
     print(f"\nFixed {fixed_count} files")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

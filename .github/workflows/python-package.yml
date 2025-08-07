@@ -5,58 +5,311 @@ name: Python package
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "main", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "main", "develop" ]
 
 jobs:
-  build:
-
-    runs-on: buildjet-2vcpu-ubuntu-2204
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
+
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+        python-version: '3.12'
+
+    - name: Install poetry
+      run: pipx install poetry
+
+    - name: Configure Poetry
+      run: |
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+
     - name: Cache Poetry virtualenv
       uses: actions/cache@v4
       with:
         path: .venv
-        key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('''**/poetry.lock''') }}
+        key: ${{ runner.os }}-poetry-lint-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-poetry-${{ matrix.python-version }}-
+          ${{ runner.os }}-poetry-lint-
+
     - name: Install dependencies
       run: poetry install --no-interaction --no-root
+
+    - name: Check with black
+      run: |
+        echo "🔍 Checking code formatting with black..."
+        poetry run black --check src/ tests/ examples/
+
+    - name: Check with isort
+      run: |
+        echo "🔍 Checking import sorting with isort..."
+        poetry run isort --check-only src/ tests/ examples/
+
     - name: Lint with flake8
       run: |
-        # stop the build if there are Python syntax errors or undefined names
+        echo "🔍 Running flake8 linting..."
+        # Stop the build if there are Python syntax errors or undefined names
         poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Check all linting rules and show success message if clean
-        if poetry run flake8 . --count --max-complexity=10 --max-line-length=127 --statistics | grep -q "^0$"; then
-          echo "✅ All linting checks passed! 0 errors"
-        else
-          echo "⚠️  Linting issues found (treated as warnings in CI)"
-          poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-        fi
-    - name: Test with pytest
+        # Check all linting rules
+        poetry run flake8 . --count --statistics
+
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest]
+        include:
+          # Add macOS and Windows testing for latest Python
+          - python-version: "3.12"
+            os: macos-latest
+          - python-version: "3.12"
+            os: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install poetry
+      run: pipx install poetry
+
+    - name: Configure Poetry
       run: |
-        poetry run pytest tests/ --junitxml=junit/test-results.xml --cov=src --cov-report=xml --cov-report=html --cov-report=term-missing
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+
+    - name: Cache Poetry virtualenv
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-${{ matrix.python-version }}-
+
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-root
+
+    - name: Install package
+      run: poetry install --no-interaction
+
+    - name: Test with pytest
+      run: poetry run pytest tests/ --junitxml=junit/test-results-${{ matrix.python-version }}-${{ matrix.os }}.xml --cov=src/eigenda --cov-report=xml --cov-report=html --cov-report=term-missing -v
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}-${{ matrix.os }}
+        path: junit/test-results-*.xml
+
     - name: Upload coverage reports
       uses: actions/upload-artifact@v4
-      if: matrix.python-version == '3.12'
+      if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
       with:
         name: coverage-reports
         path: |
           coverage.xml
           htmlcov/
+
+  coverage:
+    name: Coverage Report
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download coverage reports
+      uses: actions/download-artifact@v4
+      with:
+        name: coverage-reports
+        path: .
+
+    - name: Display coverage summary
+      run: |
+        echo "📊 Coverage Summary"
+        echo "==================="
+        if [ -f coverage.xml ]; then
+          python -c "
+        import xml.etree.ElementTree as ET
+        tree = ET.parse('coverage.xml')
+        root = tree.getroot()
+        coverage = float(root.attrib.get('line-rate', 0)) * 100
+        print(f'Total Coverage: {coverage:.2f}%')
+        if coverage >= 90:
+            print('✅ Excellent coverage!')
+        elif coverage >= 80:
+            print('👍 Good coverage')
+        elif coverage >= 70:
+            print('⚠️  Coverage could be improved')
+        else:
+            print('❌ Coverage needs improvement')
+        "
+        fi
+
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('coverage.xml')) {
+            const xml = fs.readFileSync('coverage.xml', 'utf8');
+            const match = xml.match(/line-rate="([0-9.]+)"/);
+            if (match) {
+              const coverage = (parseFloat(match[1]) * 100).toFixed(2);
+              const emoji = coverage >= 90 ? '✅' : coverage >= 80 ? '👍' : coverage >= 70 ? '⚠️' : '❌';
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Coverage Report ${emoji}\n\n**Total Coverage: ${coverage}%**\n\nView detailed report in the workflow artifacts.`
+              });
+            }
+          }
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install poetry
+      run: pipx install poetry
+
+    - name: Configure Poetry
+      run: |
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+
+    - name: Cache Poetry virtualenv
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: ${{ runner.os }}-poetry-security-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-security-
+
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-root
+
+    - name: Security check with bandit
+      run: |
+        poetry run pip install bandit
+        poetry run bandit -r src/ -ll -f json -o bandit-report.json || true
+        if [ -f bandit-report.json ]; then
+          echo "🔒 Security Scan Results:"
+          poetry run python -c "
+        import json
+        with open('bandit-report.json') as f:
+            data = json.load(f)
+            issues = data.get('results', [])
+            if not issues:
+                print('✅ No security issues found!')
+            else:
+                print(f'⚠️  Found {len(issues)} potential security issues')
+                for issue in issues[:5]:  # Show first 5
+                    print(f\"  - {issue['issue_text']} ({issue['issue_severity']})\")
+        "
+        fi
+
+    - name: Check for dependency vulnerabilities
+      run: |
+        poetry run pip install safety
+        poetry run safety check --json --output safety-report.json || true
+        if [ -f safety-report.json ]; then
+          echo "📦 Dependency Security Check:"
+          poetry run python -c "
+        import json
+        with open('safety-report.json') as f:
+            data = json.load(f)
+            if not data:
+                print('✅ No known vulnerabilities in dependencies!')
+            else:
+                print(f'⚠️  Found {len(data)} dependencies with known vulnerabilities')
+        "
+        fi
+
+  build:
+    name: Build Distribution
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install poetry
+      run: pipx install poetry
+
+    - name: Configure Poetry
+      run: |
+        poetry config virtualenvs.create true
+        poetry config virtualenvs.in-project true
+
+    - name: Build package
+      run: |
+        poetry build
+        echo "📦 Built packages:"
+        ls -la dist/
+
+    - name: Check package with twine
+      run: |
+        pip install twine
+        twine check dist/*
+        echo "✅ Package validation passed!"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+  summary:
+    name: CI Summary
+    needs: [lint, test, security, build]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Summary
+      run: |
+        echo "## 📊 CI Pipeline Summary"
+        echo ""
+        echo "### Job Results:"
+        echo "- Lint: ${{ needs.lint.result }}"
+        echo "- Test: ${{ needs.test.result }}"
+        echo "- Security: ${{ needs.security.result }}"
+        echo "- Build: ${{ needs.build.result }}"
+        echo ""
+        if [ "${{ needs.lint.result }}" == "success" ] && \
+           [ "${{ needs.test.result }}" == "success" ] && \
+           [ "${{ needs.security.result }}" == "success" ] && \
+           [ "${{ needs.build.result }}" == "success" ]; then
+          echo "✅ **All checks passed!**"
+        else
+          echo "❌ **Some checks failed. Please review the logs above.**"
+          exit 1
+        fi

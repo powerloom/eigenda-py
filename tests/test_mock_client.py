@@ -40,6 +40,8 @@ class TestMockDisperserClient:
 
     def test_disperse_blob_complete_flow(self, client):
         """Test the complete disperse_blob flow."""
+        import time
+
         # Test data
         data = b"Hello, EigenDA!"
         blob_version = 0
@@ -57,6 +59,8 @@ class TestMockDisperserClient:
 
         # The blob key calculation in the mock client uses SHA3-256 and includes timestamp
         # so we can't verify the exact value, but we can verify it's different each time
+        # Add a small delay to ensure timestamp changes on Windows
+        time.sleep(0.01)  # 10ms should be enough for Windows
         status2, blob_key2 = client.disperse_blob(data, blob_version, quorum_numbers)
         assert bytes(blob_key) != bytes(blob_key2)  # Different due to timestamp
 
@@ -151,6 +155,8 @@ class TestMockDisperserClient:
 
     def test_private_calculate_blob_key(self, client):
         """Test the private _calculate_blob_key method."""
+        import time
+
         # Test with various inputs
         test_cases = [
             (b"hello", 0, [0]),
@@ -168,6 +174,9 @@ class TestMockDisperserClient:
             assert len(bytes(key)) == 32
 
             # Should be non-deterministic due to timestamp
+            # Add a small delay to ensure timestamp changes on Windows
+            # Windows has lower clock resolution than Unix systems
+            time.sleep(0.01)  # 10ms should be enough for Windows
             key2 = client._calculate_blob_key(data, version, quorums)
             assert bytes(key) != bytes(key2)
 

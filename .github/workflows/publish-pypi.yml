@@ -1,16 +1,23 @@
 name: Publish to PyPI and TestPyPI
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Python package"]
+    types: [completed]
     branches:
-      - develop  # Publish to TestPyPI on every push to this branch
-    tags:
-      - 'v*'  # Publish to PyPI on version tags
+      - develop
+      - master
+      - main
   pull_request:
     branches:
       - master
       - main
     types: [opened, synchronize]
+  push:
+    branches:
+      - develop  # Publish to TestPyPI on develop pushes
+    tags:
+      - 'v*'  # Publish to PyPI on version tags
   release:
     types: [published]  # Trigger when a release is published via GitHub UI
   workflow_dispatch:
@@ -28,56 +35,106 @@ on:
 
 permissions:
   contents: read
+  actions: read  # Required for checking workflow status
 
 jobs:
+  # Check if tests have passed when triggered by push to develop
+  check-tests:
+    name: Check Test Status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    permissions:
+      actions: read
+    outputs:
+      tests-passed: ${{ steps.check.outputs.conclusion }}
+    steps:
+      - name: Wait for tests to complete
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Initial delay to allow Python package workflow to start
+            console.log('Waiting 15 seconds for Python package workflow to initialize...');
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            
+            // Wait up to 5 minutes for the Python package workflow to complete
+            const maxAttempts = 30;
+            const delay = 10000; // 10 seconds
+            
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+              const runs = await github.rest.actions.listWorkflowRunsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'python-package.yml',
+                head_sha: context.sha,
+                per_page: 5
+              });
+              
+              console.log(`Attempt ${attempt + 1}: Found ${runs.data.workflow_runs.length} workflow runs for SHA ${context.sha}`);
+              
+              if (runs.data.workflow_runs.length > 0) {
+                // Find the Python package workflow run
+                const run = runs.data.workflow_runs.find(r => r.name === 'Python package');
+                
+                if (run) {
+                  console.log(`Python package workflow: status=${run.status}, conclusion=${run.conclusion || 'pending'}, id=${run.id}`);
+                  
+                  if (run.status === 'completed') {
+                    if (run.conclusion === 'success') {
+                      core.setOutput('conclusion', 'success');
+                      console.log('✅ Tests passed successfully!');
+                      return;
+                    } else {
+                      core.setOutput('conclusion', run.conclusion);
+                      throw new Error(`❌ Tests failed with status: ${run.conclusion}`);
+                    }
+                  }
+                } else {
+                  console.log('Python package workflow not found yet, waiting...');
+                }
+              } else {
+                console.log('No workflow runs found yet for this SHA, waiting...');
+              }
+              
+              if (attempt < maxAttempts - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+            }
+            
+            throw new Error('Timeout waiting for tests to complete after 5 minutes');
+
+  # Run tests for PRs only
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-
+    if: github.event_name == 'pull_request'
+    
     steps:
     - uses: actions/checkout@v4
-
+    
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
-    - name: Install dependencies and project
-      run: poetry install --with dev
-
-    - name: Check code formatting
-      run: |
-        poetry run black --check src/ tests/ examples/
-        poetry run isort --check-only src/ tests/ examples/
-
-    - name: Run type checking
-      run: poetry run mypy src/ || true  # Allow mypy to fail for now
-
+    
+    - name: Install poetry
+      run: pipx install poetry
+    
+    - name: Install dependencies
+      run: poetry install --no-interaction
+    
     - name: Run tests
-      run: poetry run pytest tests/ -v --cov=eigenda --cov-report=term-missing
-
-    - name: Test imports
-      run: |
-        poetry run python -c "import eigenda; print(eigenda.__version__)"
-        poetry run python -c "from eigenda import MockDisperserClient, DisperserClientV2, DisperserClientV2Full"
-
+      run: poetry run pytest tests/ -v
+    
   build:
     name: Build Distribution Packages
-    needs: test
     runs-on: ubuntu-latest
+    needs: [test, check-tests]
+    if: |
+      always() && 
+      !contains(needs.*.result, 'failure') && 
+      !contains(needs.*.result, 'cancelled') &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
 
     steps:
     - uses: actions/checkout@v4
@@ -89,10 +146,8 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
+    - name: Install poetry
+      run: pipx install poetry
 
     - name: Set version for TestPyPI
       if: (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')) && !startsWith(github.ref, 'refs/tags/')
@@ -138,13 +193,19 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     # Publish to TestPyPI on:
-    # - Every push to develop branch
     # - Pull requests to master/main branch
+    # - Push to develop branch (after tests pass)
+    # - Successful workflow_run from develop branch
     # - Manual workflow dispatch with publish_to_testpypi=true
     if: |
-      (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
+      always() &&
+      needs.build.result == 'success' &&
+      (
+        (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
+      )
 
     environment:
       name: testpypi

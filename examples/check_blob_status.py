@@ -127,9 +127,8 @@ def check_blob_status_example():
     print(f"  {BlobStatus.UNKNOWN.value}: {BlobStatus.UNKNOWN.name} - Error or unknown state")
     print(f"  {BlobStatus.QUEUED.value}: {BlobStatus.QUEUED.name} - Blob queued for processing")
     print(f"  {BlobStatus.ENCODED.value}: {BlobStatus.ENCODED.name} - Blob encoded into chunks")
-    print(
-        f"  {BlobStatus.GATHERING_SIGNATURES.value}: {BlobStatus.GATHERING_SIGNATURES.name} - Collecting node signatures"
-    )
+    status = BlobStatus.GATHERING_SIGNATURES
+    print(f"  {status.value}: {status.name} - Collecting node signatures")
     print(f"  {BlobStatus.COMPLETE.value}: {BlobStatus.COMPLETE.name} - Successfully dispersed")
     print(f"  {BlobStatus.FAILED.value}: {BlobStatus.FAILED.name} - Dispersal failed")
 

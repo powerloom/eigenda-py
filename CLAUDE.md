@@ -11,18 +11,27 @@ The Python client provides full Python support for EigenDA v2, with feature pari
 The project now uses Poetry and follows a standard Python package structure with `src/` layout:
 
 - `src/eigenda/` - Main package with client implementation
-  - `client.py` - Mock client for basic testing (working)
-  - `client_v2.py` - Full gRPC v2 client (authentication issues)
+  - `client.py` - Mock client for basic testing (fully working)
+  - `client_v2.py` - Full gRPC v2 client (fully working)
+  - `client_v2_full.py` - Extended client with automatic payment handling
   - `auth/signer.py` - ECDSA signing implementation
   - `codec/blob_codec.py` - Data encoding/decoding
   - `core/types.py` - Core type definitions
-  - `utils/serialization.py` - Blob key calculation (needs work)
+  - `utils/serialization.py` - Blob key calculation (fully working)
+  - `payment.py` - Payment calculation and accountant classes
+  - `config.py` - Network configuration management
+  - `retriever.py` - Blob retrieval implementation
 - `src/eigenda/grpc/` - Generated gRPC stubs from proto files
 - `examples/` - Example scripts demonstrating usage
   - `minimal_client.py` - Works with mock client
-  - `test_v2_client.py` - Tests real gRPC (auth fails)
+  - `test_v2_client.py` - Tests real gRPC (fully working)
   - `full_example.py` - Complete dispersal/retrieval example
-- `tests/` - Test suite with good coverage
+  - `test_reservation_account.py` - Reservation detection and testing
+  - `test_both_payments.py` - Tests both payment methods
+  - `check_payment_vault.py` - Check PaymentVault contract state
+  - `check_blob_status.py` - Monitor blob dispersal progress
+  - `check_existing_blob_status.py` - Check status of existing blobs
+- `tests/` - Comprehensive test suite with 95% coverage (332 tests)
 - `scripts/` - Utility scripts for gRPC generation
   - `generate_grpc.py` - Generates Python code from protos
   - `fix_grpc_imports.py` - Fixes import issues in generated code
@@ -68,7 +77,7 @@ Data must be encoded before dispersal:
 ✅ **All features fully implemented and working:**
 - ✅ Basic client structure implemented
 - ✅ gRPC communication working
-- ✅ Data encoding/decoding implemented  
+- ✅ Data encoding/decoding implemented
 - ✅ Mock DisperserClient for testing
 - ✅ Full DisperserClientV2 with gRPC
 - ✅ Signature verification working (fixed recovery ID)
@@ -98,7 +107,7 @@ To test the client:
 
 **Unit Tests** (178 tests):
 - `test_client_v2_full.py` - DisperserClientV2Full with payment handling
-- `test_codec.py` - Blob encoding/decoding 
+- `test_codec.py` - Blob encoding/decoding
 - `test_serialization.py` - Blob key calculation
 - `test_payment.py` - Payment calculations
 - `test_g1_g2_decompression.py` - Point decompression
@@ -180,7 +189,7 @@ The project uses Poetry for dependency management with the following structure:
 
 **Core Dependencies:**
 - `grpcio` and `grpcio-tools` for gRPC
-- `web3` and `eth-account` for Ethereum functionality  
+- `web3` and `eth-account` for Ethereum functionality
 - `protobuf` for message serialization
 - `cryptography` and `pycryptodome` for cryptographic operations
 - `python-dotenv` for environment variable management
@@ -277,7 +286,7 @@ The project uses GitHub Actions for automated publishing:
 The EigenDA Python client v2 is now **fully functional** and ready for production use. All core features have been implemented:
 
 1. ✅ **Complete Authentication** - ECDSA signatures with proper key derivation
-2. ✅ **Blob Dispersal** - Full gRPC v2 protocol support  
+2. ✅ **Blob Dispersal** - Full gRPC v2 protocol support
 3. ✅ **Dual Payment Methods** - Both reservation-based and on-demand payments
 4. ✅ **Network Configuration** - Automatic detection for Sepolia, Holesky, and Mainnet
 5. ✅ **G1/G2 Point Decompression** - Native Python implementation matching gnark-crypto
@@ -294,7 +303,7 @@ The project now has a comprehensive test suite:
   - 178 unit tests covering core functionality
   - 33 integration tests with mock gRPC servers
   - Tests run without network dependencies
-  
+
 - **Key Areas Tested**:
   - Client creation and configuration
   - Payment state management (reservation and on-demand)
@@ -339,7 +348,7 @@ The project now includes comprehensive integration tests that verify the complet
 ## Future Enhancements (Optional)
 
 1. ~~Add integration tests with real gRPC server~~ ✅ COMPLETED
-2. Implement local KZG commitment calculation  
+2. Implement local KZG commitment calculation
 3. Add more relay endpoints for blob retrieval
 4. Performance optimizations for large blobs
 5. Add streaming support for large blob operations
@@ -375,6 +384,48 @@ Key discoveries made during development:
 - G2 points use quadratic extension field Fp2 for decompression
 
 ## Recent Updates
+
+### Development Workflow Enhancements (August 6th 2025)
+
+1. **Pre-commit Hooks Configured (Check-Only Mode)**:
+   - Runs black, isort, and flake8 on every git commit
+   - **Check-only mode**: Prevents commits with issues but doesn't auto-fix
+   - Manual fix option via `./scripts/verify_code_quality.sh --fix`
+   - Version-synchronized tools between Poetry and pre-commit:
+     - black: 25.1.0 (100 char line length)
+     - isort: 6.0.1 (black compatibility)
+     - flake8: 7.3.0 (configured for black compatibility)
+   - Configuration in `.pre-commit-config.yaml`
+   - Install with: `poetry run pre-commit install`
+
+2. **Code Quality Verification Script**:
+   - Located at `scripts/verify_code_quality.sh`
+   - Default mode: Checks code quality without modifications
+   - Fix mode (`--fix` or `-f` flag): Auto-formats code
+   - Provides developer control over when to apply fixes
+   - Example usage:
+     ```bash
+     # Check only (no modifications)
+     ./scripts/verify_code_quality.sh
+     
+     # Auto-fix formatting issues
+     ./scripts/verify_code_quality.sh --fix
+     ```
+
+3. **Enhanced GitHub Actions Workflow**:
+   - Separated jobs for lint, test, security, build, and coverage
+   - Multi-platform testing (Ubuntu, macOS, Windows)
+   - Python 3.9-3.13 support
+   - Security scanning with bandit and safety
+   - Automatic PR comments with coverage metrics
+   - Build validation with twine
+
+4. **Code Quality Improvements**:
+   - All files pass black formatting (100 char line length)
+   - All imports properly sorted with isort
+   - Zero flake8 linting errors (E203, W503 ignored for black compatibility)
+   - 95% test coverage maintained
+   - Tool versions synchronized between Poetry dependencies and pre-commit hooks
 
 ### Example Files Fixed and Enhanced (August 6th 2025)
 All example files have been updated for compatibility with the latest code changes:
@@ -563,7 +614,7 @@ Comparison with other clients:
   - Used `autopep8` to fix PEP8 style issues
   - Excluded generated gRPC files from linting
 - GitHub Actions workflow improvements:
-  - Added pip caching for faster CI runs  
+  - Added pip caching for faster CI runs
   - Updated to latest action versions (v4)
   - Added coverage artifact uploads
   - Integrated linting checks in CI pipeline
@@ -572,7 +623,7 @@ Comparison with other clients:
 - Fixed import order issues in all 7 example files that were importing from `eigenda` before setting up `sys.path`
 - Files fixed:
   - `blob_retrieval_example.py`
-  - `check_payment_vault.py` 
+  - `check_payment_vault.py`
   - `dispersal_with_retrieval_support.py`
   - `full_example.py`
   - `minimal_client.py`
@@ -631,13 +682,20 @@ Comparison with other clients:
 - **Result**: All example files now follow Python best practices with imports at the top
 
 ### CI/CD Pipeline
-The project uses GitHub Actions for continuous integration:
-- Runs tests on Python 3.9, 3.10, 3.11, and 3.12
-- Lints code with flake8
-- Generates coverage reports
-- Caches pip dependencies for faster builds
-- Uploads coverage artifacts
+The project uses GitHub Actions for comprehensive continuous integration:
+
+**Multi-stage Pipeline**:
+- **Lint Job**: Code formatting (black, isort) and linting (flake8) checks
+- **Test Job**: Tests across Python 3.9-3.13 on Ubuntu, macOS, and Windows
+- **Security Job**: Scans with bandit and checks dependencies with safety
+- **Build Job**: Validates package building and PyPI compatibility
+- **Coverage Job**: Generates reports and comments on PRs
+
+**Local Development**:
+- **Pre-commit hooks**: Automatically run black, isort, and flake8 on every commit
+- **Configuration**: `.pre-commit-config.yaml` ensures consistent code quality
+- **Manual checks**: `poetry run pre-commit run --all-files`
 
 ## Credits
 
-Developed by [Powerloom](https://powerloom.io/) - Author: Swaroop Hegde (swaroop@powerloom.io)
+Developed and mainted by [Powerloom](https://powerloom.io/) - Original author: Swaroop Hegde (email@swaroophegde.com)

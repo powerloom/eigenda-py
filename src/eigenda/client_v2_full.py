@@ -19,7 +19,7 @@ from eigenda.codec.blob_codec import encode_blob_data
 from eigenda.core.types import BlobKey, BlobStatus, PaymentType, QuorumID
 from eigenda.grpc.common.v2 import common_v2_pb2
 from eigenda.grpc.disperser.v2 import disperser_v2_pb2
-from eigenda.payment import PaymentConfig, SimpleAccountant, calculate_payment_increment
+from eigenda.payment import PaymentConfig, SimpleAccountant
 
 
 class DisperserClientV2Full(DisperserClientV2):
@@ -109,9 +109,8 @@ class DisperserClientV2Full(DisperserClientV2):
                     self.signer.get_account_id(), self.payment_config
                 )
 
-                print(
-                    f"  ✓ Active reservation found (expires in {reservation.end_timestamp - current_time}s)"
-                )
+                expires_in = reservation.end_timestamp - current_time
+                print(f"  ✓ Active reservation found (expires in {expires_in}s)")
                 return
 
         # Check for on-demand payment

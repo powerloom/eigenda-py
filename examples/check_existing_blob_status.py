@@ -91,9 +91,8 @@ def main():
         print("  Holesky: 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109")
         print("  Sepolia: 95ae8a8aa08fec0354f439eef31b351da97972916f0bb1c8b4ff8e50a82dc080")
         print("\nExample usage:")
-        print(
-            "  python check_existing_blob_status.py 3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109"
-        )
+        example_key = "3aaf8a5f848e53a5ecaff30de372a5c0931468d0f46b64fcc5d3984692c0f109"
+        print(f"  python check_existing_blob_status.py {example_key}")
         return
 
     blob_key_hex = sys.argv[1]

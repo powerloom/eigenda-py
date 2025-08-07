@@ -9,7 +9,7 @@ def fix_grpc_imports():
     root = Path(__file__).parent.parent / "src" / "eigenda" / "grpc"
 
     # Pattern to match the double import issue
-    pattern = re.compile(r'from (eigenda\.grpc\.[.\w]+) import eigenda\.grpc\.([.\w]+) as')
+    pattern = re.compile(r"from (eigenda\.grpc\.[.\w]+) import eigenda\.grpc\.([.\w]+) as")
 
     # Fix both pb2 and pb2_grpc files
     for py_file in root.rglob("*.py"):
@@ -17,7 +17,7 @@ def fix_grpc_imports():
             content = py_file.read_text()
 
             # Fix the double import pattern
-            fixed_content = pattern.sub(r'from \1 import \2 as', content)
+            fixed_content = pattern.sub(r"from \1 import \2 as", content)
 
             if fixed_content != content:
                 print(f"Fixing imports in {py_file.relative_to(root.parent.parent)}")
