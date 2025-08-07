@@ -132,8 +132,8 @@ jobs:
     needs: [test, check-tests]
     if: |
       always() && 
-      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
-      (needs.check-tests.result == 'success' || needs.check-tests.result == 'skipped') &&
+      !contains(needs.*.result, 'failure') && 
+      !contains(needs.*.result, 'cancelled') &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
 
     steps:
