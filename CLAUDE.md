@@ -213,17 +213,17 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Navigate to the project directory
 cd eigenda-py/python-client
 
-# Install dependencies using UV
-uv sync
+# Install all dependencies for development (recommended)
+uv sync --all-extras
 
-# Install with development dependencies
-uv sync --dev
-
-# Install with optional extras
-uv sync --extra docs --extra notebook
-
-# Run commands directly (no activation needed)
+# This installs everything: main deps + dev tools + docs + notebook
+# After this, you can run commands without additional flags:
+uv run pytest tests/
 uv run python examples/minimal_client.py
+
+# Alternative: Install only what you need
+# uv sync --dev  # Just dev tools (requires --dev flag when running)
+# uv run --dev pytest tests/  # Must use --dev flag with commands
 ```
 
 #### Using a specific Python version with UV

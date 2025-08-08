@@ -37,14 +37,18 @@ brew install uv
 git clone https://github.com/powerloom/eigenda-py.git
 cd eigenda-py/python-client
 
-# Install all dependencies (creates a virtual environment automatically)
-uv sync
+# Install all dependencies for development (RECOMMENDED)
+uv sync --all-extras
 
-# Install with development dependencies
-uv sync --dev
+# This installs everything: main deps + dev tools + docs + notebook
+# After this, you can run commands without additional flags:
+# uv run pytest tests/
+# uv run black src/
+# uv run python examples/minimal_client.py
 
-# Install with optional extras (docs, notebook)
-uv sync --extra docs --extra notebook
+# Alternative: Install only what you need
+# uv sync --dev  # Just dev tools (requires --dev flag when running)
+# uv run --dev pytest tests/  # Must use --dev flag with commands
 ```
 
 ### Managing the virtual environment
@@ -114,7 +118,7 @@ uv run python examples/check_payment_vault.py
 ### Running tests
 
 ```bash
-# Run all tests
+# Run all tests (requires uv sync --all-extras first)
 uv run pytest
 
 # Run with coverage
@@ -205,7 +209,7 @@ If you're migrating from Poetry:
 
 1. **Lock file**: UV will read `pyproject.toml` and generate its own `uv.lock`
 2. **Commands mapping**:
-   - `poetry install` → `uv sync`
+   - `poetry install` → `uv sync --all-extras` (recommended for dev)
    - `poetry add package` → `uv add package`
    - `poetry remove package` → `uv remove package`
    - `poetry run python` → `uv run python`
@@ -241,6 +245,18 @@ If you're migrating from Poetry:
    ```bash
    # Always use uv run to ensure proper environment
    uv run python script.py
+   ```
+
+5. **pytest not found error**
+   ```bash
+   # Make sure to install all extras for development
+   uv sync --all-extras
+   # Then pytest will work without --dev flag
+   uv run pytest tests/
+   
+   # Alternative: use --dev flag if only dev deps installed
+   uv sync --dev
+   uv run --dev pytest tests/
    ```
 
 ## Best Practices

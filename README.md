@@ -74,14 +74,18 @@ cd powerloom-eigenda
 # Install UV if you haven't already
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install project dependencies
-uv sync
+# Install all dependencies for development (recommended)
+uv sync --all-extras
 
-# Or install with development dependencies
-uv sync --dev
+# This installs everything: main deps + dev tools + docs + notebook
+# After this, you can run commands without additional flags:
+# uv run pytest tests/
+# uv run black src/
+# uv run flake8 src/
 
-# Install with optional groups (docs, notebook)
-uv sync --extra docs --extra notebook
+# Alternative: Install only what you need
+# uv sync --dev  # Just dev tools (note: requires --dev flag when running)
+# uv run --dev pytest tests/  # Must use --dev flag
 ```
 
 For detailed UV usage instructions, see our [UV Guide](docs/UV_GUIDE.md).

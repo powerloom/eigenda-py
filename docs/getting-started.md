@@ -17,8 +17,13 @@ cd powerloom-eigenda
 # Install UV if you haven't already
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies
-uv sync
+# Install all dependencies for development (recommended)
+uv sync --all-extras
+
+# This installs everything including dev tools
+# After this, you can run commands without additional flags:
+# uv run pytest tests/
+# uv run python examples/minimal_client.py
 ```
 
 ## Configuration
