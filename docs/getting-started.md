@@ -8,12 +8,22 @@ Install the EigenDA Python client using pip:
 pip install powerloom-eigenda
 ```
 
-Or install from source using Poetry:
+Or install from source using UV:
 
 ```bash
 git clone https://github.com/powerloom/eigenda-py powerloom-eigenda
 cd powerloom-eigenda
-poetry install
+
+# Install UV if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install all dependencies for development (recommended)
+uv sync --all-extras
+
+# This installs everything including dev tools
+# After this, you can run commands without additional flags:
+# uv run pytest tests/
+# uv run python examples/minimal_client.py
 ```
 
 ## Configuration
@@ -205,5 +215,5 @@ The `examples/` directory contains working examples for various use cases:
 
 Run any example:
 ```bash
-poetry run python examples/minimal_client.py
+uv run python examples/minimal_client.py
 ```

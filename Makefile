@@ -2,29 +2,29 @@
 
 # Install production dependencies
 install:
-	pip install -r requirements.txt
+	uv sync
 
 # Install development dependencies
 install-dev:
-	pip install -e ".[dev]"
+	uv sync --all-extras
 
 # Run tests
 test:
-	pytest tests/ -v
+	uv run pytest tests/ -v
 
 # Run tests with coverage
 test-cov:
-	pytest tests/ -v --cov=eigenda --cov-report=term-missing
+	uv run pytest tests/ -v --cov=eigenda --cov-report=term-missing
 
 # Run linting
 lint:
-	flake8 src/ tests/
-	mypy src/
+	uv run flake8 src/ tests/
+	uv run mypy src/
 
 # Format code
 format:
-	black src/ tests/
-	isort src/ tests/
+	uv run black src/ tests/
+	uv run isort src/ tests/
 
 # Clean build artifacts
 clean:
@@ -34,12 +34,12 @@ clean:
 
 # Build package
 build: clean
-	python -m build
+	uv build
 
 # Generate gRPC code from proto files
 generate-grpc:
-	python scripts/generate_grpc.py
+	uv run python scripts/generate_grpc.py
 
 # Run the example
 example:
-	python examples/minimal_client.py
+	uv run python examples/minimal_client.py

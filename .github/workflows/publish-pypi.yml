@@ -117,14 +117,28 @@ jobs:
       with:
         python-version: '3.12'
     
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+        cache-suffix: "test-pr"
+    
+    - name: Cache virtual environment
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-test-pr-${{ hashFiles('uv.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-test-pr-
     
     - name: Install dependencies
-      run: poetry install --no-interaction
+      if: steps.cache-venv.outputs.cache-hit != 'true'
+      run: uv sync --all-extras --frozen
     
     - name: Run tests
-      run: poetry run pytest tests/ -v
+      run: uv run pytest tests/ -v
     
   build:
     name: Build Distribution Packages
@@ -146,13 +160,17 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install poetry
-      run: pipx install poetry
+    - name: Install UV
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+        cache-suffix: "build"
 
     - name: Set version for TestPyPI
       if: (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')) && !startsWith(github.ref, 'refs/tags/')
       run: |
-        # Get current version from pyproject.toml (specifically from [tool.poetry] section)
+        # Get current version from pyproject.toml (from [project] section)
         CURRENT_VERSION=$(grep '^version = ' pyproject.toml | head -1 | cut -d'"' -f2)
 
         # Create appropriate dev version
@@ -173,7 +191,7 @@ jobs:
         rm pyproject.toml.bak
 
     - name: Build package
-      run: poetry build
+      run: uv build
 
     - name: Check build artifacts
       run: |
