@@ -152,8 +152,11 @@ jobs:
       always() && 
       !contains(needs.*.result, 'failure') && 
       !contains(needs.*.result, 'cancelled') &&
-      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
-      (needs.check-tests.result == 'success' || needs.check-tests.result == 'skipped') &&
+      (
+        (github.event_name == 'release' && needs.test.result == 'success') ||
+        (startsWith(github.ref, 'refs/tags/v') && needs.test.result == 'success') ||
+        (needs.test.result == 'success' || (needs.test.result == 'skipped' && needs.check-tests.result == 'success'))
+      ) &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
 
     steps:
