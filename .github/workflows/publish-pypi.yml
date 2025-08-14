@@ -103,11 +103,15 @@ jobs:
             
             throw new Error('Timeout waiting for tests to complete after 5 minutes');
 
-  # Run tests for PRs only
+  # Run tests for PRs, releases, and version tags
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'release' ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.event_name == 'workflow_dispatch'
     
     steps:
     - uses: actions/checkout@v4
@@ -148,6 +152,8 @@ jobs:
       always() && 
       !contains(needs.*.result, 'failure') && 
       !contains(needs.*.result, 'cancelled') &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+      (needs.check-tests.result == 'success' || needs.check-tests.result == 'skipped') &&
       (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
 
     steps:
