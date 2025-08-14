@@ -1,23 +1,16 @@
 name: Publish to PyPI and TestPyPI
 
 on:
-  workflow_run:
-    workflows: ["Python package"]
-    types: [completed]
-    branches:
-      - develop
-      - master
-      - main
-  pull_request:
-    branches:
-      - master
-      - main
-    types: [opened, synchronize]
   push:
     branches:
       - develop  # Publish to TestPyPI on develop pushes
     tags:
       - 'v*'  # Publish to PyPI on version tags
+  pull_request:
+    branches:
+      - master
+      - main
+    types: [opened, synchronize]
   release:
     types: [published]  # Trigger when a release is published via GitHub UI
   workflow_dispatch:
@@ -38,7 +31,7 @@ permissions:
   actions: read  # Required for checking workflow status
 
 jobs:
-  # Check if tests have passed when triggered by push to develop
+  # Check if tests have passed when triggered by push to develop (not needed for tags/releases)
   check-tests:
     name: Check Test Status
     runs-on: ubuntu-latest
@@ -156,8 +149,7 @@ jobs:
         (github.event_name == 'release' && needs.test.result == 'success') ||
         (startsWith(github.ref, 'refs/tags/v') && needs.test.result == 'success') ||
         (needs.test.result == 'success' || (needs.test.result == 'skipped' && needs.check-tests.result == 'success'))
-      ) &&
-      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+      )
 
     steps:
     - uses: actions/checkout@v4
@@ -222,7 +214,6 @@ jobs:
     # Publish to TestPyPI on:
     # - Pull requests to master/main branch
     # - Push to develop branch (after tests pass)
-    # - Successful workflow_run from develop branch
     # - Manual workflow dispatch with publish_to_testpypi=true
     if: |
       always() &&
@@ -230,7 +221,6 @@ jobs:
       (
         (github.event_name == 'pull_request' && (github.base_ref == 'master' || github.base_ref == 'main')) ||
         (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-        (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.conclusion == 'success') ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_testpypi == 'true')
       )
 
